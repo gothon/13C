@@ -1,0 +1,58 @@
+[Project]
+Version=3
+Description=Chime of The Golden House
+Api=fb (FreeBASIC)
+Grouping=1
+AddMainFiles=1
+AddModuleFiles=1
+ResExport=
+CompileIfNewer=1
+IncVersion=0
+RunCmd=0
+[Make]
+Module=Module Build,fbc -c -gen gcc -O 3
+Recompile=2
+Current=1
+1=Windows Console,fbc -s console -gen gcc -O 3
+2=Windows GUI,fbc -s gui -gen gcc -O 3
+Output=
+Run=
+Delete=
+[TabOrder]
+TabOrder=1,4,3,2,1001,1002,5,1003,6,1004,1005
+[File]
+1=CoTGH.bas
+2=vec3f.bi
+3=vec2f.bi
+1001=vec2f.bas
+1002=vec3f.bas
+4=vertex.bi
+5=projection.bi
+1003=projection.bas
+6=vecmath.bi
+1004=vecmath.bas
+1005=vertex.bas
+[BreakPoint]
+1=
+2=
+3=
+1001=
+1002=
+4=
+5=
+1003=
+6=
+1004=
+1005=
+[FileInfo]
+1=0,25,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2=0,28,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+4=0,18,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+3=0,53,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1001=0,67,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1002=0,76,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+5=0,9,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1003=0,15,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+6=0,24,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1004=0,28,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1005=0,10,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

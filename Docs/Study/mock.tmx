@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" tiledversion="1.1.2" orientation="orthogonal" renderorder="right-down" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextobjectid="31">
+ <tileset firstgid="1" name="collision" tilewidth="16" tileheight="16" tilecount="84" columns="21">
+  <image source="../../../Nomera/Kickstarter Demo/Fixed Mountain Levels (see FIXED LAYERS folder)/CShapes (3).bmp" trans="ff00ff" width="336" height="64"/>
+ </tileset>
+ <layer name="meta" width="20" height="15">
+  <data encoding="base64">
+   AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8AAAAOgAAADoAAAA6AAAAOgAAADoAAAA6AAAAOgAAABYAAAABAAAAAQAAADoAAAA6AAAAAAAAAAAAAAA6AAAAOgAAADoAAAA6AAAAOgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA6AAAAOgAAADoAAAA6AAAAOgAAABYAAAABAAAAAQAAADoAAAA6AAAAAAAAADoAAAA6AAAAAAAAADoAAAA6AAAAOgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAAAA6AAAAOgAAADoAAAA6AAAAOgAAADoAAAA6AAAAAQAAAAEAAAAAAAAAFgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAADoAAAAWAAAAOgAAADoAAAA6AAAAOgAAADoAAAA6AAAAOgAAADoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAABYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAFgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAADoAAAAWAAAAOgAAADoAAAA6AAAAOgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAABYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAA
+  </data>
+ </layer>
+ <objectgroup name="objects">
+  <object id="1" name="globe" x="128" y="160" width="64" height="64"/>
+  <object id="5" name="desk" x="224" y="192" width="64" height="32"/>
+  <object id="6" x="387.818" y="168.545" width="0.181818" height="0.181818"/>
+  <object id="9" name="book" x="16" y="160" width="16" height="32"/>
+  <object id="11" name="book" x="64" y="160" width="16" height="32"/>
+  <object id="12" name="book" x="96" y="160" width="16" height="32"/>
+  <object id="13" name="book" x="16" y="112" width="16" height="32"/>
+  <object id="14" name="book" x="64" y="112" width="16" height="32"/>
+  <object id="15" name="book" x="96" y="112" width="16" height="32"/>
+  <object id="16" name="book" x="127.091" y="111.818" width="16" height="32"/>
+  <object id="17" name="book" x="128" y="64" width="16" height="32"/>
+  <object id="18" name="book" x="64" y="64" width="16" height="32"/>
+  <object id="19" name="book" x="16" y="16" width="16" height="32"/>
+  <object id="20" name="book" x="16" y="64" width="16" height="32"/>
+  <object id="21" name="book" x="96" y="16" width="16" height="32"/>
+  <object id="22" name="book" x="128" y="16" width="16" height="32"/>
+  <object id="23" name="book" x="208" y="80" width="16" height="32"/>
+  <object id="24" name="book" x="240" y="80" width="16" height="32"/>
+  <object id="25" name="book" x="272" y="80" width="16" height="32"/>
+  <object id="26" name="book" x="224" y="48" width="16" height="32"/>
+  <object id="27" name="book" x="192" y="0" width="16" height="32"/>
+  <object id="28" name="book" x="256" y="48" width="16" height="32"/>
+  <object id="29" name="book" x="224" y="0" width="16" height="32"/>
+  <object id="30" name="book" x="256" y="0" width="16" height="32"/>
+ </objectgroup>
+</map>
