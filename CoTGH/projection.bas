@@ -3,7 +3,7 @@
 #Include "vecmath.bi"
 #Include "vec2f.bi"
 
-'Constants to make indicies into the translation matrix more clear.
+'Constants to make indices into the view matrix more clear.
 Const As UInteger MAT_X_AXIS = 0
 Const As UInteger MAT_Y_AXIS = 3
 Const As UInteger MAT_Z_AXIS = 6
@@ -65,9 +65,12 @@ Sub Projection.placeAndLookAt(ByRef p_ As Const Vec3F, ByRef lookP As Const Vec3
 End Sub
 
 Sub Projection.updateView()
-  v(MAT_VIEW_T + MAT_X) = -vecmath.dot(Vec3F(v(MAT_X_AXIS + MAT_X), v(MAT_Y_AXIS + MAT_X), v(MAT_Z_AXIS + MAT_X)), p_)
-  v(MAT_VIEW_T + MAT_Y) = -vecmath.dot(Vec3F(v(MAT_X_AXIS + MAT_Y), v(MAT_Y_AXIS + MAT_Y), v(MAT_Z_AXIS + MAT_Y)), p_)
-  v(MAT_VIEW_T + MAT_Z) = -vecmath.dot(Vec3F(v(MAT_X_AXIS + MAT_Z), v(MAT_Y_AXIS + MAT_Z), v(MAT_Z_AXIS + MAT_Z)), p_)
+  v(MAT_VIEW_T + MAT_X) = _
+      -vecmath.dot(Vec3F(v(MAT_X_AXIS + MAT_X), v(MAT_Y_AXIS + MAT_X), v(MAT_Z_AXIS + MAT_X)), p_)
+  v(MAT_VIEW_T + MAT_Y) = _
+      -vecmath.dot(Vec3F(v(MAT_X_AXIS + MAT_Y), v(MAT_Y_AXIS + MAT_Y), v(MAT_Z_AXIS + MAT_Y)), p_)
+  v(MAT_VIEW_T + MAT_Z) = _
+      -vecmath.dot(Vec3F(v(MAT_X_AXIS + MAT_Z), v(MAT_Y_AXIS + MAT_Z), v(MAT_Z_AXIS + MAT_Z)), p_)
 End Sub
   
 Sub Projection.placeInternal(ByRef p_ As Const Vec3F)
@@ -114,8 +117,17 @@ End Function
 Const Function Projection.toCamera(ByRef vert As Const Vec3F) As Vec3F
   With vert
     Return Vec3f( _
-        .x*v(MAT_X_AXIS + MAT_X) + .y*v(MAT_Y_AXIS + MAT_X) + .z*v(MAT_Z_AXIS + MAT_X) + v(MAT_VIEW_T + MAT_X), _
-        .x*v(MAT_X_AXIS + MAT_Y) + .y*v(MAT_Y_AXIS + MAT_Y) + .z*v(MAT_Z_AXIS + MAT_Y) + v(MAT_VIEW_T + MAT_Y), _
-        .x*v(MAT_X_AXIS + MAT_Z) + .y*v(MAT_Y_AXIS + MAT_Z) + .z*v(MAT_Z_AXIS + MAT_Z) + v(MAT_VIEW_T + MAT_Z))
+        .x*v(MAT_X_AXIS + MAT_X) _
+			+ .y*v(MAT_Y_AXIS + MAT_X) _
+			+ .z*v(MAT_Z_AXIS + MAT_X) _
+			+ v(MAT_VIEW_T + MAT_X), _
+        .x*v(MAT_X_AXIS + MAT_Y) _
+			+ .y*v(MAT_Y_AXIS + MAT_Y) _
+			+ .z*v(MAT_Z_AXIS + MAT_Y) _
+			+ v(MAT_VIEW_T + MAT_Y), _
+        .x*v(MAT_X_AXIS + MAT_Z) _
+			+ .y*v(MAT_Y_AXIS + MAT_Z) _
+			+ .z*v(MAT_Z_AXIS + MAT_Z) _
+			+ v(MAT_VIEW_T + MAT_Z))
   End With
 End Function
