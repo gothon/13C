@@ -26,7 +26,7 @@ Type Projection
   Declare Const Function p() As Vec3F
   
   'Return a vertex whose position and texture coordinates have been projected
-  Declare Const Function project(ByRef vertex As Const Vertex) As Vertex
+  Declare Const Sub project(ByRef in As Const Vertex, out As Vertex ptr)
   
  Private:
   Declare Sub updateView()

@@ -1,5 +1,7 @@
 #Include "vecmath.bi"
 
+#Include "debuglog.bi"
+
 Namespace vecmath
   
 Function dot(ByRef lhs As Const Vec2F, ByRef rhs As Const Vec2F) As Single
@@ -19,11 +21,15 @@ Function cross(ByRef lhs As Const Vec3F, ByRef rhs As Const Vec3F) As Vec3F
 End Function
 
 Sub normalize(v As Vec2F Const Ptr)
-  *v /= v->m()
+  Dim As Single m = v->m()
+  DEBUG_ASSERT(m <> 0.0f)
+  *v /= m
 End Sub
 
 Sub normalize(v As Vec3F Const Ptr)
-  *v /= v->m()
+  Dim As Single m = v->m()
+  DEBUG_ASSERT(m <> 0.0f)
+  *v /= m
 End Sub
 
 End Namespace

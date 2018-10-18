@@ -15,7 +15,6 @@ Const As UInteger MAT_Z = 2
 
 Constructor Projection( _
     viewWidth As Integer, viewHeight As Integer, planeWidth As Single, planeHeight As Single, planeDepth As Single)
-
   This.halfViewWidth = CSng(viewWidth)*0.5f
   This.halfViewHeight = CSng(viewHeight)*0.5f
   
@@ -103,16 +102,16 @@ Const Function Projection.p() As Vec3F
   Return p_
 End Function
   
-Const Function Projection.project(ByRef vertex As Const Vertex) As Vertex
-  Dim As Vec3f proj = toCamera(vertex.p)
+Const Sub Projection.project(ByRef in As Const Vertex, out As Vertex Ptr)
+  out->p = toCamera(in.p)
   
-  proj.z = planeDepth / proj.z
+  out->p.z = planeDepth / out->p.z
 
-  proj.x = proj.x*proj.z*planeWMul + halfViewWidth
-  proj.y = -proj.y*proj.z*planeHMul + halfViewHeight
+  out->p.x = out->p.x*out->p.z*planeWMul + halfViewWidth
+  out->p.y = -out->p.y*out->p.z*planeHMul + halfViewHeight
   
-  Return Type(proj, vertex.t * proj.z, vertex.c)
-End Function
+  out->t = in.t * out->p.z
+End Sub
 
 Const Function Projection.toCamera(ByRef vert As Const Vec3F) As Vec3F
   With vert

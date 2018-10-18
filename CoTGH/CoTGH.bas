@@ -1,42 +1,40 @@
-#Include "projection.bi"
+
 #Include "vertex.bi"
 #Include "vec3f.bi"
 #Include "fbgfx.bi"
+#Include "raster.bi"
+#Include "image32.bi"
 
-Dim As Projection proj = Projection(1024, 768, 5, 5, 2)
+ScreenRes 1024, 768, 32, 2
+ScreenSet 1,0
 
-Dim As Vertex cube(0 To 7) = { _
-    Type(Vec3F(-1, 1, 1)), Type(Vec3F(1, 1, 1)), Type(Vec3F(1, 1, -1)), Type(Vec3F(-1, 1, -1)), _
-    Type(Vec3F(-1, -1, 1)), Type(Vec3F(1, -1, 1)), Type(Vec3F(1, -1, -1)), Type(Vec3F(-1, -1, -1))}
-    
-Dim As Vertex scn(0 To 7)
 
-ScreenRes 1024, 768, 32
+Dim As Image32 a = Image32(16, 16)
+Dim As Image32 b = Image32(16, 16)
 
-Dim As Single t = Timer
+Dim As Single d = Timer
 Do
   Cls
+  Dim As Single ds = Timer - d
+  Dim As Vec3F pts(0 To 3) = {Vec3F(511 + ds, 30, 0), Vec3F(900 + ds, 580, 0), Vec3F(800 + ds, 633, 0), Vec3F(100 + ds, 700, 0)}
   
-  proj.placeAndLookAt(Vec3F(Sin(Timer*0.5)*4, 0, Cos(Timer*0.5)*4), Vec3F(0, 0, 0))
-
-  For i As Integer = 0 To 7
-    scn(i) = proj.project(cube(i))
-  Next i
   
-  Line (scn(0).p.x, scn(0).p.y)-(scn(1).p.x, scn(1).p.y)
-  Line (scn(1).p.x, scn(1).p.y)-(scn(2).p.x, scn(2).p.y)
-  Line (scn(2).p.x, scn(2).p.y)-(scn(3).p.x, scn(3).p.y)
-  Line (scn(3).p.x, scn(3).p.y)-(scn(0).p.x, scn(0).p.y)
   
-  Line (scn(4).p.x, scn(4).p.y)-(scn(5).p.x, scn(5).p.y)
-  Line (scn(5).p.x, scn(5).p.y)-(scn(6).p.x, scn(6).p.y)
-  Line (scn(6).p.x, scn(6).p.y)-(scn(7).p.x, scn(7).p.y)
-  Line (scn(7).p.x, scn(7).p.y)-(scn(4).p.x, scn(4).p.y)
+  Dim As Vertex quad(0 To 3) = _
+      {Type(pts(0)/32), Type(pts(1)/32), Type(pts(2)/32), Type(pts(3)/32)}
+      
+  raster.drawPlanarQuad(a, Vec3F(0,0,0), @quad(0), @quad(1), @quad(2), @quad(3), @b)
   
-  Line (scn(0).p.x, scn(0).p.y)-(scn(4).p.x, scn(4).p.y)
-  Line (scn(1).p.x, scn(1).p.y)-(scn(5).p.x, scn(5).p.y)
-  Line (scn(2).p.x, scn(2).p.y)-(scn(6).p.x, scn(6).p.y)
-  Line (scn(3).p.x, scn(3).p.y)-(scn(7).p.x, scn(7).p.y)
+  Line (pts(0).x, pts(0).y)-(pts(1).x, pts(1).y), RGB(255,0,0)
+  Line (pts(1).x, pts(1).y)-(pts(2).x, pts(2).y), RGB(255,0,0)
+  Line (pts(2).x, pts(2).y)-(pts(3).x, pts(3).y), RGB(255,0,0)
+  Line (pts(3).x, pts(3).y)-(pts(0).x, pts(0).y), RGB(255,0,0)
   
-  Sleep 10
+  For i As Integer = 0 To 100
+    Line (0, i*32)-(1023, i*32), RGB(0, 128, 0)
+    Line (i*32, 0)-(i*32, 767), RGB(0, 128, 0)
+  Next
+  
+  Sleep 30
+  flip
 Loop Until MultiKey(FB.SC_ESCAPE)

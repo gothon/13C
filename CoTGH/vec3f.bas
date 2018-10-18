@@ -1,5 +1,7 @@
 #Include "vec3f.bi"
 
+#Include "debuglog.bi"
+
 Constructor Vec3F(x As Single, y As Single, z As Single)
   This.x = x
   This.y = y
@@ -39,6 +41,7 @@ Operator Vec3F.*=(ByRef rhs As Const Vec3F)
 End Operator
 
 Operator Vec3F./=(rhs As Single)
+  DEBUG_ASSERT(rhs <> 0.0f)
   x /= rhs
   y /= rhs
   z /= rhs
@@ -65,6 +68,7 @@ Operator *(ByRef lhs As Const Vec3F, rhs As Single) As Vec3F
 End Operator
 
 Operator /(ByRef lhs As Const Vec3F, rhs As Single) As Vec3F
+  DEBUG_ASSERT(rhs <> 0.0f)
   Return Vec3F(lhs.x/rhs, lhs.y/rhs, lhs.z/rhs)
 End Operator
 
