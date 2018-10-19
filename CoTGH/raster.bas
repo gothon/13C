@@ -1,5 +1,8 @@
 #Include "raster.bi"
 
+#Include "vec2f.bi"
+#Include "vecmath.bi"
+
 Namespace raster
  
 Type VIndex
@@ -13,6 +16,93 @@ Constructor VIndex(v As Const Vertex Ptr, i As Integer)
   This.i = i
 End Constructor
   
+Type BorderIterator
+ Public:
+  Declare Constructor ( _
+      ByRef startP As Const Vec2F, _
+      ByRef endP As Const Vec2F, _
+      ByRef delta As Const Vec2F, _
+      m As Single, _
+      leftMost As Boolean)
+    
+  Declare Sub stepEdge()
+  Declare Function x() As Integer
+  Declare Function edgeDistance() As Single 
+ Private:
+  Declare Sub stepInternal(amount As Single)
+  Declare Sub boundX()
+ 
+  As Integer iX
+  As Vec2F p
+  As Single capturedY
+  
+  As Single mInverse 'Const
+  As Vec2F dNorm 'Const
+  As Vec2F startP 'Const
+  As Vec2F endP 'Const
+  As Single y1Floor 'Const
+  As Single dxDy 'Const
+  As Boolean getBeforeStep 'Const
+End Type
+  
+Constructor BorderIterator( _
+    ByRef startP As Const Vec2F, _
+    ByRef endP As Const Vec2F, _
+    ByRef deltaNorm As Const Vec2F, _
+    mInverse As Single, _
+    leftMost As Boolean)
+  
+  This.mInverse = mInverse
+  This.startP = startP
+  This.endP = endP
+  This.y1Floor = Int(endP.y)
+  This.dNorm = deltaNorm
+  
+  This.dxDy = This.dNorm.x / This.dNorm.y
+  This.getBeforeStep = IIf(This.dxDy > 0, leftMost, Not leftMost)
+  
+  Dim As Single yDisplace = (Int(startP.y) + 1.0f) - startP.y
+  
+  This.p.x = startP.x
+  This.capturedY = startP.y
+  stepInternal(yDisplace*This.dxDy)
+End Constructor
+
+Sub BorderIterator.stepInternal(amount As Single)
+  p.y = capturedY
+  capturedY = Int(capturedY) + 1.5f
+  If Int(capturedY) >= y1Floor Then capturedY = endP.y
+  If getBeforeStep Then
+    iX = Int(p.x)
+    p.x += amount
+    boundX()
+  Else 
+    p.x += amount
+    boundX()
+    iX = Int(p.x)
+  EndIf
+End Sub
+
+Sub BorderIterator.boundX()
+  If dxDy >= 0 Then
+    p.x = IIf(p.x > endP.x, endP.x, p.x)
+  Else
+    p.x = IIf(p.x < endP.x, endP.x, p.x)
+  EndIf
+End Sub
+
+Sub BorderIterator.stepEdge()
+  stepInternal(dxDy)
+End Sub
+
+Function BorderIterator.x() As Integer
+  Return iX
+End Function
+
+Function BorderIterator.edgeDistance() As Single
+  Return vecmath.dot(dNorm, p - startP)*mInverse
+End Function
+
 Sub drawPlanarQuad OverLoad ( _
     ByRef src As Const Image32, _
     ByRef colorMod As Const Vec3F, _
