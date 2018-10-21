@@ -4,10 +4,7 @@
 #Include "vec2f.bi"
 #Include "vecmath.bi"
 
-'add other draw modes
-'add constant modulator mode
-'perspective demo
-'big scale
+'TODO(DotStarMoney): Rewrite scanline inner-loops to be pure ASM so we can reuse things like zeroed xmm2 register.
 
 Namespace raster
 
@@ -337,7 +334,154 @@ Sub drawScanLine_TexturedModulated(_
     curMod(2) += modStep(2)
   Next x  
 End Sub
-'Sub drawScanLine_Flat
+
+Sub drawScanLine_Flat(_
+    ByRef src As Const Image32, _
+    y As Integer, _
+    ByRef edge0 As Const EdgeIterator, _
+    ByRef edge1 As Const EdgeIterator, _
+    trimRightEdge As Boolean = FALSE, _
+    dst As Image32 Ptr) 
+  Dim As Single steps = edge1.x() - edge0.x()
+  If steps = 0.0f Then steps = 1.0f
+
+  Dim As Single lB = IIf(edge0.x() < 0.0f, 0.0f, edge0.x()) 'Const
+  Dim As Single rB = _
+      IIf(edge1.x() >= dst->w(), dst->w() - 1, edge1.x()) - IIf(trimRightEdge, 1, 0) 'Const
+  Dim As Single leftEdgeOverlap = lB - edge0.x() 'Const
+  
+  Dim As Single curMod(0 To 3) = {edge0.c().x*255.0f, edge0.c().y*255.0f, edge0.c().z*255.0f, 0.0f}
+  Dim As Single modStep(0 To 3) = { _
+      (edge1.c().x - edge0.c().x)/steps*255.0f, _
+      (edge1.c().y - edge0.c().y)/steps*255.0f, _
+      (edge1.c().z - edge0.c().z)/steps*255.0f, _
+      0.0f} 'Const
+      
+  curMod(0) += leftEdgeOverlap * modStep(0)
+  curMod(1) += leftEdgeOverlap * modStep(1)
+  curMod(2) += leftEdgeOverlap * modStep(2)
+
+  Dim As Pixel32 Ptr dstPixels = @dst->pixels()[y*dst->w() + lB] 
+  For x As Integer = lB To rB
+    Dim As Const Pixel32 Ptr srcP = src.constPixels() 'Const
+    Dim As Integer srcW = src.w() 'Const
+    
+    Dim As Single Ptr modPtr = @curMod(0) 'Const
+    
+    Asm
+      'Get the color mod in xmm1 as 4x 32-bit ints between 0 and 255.
+      mov esi, modPtr
+      movaps xmm0, [esi]
+      cvttps2dq xmm1, xmm0
+      'Get 4 16-bit ints of the mod in the bottom 64-btis of xmm1
+      packssdw xmm1, xmm1
+      'Clear xmm2
+      pxor xmm2, xmm2
+      'Pack the byte-ranged integers back into actual bytes in xmm0
+      packuswb xmm1, xmm2
+      'Move back into normal register world
+      movd esi, xmm1
+      'Plot!
+      mov ecx, dstPixels
+      mov [ecx], esi
+    End Asm
+
+    dstPixels += 1
+
+    curMod(0) += modStep(0)
+    curMod(1) += modStep(1)
+    curMod(2) += modStep(2)
+  Next x  
+End Sub
+
+Sub drawScanLine_TexturedConstant(_
+    ByRef src As Const Image32, _
+    y As Integer, _
+    ByRef edge0 As Const EdgeIterator, _
+    ByRef edge1 As Const EdgeIterator, _
+    trimRightEdge As Boolean = FALSE, _
+    dst As Image32 Ptr) 
+  Dim As Single steps = edge1.x() - edge0.x()
+  If steps = 0.0f Then steps = 1.0f
+
+  Dim As Single lB = IIf(edge0.x() < 0.0f, 0.0f, edge0.x()) 'Const
+  Dim As Single rB = _
+      IIf(edge1.x() >= dst->w(), dst->w() - 1, edge1.x()) - IIf(trimRightEdge, 1, 0) 'Const
+  Dim As Single leftEdgeOverlap = lB - edge0.x() 'Const
+  
+  Dim As Single curSz = edge0.z()
+  Dim As Single sZStep = (edge1.z() - edge0.z()) / steps 'Const
+  curSz += leftEdgeOverlap * sZStep
+  
+  Dim As Vec2F curUv = edge0.uv()
+  Dim As Vec2F uvStep = (edge1.uv() - edge0.uv()) / steps 'Const
+  curUv += leftEdgeOverlap * uvStep
+  
+  Dim As Single modConst(0 To 3) = {edge0.c().x*256.0f, edge0.c().y*256.0f, edge0.c().z*256.0f, 0.0f} 'Const
+  Dim As Single Ptr modPtr = @modConst(0) 'Const
+    
+  Dim As Pixel32 Ptr dstPixels = @dst->pixels()[y*dst->w() + lB] 
+  For x As Integer = lB To rB
+    Dim As Integer u = Int(curUv.x / curSz) 'Const
+    Dim As Integer v = Int(curUv.y / curSz) 'Const
+    
+    Dim As Const Pixel32 Ptr srcP = src.constPixels() 'Const
+    Dim As Integer srcW = src.w() 'Const
+    
+    Asm
+      'Get the color mod in xmm1 as 4x 32-bit ints between 0 and 256. We'll shift the 256 out later
+      'during multiplication.
+      mov esi, modPtr
+      movaps xmm0, [esi]
+      cvttps2dq xmm1, xmm0
+      'Get 4 16-bit ints of the mod in the bottom 64-btis of xmm1
+      packssdw xmm1, xmm1
+      
+      'Get pixel offset, v*src.w() + u in EAX
+      mov eax, v
+      mul srcW
+      add eax, u  
+      'Get pixel value in xmm0 and ebx using the pixel offset
+      mov ebx, srcP
+      mov ebx, [ebx+eax*4]
+      movd xmm0, ebx
+
+      'Clear xmm2
+      pxor xmm2, xmm2
+      'Get the byte values as 4 shorts into xmm0
+      punpcklbw xmm0, xmm2
+      'Multiply the mod and the src, shifting down by 8 afterward
+      pmullw xmm0, xmm1
+      psrlw xmm0, 8
+      
+      'Pack the byte-ranged integers back into actual bytes in xmm0
+      packuswb xmm0, xmm2
+      'Move back into normal register world
+      movd esi, xmm0
+      
+      mov eax, TRANSPARENT_COLOR_INT
+      'Here we get both the pointer value of, and, the value at, dstPixels
+      mov ecx, dstPixels
+      mov edx, [ecx]
+      'Save a copy of the actual source pixel (ebx)
+      mov edi, ebx
+      'Move src else dst if src == transparent color into ebx
+      cmpxchg ebx, edx
+      
+      'Do one more compare and exchange to either keep the dst color or update the
+      'src color with the blended one.
+      mov eax, edi
+      cmpxchg ebx, esi
+      
+      mov [ecx], ebx
+    End Asm
+
+    dstPixels += 1
+    
+    curSz += sZStep
+    curUv += uvStep
+  Next x  
+End Sub
  
 #Macro DEFINE_DRAWPLANARQUAD(_METHOD_)
 Sub drawPlanarQuad_##_METHOD_( _
@@ -530,5 +674,7 @@ End Sub
 
 DEFINE_DRAWPLANARQUAD(Textured)
 DEFINE_DRAWPLANARQUAD(TexturedModulated)
+DEFINE_DRAWPLANARQUAD(Flat)
+DEFINE_DRAWPLANARQUAD(TexturedConstant)
 
 End Namespace

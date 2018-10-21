@@ -19,6 +19,7 @@ Type Image32
   
   Declare Const Function w() As Integer
   Declare Const Function h() As Integer
+  
  Private:
   As Integer w_ 'Const
   As Integer h_ 'Const

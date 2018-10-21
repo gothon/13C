@@ -108,7 +108,7 @@ Const Sub Projection.project(ByRef in As Const Vertex, out As Vertex Ptr)
   out->p.z = planeDepth / out->p.z
 
   out->p.x = out->p.x*out->p.z*planeWMul + halfViewWidth
-  out->p.y = -out->p.y*out->p.z*planeHMul + halfViewHeight
+  out->p.y = out->p.y*out->p.z*planeHMul + halfViewHeight
   
   out->t = in.t * out->p.z
 End Sub
