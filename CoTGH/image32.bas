@@ -20,14 +20,18 @@ Function Image32.pixels() As Pixel32 Ptr
   Return pixels_
 End Function
 
+Const Function Image32.constPixels() As Const Pixel32 Ptr
+  Return pixels_
+End Function
+
 Function Image32.fbImg() As Any Ptr
   Return imageData
 End Function
 
-Function Image32.w() As Integer
+Const Function Image32.w() As Integer
   Return w_
 End Function
 
-Function Image32.h() As Integer
+Const Function Image32.h() As Integer
   Return h_
 End Function

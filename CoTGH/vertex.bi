@@ -6,11 +6,11 @@
 
 'A simple vertex for model rendering.
 Type Vertex  
-  Declare Constructor(ByRef p As Const Vec3F, ByRef t As Const Vec2F)
-  
-  'Sets the texture coordinates to 0,0 and modulator to 1.
-  Declare Constructor(ByRef p As Const Vec3F = Type(0.0f, 0.0f, 0.0f))
-  
+  Declare Constructor( _
+      ByRef p As Const Vec3F = Type(0.0f, 0.0f, 0.0f), _
+      ByRef t As Const Vec2F = Type(0.0f, 0.0f), _
+      ByRef c As Const Vec3F = Type(1.0f, 1.0f, 1.0f))
+ 
   'Position
   As Vec3F p
   
@@ -18,7 +18,7 @@ Type Vertex
   As Vec2F t
   
   'Color modulator
-  As Vec3F c(0 To 2)
+  As Vec3F c
 End Type
 
 #EndIf
