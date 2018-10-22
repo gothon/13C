@@ -104,13 +104,51 @@ End Function
   
 Const Sub Projection.project(ByRef in As Const Vertex, out As Vertex Ptr)
   out->p = toCamera(in.p)
-  
-  out->p.z = planeDepth / out->p.z
-
-  out->p.x = out->p.x*out->p.z*planeWMul + halfViewWidth
-  out->p.y = out->p.y*out->p.z*planeHMul + halfViewHeight
-  
+  perspectiveProjCoordinate(@out->p)
   out->t = in.t * out->p.z
+End Sub
+
+Const Sub Projection.projectBillboard( _
+    ByRef in0 As Const Vertex, _
+    ByRef in1 As Const Vertex, _
+    ByRef in2 As Const Vertex, _
+    ByRef in3 As Const Vertex, _ 
+    out0 As Vertex Ptr, _
+    out1 As Vertex Ptr, _
+    out2 As Vertex Ptr, _
+    out3 As Vertex Ptr)
+  Dim As Vec3F centroid = (in0.p + in1.p + in2.p + in3.p) * 0.25f
+  Dim As Vec3F projCentroid = toCamera(centroid)
+  
+  out0->p.x = projCentroid.x + (in0.p.x - centroid.x)
+  out0->p.y = projCentroid.y + (in0.p.y - centroid.y)
+  out0->p.z = projCentroid.z
+  perspectiveProjCoordinate(@out0->p)
+  out0->t = in0.t*out0->p.z
+  
+  out1->p.x = projCentroid.x + (in1.p.x - centroid.x)
+  out1->p.y = projCentroid.y + (in1.p.y - centroid.y)
+  out1->p.z = projCentroid.z
+  perspectiveProjCoordinate(@out1->p)
+  out1->t = in1.t*out1->p.z
+    
+  out2->p.x = projCentroid.x + (in2.p.x - centroid.x)
+  out2->p.y = projCentroid.y + (in2.p.y - centroid.y)
+  out2->p.z = projCentroid.z
+  perspectiveProjCoordinate(@out2->p)
+  out2->t = in2.t*out2->p.z
+  
+  out3->p.x = projCentroid.x + (in3.p.x - centroid.x)
+  out3->p.y = projCentroid.y + (in3.p.y - centroid.y)
+  out3->p.z = projCentroid.z
+  perspectiveProjCoordinate(@out3->p)
+  out3->t = in3.t*out3->p.z
+End Sub
+
+Const Sub Projection.perspectiveProjCoordinate(coord As Vec3F Ptr)
+  coord->z = planeDepth / coord->z
+  coord->x = -coord->x*coord->z*planeWMul + halfViewWidth
+  coord->y = coord->y*coord->z*planeHMul + halfViewHeight
 End Sub
 
 Const Function Projection.toCamera(ByRef vert As Const Vec3F) As Vec3F

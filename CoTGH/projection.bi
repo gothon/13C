@@ -28,11 +28,23 @@ Type Projection
   'Return a vertex whose position and texture coordinates have been projected
   Declare Const Sub project(ByRef in As Const Vertex, out As Vertex ptr)
   
+  'Take 4 vertices forming a quad parallel to the XY plane and billboard project them.
+  Declare Const Sub projectBillboard( _
+      ByRef in0 As Const Vertex, _
+      ByRef in1 As Const Vertex, _
+      ByRef in2 As Const Vertex, _
+      ByRef in3 As Const Vertex, _ 
+      out0 As Vertex Ptr, _
+      out1 As Vertex Ptr, _
+      out2 As Vertex Ptr, _
+      out3 As Vertex Ptr)
  Private:
   Declare Sub updateView()
   Declare Const Function toCamera(ByRef vert As Const Vec3F) As Vec3F
   Declare Sub placeInternal(ByRef p_ As Const Vec3F)
   Declare Sub lookAtInternal(ByRef lookP As Const Vec3F)
+  
+  Declare Const Sub perspectiveProjCoordinate(coord As Vec3F Ptr)
  
   As Single halfViewWidth 'Const
   As Single halfViewHeight 'Const

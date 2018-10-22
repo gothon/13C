@@ -6,8 +6,14 @@
 '32 bit image
 Type Image32
  Public:
+  Declare Constructor()
+ 
+  'Create a blank image of the given size
   Declare Constructor(w As Integer, h As Integer)
-    
+
+  'Load an image from a file
+  Declare Constructor(path As String)
+  
   Declare Destructor()
     
   'Returns a pointer to the raw pixel data of this image.
