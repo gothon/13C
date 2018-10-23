@@ -74,4 +74,3 @@ End Operator
 Operator -(ByRef v As Const Vec2F) As Vec2F
   Return Vec2F(-v.x, -v.y)
 End Operator
-

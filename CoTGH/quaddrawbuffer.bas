@@ -37,7 +37,7 @@ End Sub
 
 Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
   sort()
-  For i As Integer = 0 To quads.size() - 1
+  For i As Integer = quads.size() - 1 To 0 Step -1
     Dim As Const Quad Ptr q = DARRAY_AT(QuadDrawElement, quads, i).q
     If backfaceTest(*q) Then Continue For
     Select Case q->mode
@@ -101,7 +101,7 @@ Sub QuadDrawBuffer.sort()
 End Sub
 
 Static Function QuadDrawBuffer.backfaceTest(ByRef q As Const Quad) As Boolean
-  Dim As Vec2F ab = Vec2F(q.v(1).p.x - q.v(0).p.x, q.v(1).p.y - q.v(0).p.y) 'Const
-  Dim As Vec2F bc = Vec2F(q.v(2).p.x - q.v(1).p.x, q.v(2).p.y - q.v(1).p.y) 'Const
-  Return vecmath.cross(ab, bc) >= 0
+  Dim As Vec2F ab = Vec2F(q.pV(1).p.x - q.pV(0).p.x, q.pV(1).p.y - q.pV(0).p.y) 'Const
+  Dim As Vec2F bc = Vec2F(q.pV(2).p.x - q.pV(1).p.x, q.pV(2).p.y - q.pV(1).p.y) 'Const
+  Return vecmath.cross(ab, bc) < 0
 End Function

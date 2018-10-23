@@ -106,8 +106,8 @@ Constructor EdgeIterator( _
   This.y1Floor = Int(This.endP.y)
   
   This.m = deltaNorm.m()
-  DEBUG_ASSERT(This.m > 0.0f)
-  
+  If This.m = 0.0f Then This.m = 1.0f
+
   Dim As Single mInverse = 1.0f / This.m
   This.dNorm = deltaNorm * mInverse
   
@@ -632,7 +632,7 @@ Sub drawPlanarQuad_##_METHOD_( _
   'Second section
   lowerBound = Int(scnSorted(2).y) - 1
   If lowerBound >= dst->h() Then lowerBound = dst->h() - 1
-  For y As Integer = Int(scnSorted(1).y) To Int(scnSorted(2).y) - 1
+  For y As Integer = Int(scnSorted(1).y) To lowerBound
     If y >= 0 Then drawScanLine_##_METHOD_(src, y, *appliedIterator(0), *appliedIterator(1), trimRightEdge, dst)
     curIterator(0)->stepEdge()
     curIterator(1)->stepEdge()

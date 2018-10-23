@@ -51,11 +51,11 @@ End Sub
 
 Sub DArray.maybeIncreaseCapacity()
   DEBUG_ASSERT(This.elements <> NULL)
-  If This.size > This.capacity Then
+  While This.size > This.capacity
     This.capacity *= 2
-    This.elements = ReAllocate(This.elements, This.capacity*This.elementSize)
-    DEBUG_ASSERT(This.elements <> NULL)
-  EndIf  
+  Wend
+  This.elements = ReAllocate(This.elements, This.capacity*This.elementSize)
+  DEBUG_ASSERT(This.elements <> NULL)
 End Sub
 
 Sub DArray.pop()

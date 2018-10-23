@@ -6,23 +6,39 @@
 #Include "quadmodel.bi"
 #Include "quaddrawbuffer.bi"
 
-Dim As Projection proj = Projection(320, 240, 320, 240, 1)
+Dim As Projection proj = Projection(320, 240, 320, 240, 256)
 
-ScreenRes 1280, 960, 32
+ScreenRes 640, 480, 32
 
 Dim As Image32 b = Image32(320, 240)   
-Dim As QuadSprite sprite = QuadSprite("res/itsastoneluigi.png")
-Dim As QuadSprite sprite2 = QuadSprite("res/itsastoneluigi.png")
 Dim As QuadDrawBuffer drawBuffer
 
-sprite2.translate(Vec3F(15.2, 0.0, 0.0))
+Dim As Integer grid(0 To 203) = { _
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, _
+    0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, _
+    0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, _
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, _
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, _
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, _
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, _
+    0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, _
+    0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, _
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, _
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+Dim As QuadModel model = QuadModel(grid(), 17, 16, "res/itsastoneluigi.png")
+Dim As QuadModel model2 = QuadModel(grid(), 17, 16, "res/itsastoneluigi.png")
+Dim As QuadModel model3 = QuadModel(grid(), 17, 16, "res/itsastoneluigi.png")
 
-drawBuffer.bind(@sprite2)
-drawBuffer.bind(@sprite)
+model.translate(Vec3F(-140, -96, 0.0f))
+model2.translate(Vec3F(-140, -96, 16.0f))
+model3.translate(Vec3F(-140, -96, 32.0f))
 
+Dim As Single z = 140
 
-
-Dim As Single z=0.9
+drawBuffer.bind(@model)
+drawBuffer.bind(@model2)
+drawBuffer.bind(@model3)
 
 Dim As Integer f = 0
 Dim As Single fps = 0
@@ -32,19 +48,23 @@ Dim As Single fpsTimer = Timer
 
 Do
   
-  Line b.fbImg(), (0,0)-(319, 239), RGB(64,55,78), BF
+  Line b.fbImg(), (0,0)-(319, 239), 0, BF 'RGB(64,55,78), BF
+  z -= 0.1
+  if z < -140 then z = 140
+  proj.placeAndLookAt(Vec3F(40 + z, 14, 230), Vec3F(z, 0, 0))
   
-  proj.placeAndLookAt(Vec3F(0, 0, 0.9), Vec3F(0, 0, 0))
-
-  
-  sprite.project(proj)
-  sprite2.project(proj)
+  model.project(proj)
+  model2.project(proj)
+  model3.project(proj)
   
   
   drawBuffer.draw(@b)
   
-  imageops.sync4X(b)
-  Locate 1, 1: Print fps / fpsCaptures, lastFps, z
+  Circle b.fbImg(), (160, 140), 2, RGB(0, 255, 0),,,,F
+  Circle b.fbImg(), (160, 175), 2, RGB(255, 0, 0),,,,F
+  
+  imageops.sync2X(b)
+  Locate 1, 1: Print fps / fpsCaptures, lastFps
   If (Timer - fpsTimer) > 1.0f Then
     fps += f
     lastFps = f
@@ -53,7 +73,7 @@ Do
     fpsTimer = Timer
   EndIf
   f += 1
-  
+  'Sleep 30
 Loop Until MultiKey(FB.SC_ESCAPE)
-drawBuffer.unbind(@sprite)
-drawBuffer.unbind(@sprite2)
+drawBuffer.unbind(@model)
+drawBuffer.unbind(@model2)

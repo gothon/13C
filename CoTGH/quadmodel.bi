@@ -72,12 +72,18 @@ End Type
 Type QuadModel Extends QuadModelBase
  Public:
   Declare Sub project(ByRef projector As Const Projection)
-  Declare Constructor(/' grid stuff among other things '/)
+  
+  'Create a grid of 3D blocks from a 2D grid. Blocks are added where grid() <> 1. grid() is assumed to be flattened
+  'row-major order and padded with 0's at each border. The back face of each block (cube) is not created. The
+  'created blocks are positioned such that the lower left front corner sits at (0, 0, 0).
+  Declare Constructor(grid() As Integer, gridCols As Integer, sideLength As Single, imagePath As String)
 End Type
 
 Type QuadSprite Extends QuadModelBase
  Public:
   Declare Sub project(ByRef projector As Const Projection)
+  
+  'Create a centered billboard sprite from the given image path.
   Declare Constructor(imagePath As String)
 End Type
 
