@@ -90,9 +90,9 @@ Sub populateQuadVerticesYZ( _
     v() As Vertex)
   v(0) = Vertex(Vec3F(start.x, start.y, start.z), _
                 Vec2F(UV_ERROR_ADJ, UV_ERROR_ADJ))
-  v(1) = Vertex(Vec3F(start.x, start.y, start.z + size.z), _
+  v(1) = Vertex(Vec3F(start.x, start.y, start.z - size.z), _
                 Vec2F(uvSize.x - UV_ERROR_ADJ, UV_ERROR_ADJ))
-  v(2) = Vertex(Vec3F(start.x, start.y - size.y, start.z + size.z), _
+  v(2) = Vertex(Vec3F(start.x, start.y - size.y, start.z - size.z), _
                 Vec2F(uvSize.x - UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
   v(3) = Vertex(Vec3F(start.x, start.y - size.y, start.z), _
                 Vec2F(UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
@@ -109,9 +109,9 @@ Sub populateQuadVerticesXZ( _
     ByRef uvSize As Const Vec2F, _
     flipped As Boolean, _
     v() As Vertex)
-  v(0) = Vertex(Vec3F(start.x, start.y, start.z + size.z), _
+  v(0) = Vertex(Vec3F(start.x, start.y, start.z - size.z), _
                 Vec2F(UV_ERROR_ADJ, UV_ERROR_ADJ))
-  v(1) = Vertex(Vec3F(start.x + size.x, start.y, start.z + size.z), _
+  v(1) = Vertex(Vec3F(start.x + size.x, start.y, start.z - size.z), _
                 Vec2F(uvSize.x - UV_ERROR_ADJ, UV_ERROR_ADJ))
   v(2) = Vertex(Vec3F(start.x + size.x, start.y, start.z), _
                 Vec2F(uvSize.x - UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
@@ -123,81 +123,129 @@ Sub populateQuadVerticesXZ( _
   EndIf
 End Sub
 
-Constructor QuadModel(grid() As Integer, gridCols As Integer, sideLength As Single, imagePath As String)
+Constructor QuadModelTextureCube()
+  This.v = 0
+End Constructor
+
+Constructor QuadModelTextureCube(v As UInteger)
+  This.v = v
+End Constructor
+
+Constructor QuadModelTextureCube( _
+    front As UInteger, _
+    up As UInteger, _
+    right As UInteger, _
+    down As UInteger, _
+    left As UInteger)
+  This.front = front
+  This.up = up
+  This.right = right
+  This.down = down
+  This.left = left
+End Constructor
+
+Constructor QuadModel( _
+    grid() As QuadModelTextureCube, _
+    gridWidth As Integer, _
+    gridHeight As Integer, _
+    gridDepth As Integer, _
+    sideLength As Single, _
+    imagePaths() As String)
   construct()
-  Dim As Integer gridRows = 1 + Int(UBound(grid)/gridCols) 'Const
-  
-  Dim As Image32 Ptr tex = TextureCache.get(imagePath) 'Const
+
+  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'Final
+  For i As Integer = 0 To UBound(imagePaths)
+    tex(i) = TextureCache.get(imagePaths(i))
+  Next i
  
-  Dim As Integer w = tex->w() 'Const
-  Dim As Integer h = tex->h() 'Const
+  Dim As Integer yOffset = gridWidth 'Const
+  Dim As Integer zOffset = gridWidth*gridHeight 'Const
 
-  Dim As Single blockY = sideLength*(gridRows - 1)
-  For y As Integer = 1 To gridRows - 2
-    Dim As Single blockX = 0
-    For x As Integer = 1 To gridCols - 2
-      Dim As Integer centerOffset = y*gridCols + x 'Const
-      Dim As Integer center = grid(centerOffset) 'Const
+  Dim As Single blockZ = 0.0f
+  For z As Integer = 1 To gridDepth - 2
+    Dim As Single blockY = sideLength*(gridHeight - 1)
+    For y As Integer = 1 To gridHeight - 2
+      Dim As Single blockX = 0
+      For x As Integer = 1 To gridWidth - 2
+        Dim As Integer centerOffset = z*zOffset + y*yOffset + x 'Const
+        Dim As QuadModelTextureCube texCube = grid(centerOffset) 'Const
+        If texCube.v <> 0 Then
+          Dim As Boolean up = grid(centerOffset - yOffset).v <> 0 'Const
+          Dim As Boolean right = grid(centerOffset + 1).v <> 0 'Const
+          Dim As Boolean down = grid(centerOffset + yOffset).v <> 0 'Const
+          Dim As Boolean left = grid(centerOffset - 1).v <> 0 'Const
+          Dim As Boolean front = grid(centerOffset - zOffset).v <> 0 'Const
+          Dim As Boolean back = grid(centerOffset + zOffset).v <> 0 'Const
+          
+          Dim As Vertex v(0 To 3)
+          populateQuadVerticesXY( _
+              Vec3F(blockX, blockY, blockZ), _
+              Vec3F(sideLength, sideLength, 0.0f), _
+              Vec2F(tex(texCube.front - 1)->w(), tex(texCube.front - 1)->h()), _
+              v())
 
-      If center = 1 Then
-        Dim As Integer up = grid(centerOffset - gridCols) 'Const
-        Dim As Integer right = grid(centerOffset + 1) 'Const
-        Dim As Integer down = grid(centerOffset + gridCols) 'Const
-        Dim As Integer left = grid(centerOffset - 1) 'Const
-        
-        Dim As Vertex v(0 To 3)
-        populateQuadVerticesXY(Vec3F(blockX, blockY, 0.0f), Vec3F(sideLength, sideLength, 0.0f), Vec2F(w, h), v())
-            
-        DARRAY_PUSH( _
-            Quad, _
-            model, _
-            Type<Quad>(v(), tex, QuadTextureMode.TEXTURED, IIf(right = 1, TRUE, FALSE), IIf(down = 1, TRUE, FALSE)))
-  
-        If up = 0 Then
-          populateQuadVerticesXZ( _
-              Vec3F(blockX, blockY, 0.0f), _
-              Vec3F(sideLength, 0.0f, -sideLength), _
-              Vec2F(w, h), _
-              FALSE, _
-              v())
-          DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex, QuadTextureMode.TEXTURED, TRUE, TRUE))
-        EndIf
-        
-        If right = 0 Then
-          populateQuadVerticesYZ( _
-              Vec3F(blockX + sideLength, blockY, 0.0f), _
-              Vec3F(0.0f, sideLength, -sideLength), _
-              Vec2F(w, h), _
-              FALSE, _
-              v())
-          DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex, QuadTextureMode.TEXTURED, TRUE, TRUE))
-        EndIf
-        
-        If down = 0 Then
-          populateQuadVerticesXZ( _
-              Vec3F(blockX, blockY - sideLength, 0.0f), _
-              Vec3F(sideLength, 0.0f, -sideLength), _
-              Vec2F(w, h), _
-              TRUE, _
-              v())
-          DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex, QuadTextureMode.TEXTURED, TRUE, TRUE))
-        EndIf
-        
-        If left = 0 Then
-          populateQuadVerticesYZ( _
-              Vec3F(blockX, blockY, 0.0f), _
-              Vec3F(0.0f, sideLength, -sideLength), _
-              Vec2F(w, h), _
-              TRUE, _
-              v())
-          DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex, QuadTextureMode.TEXTURED, TRUE, TRUE))
-        EndIf
-      End if
-                
-      blockX += sideLength
-    Next x 
-    blockY -= sideLength
-  Next y
+          If (Not front) AndAlso (texCube.front <> 0) Then
+            DARRAY_PUSH( _
+                Quad, _
+                model, _
+                Type<Quad>( _
+                    v(), _
+                    tex(texCube.front - 1), _
+                    QuadTextureMode.TEXTURED, _
+                    IIf(right <> 0, TRUE, FALSE), _
+                    IIf(down <> 0, TRUE, FALSE)))
+          End if
+
+          If (Not up) AndAlso (texCube.up <> 0) Then
+            Dim As Image32 Ptr curTex = tex(texCube.up - 1)
+            populateQuadVerticesXZ( _
+                Vec3F(blockX, blockY, blockZ), _
+                Vec3F(sideLength, 0.0f, sideLength), _
+                Vec2F(curTex->w(), curTex->h()), _
+                FALSE, _
+                v())
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+          EndIf
+          
+          If (Not right) AndAlso (texCube.right <> 0) Then
+            Dim As Image32 Ptr curTex = tex(texCube.right - 1)
+            populateQuadVerticesYZ( _
+                Vec3F(blockX + sideLength, blockY, blockZ), _
+                Vec3F(0.0f, sideLength, sideLength), _
+                Vec2F(curTex->w(), curTex->h()), _
+                FALSE, _
+                v())
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+          EndIf
+          
+          If (Not down) AndAlso (texCube.down <> 0) Then
+            Dim As Image32 Ptr curTex = tex(texCube.down - 1)
+            populateQuadVerticesXZ( _
+                Vec3F(blockX, blockY - sideLength, blockZ), _
+                Vec3F(sideLength, 0.0f, sideLength), _
+                Vec2F(curTex->w(), curTex->h()), _
+                TRUE, _
+                v())
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+          EndIf
+          
+          If (Not left) AndAlso (texCube.left <> 0) Then
+            Dim As Image32 Ptr curTex = tex(texCube.left - 1)
+            populateQuadVerticesYZ( _
+                Vec3F(blockX, blockY, blockZ), _
+                Vec3F(0.0f, sideLength, sideLength), _
+                Vec2F(curTex->w(), curTex->h()), _
+                TRUE, _
+                v())
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+          EndIf
+        End if                  
+        blockX += sideLength
+      Next x 
+      blockY -= sideLength
+    Next y
+    blockZ -= sideLength
+  Next z
 End Constructor
 
 Sub QuadModel.project(ByRef projector As Const Projection)

@@ -69,14 +69,42 @@ Type QuadModelBase Extends Object
   As DArray model = DARRAY_CREATE(Quad) 'Const
 End Type
 
+Type QuadModelTextureCube
+  Declare Constructor()
+  Declare Constructor(v As UInteger)
+  Declare Constructor( _
+      front As UInteger, _
+      up As UInteger, _
+      right As UInteger, _
+      down As UInteger, _
+      left As UInteger)
+
+  Union
+    As UInteger v
+    Type
+      As UInteger front : 6
+      As UInteger up : 6 
+      As UInteger Right : 6
+      As UInteger down : 6
+      As UInteger Left : 6
+    End Type
+  End Union
+End Type
+
 Type QuadModel Extends QuadModelBase
  Public:
   Declare Sub project(ByRef projector As Const Projection)
   
-  'Create a grid of 3D blocks from a 2D grid. Blocks are added where grid() <> 1. grid() is assumed to be flattened
-  'row-major order and padded with 0's at each border. The back face of each block (cube) is not created. The
-  'created blocks are positioned such that the lower left front corner sits at (0, 0, 0).
-  Declare Constructor(grid() As Integer, gridCols As Integer, sideLength As Single, imagePath As String)
+  'Create a grid of 3D blocks from a 3D grid. Blocks are added where grid() <> 1. grid() is assumed to be flattened
+  'row-major order and padded with zeroed texture cubes at each border. The back face of each block (cube) is not 
+  'created. The created blocks are positioned such that the lower left front corner sits at (0, 0, 0).
+  Declare Constructor( _
+      grid() As QuadModelTextureCube, _
+      gridWidth As Integer, _
+      gridHeight As Integer, _
+      gridDepth As Integer, _
+      sideLength As Single, _
+      imagePaths() As String)
 End Type
 
 Type QuadSprite Extends QuadModelBase
