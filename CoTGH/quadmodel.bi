@@ -25,7 +25,7 @@ Type Quad
   
   As Vertex v(0 To 3)
   As Vertex pV(0 To 3)
-  As Single pZCentroid
+  As Single zCentroid
   As Image32 Ptr texture 'Const
   As QuadTextureMode mode 'Const
   As Boolean trimX 'Const
@@ -80,15 +80,24 @@ Type QuadModelTextureCube
       left As UInteger)
 
   Union
-    As UInteger v
+    As UInteger v 'Const
     Type
-      As UInteger front : 6
-      As UInteger up : 6 
-      As UInteger Right : 6
-      As UInteger down : 6
-      As UInteger Left : 6
+      As UInteger front : 6 'Const
+      As UInteger up : 6 'Const
+      As UInteger Right : 6 'Const
+      As UInteger down : 6 'Const
+      As UInteger Left : 6 'Const
     End Type
   End Union
+End Type
+
+Type QuadModelUVIndex
+  Declare Constructor()
+  Declare Constructor(ByRef uvStart As Const Vec2F, ByRef uvEnd As Const Vec2F, imageIndex As Integer)
+  
+  As Vec2F uvStart 'Const
+  As Vec2F uvEnd 'Const
+  As UInteger imageIndex 'Const
 End Type
 
 Type QuadModel Extends QuadModelBase
@@ -104,6 +113,15 @@ Type QuadModel Extends QuadModelBase
       gridHeight As Integer, _
       gridDepth As Integer, _
       sideLength As Single, _
+      uvIndices() As QuadModelUVIndex, _
+      imagePaths() As String)
+  
+  'Create a 3D volume of the specified size with it's lower left front corner at the origin. The back face is
+  'omitted.
+  Declare Constructor( _
+      ByRef volumeDims As Const Vec3F, _
+      ByRef texCube As Const QuadModelTextureCube, _
+      uvIndices() As QuadModelUVIndex, _
       imagePaths() As String)
 End Type
 

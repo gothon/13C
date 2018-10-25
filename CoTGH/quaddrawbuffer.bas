@@ -91,7 +91,7 @@ Sub QuadDrawBuffer.sort()
   While i < quads.size()
     Dim As QuadDrawElement qElement = DARRAY_AT(QuadDrawElement, quads, i) 'Const
     Dim As Integer j = i - 1
-    While j >= 0 AndAlso DARRAY_AT(QuadDrawElement, quads, j).q->pZCentroid > qElement.q->pZCentroid
+    While j >= 0 AndAlso DARRAY_AT(QuadDrawElement, quads, j).q->zCentroid > qElement.q->zCentroid
         DARRAY_AT(QuadDrawElement, quads, j + 1) = DARRAY_AT(QuadDrawElement, quads, j)
         j -= 1
     Wend

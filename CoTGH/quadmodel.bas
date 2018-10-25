@@ -58,7 +58,8 @@ Sub QuadModelBase.construct()
 End Sub
 
 Static Sub QuadModelBase.calcZCentroid(q As Quad Ptr)
-  q->pZCentroid = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) / 4.0f
+  'Not actually zCentroid, but for now 
+  q->zCentroid = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) / 4.0f
 End Sub
 
 Static Function QuadModelBase.genId() As LongInt
@@ -69,33 +70,35 @@ End Function
 Sub populateQuadVerticesXY( _
     ByRef start As Const Vec3F, _
     ByRef size As Const Vec3F, _
-    ByRef uvSize As Const Vec2F, _
+    ByRef uvStart As Const Vec2F, _
+    ByRef uvEnd As Const Vec2F, _
     v() As Vertex)
   v(0) = Vertex(Vec3F(start.x, start.y, start.z), _
-                Vec2F(UV_ERROR_ADJ, UV_ERROR_ADJ))
+                Vec2F(uvStart.x + UV_ERROR_ADJ, uvStart.y + UV_ERROR_ADJ))
   v(1) = Vertex(Vec3F(start.x + size.x, start.y, start.z), _
-                Vec2F(uvSize.x - UV_ERROR_ADJ, UV_ERROR_ADJ))
+                Vec2F(uvEnd.x - UV_ERROR_ADJ, uvStart.y + UV_ERROR_ADJ))
   v(2) = Vertex(Vec3F(start.x + size.x, start.y - size.y, start.z), _
-                Vec2F(uvSize.x - UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
+                Vec2F(uvEnd.x - UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   v(3) = Vertex(Vec3F(start.x, start.y - size.y, start.z), _
-                Vec2F(UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
+                Vec2F(uvStart.x + UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
 End Sub
 
 'If flipped = false quad faces right, o/w it faces left
 Sub populateQuadVerticesYZ( _
     ByRef start As Const Vec3F, _
     ByRef size As Const Vec3F, _
-    ByRef uvSize As Const Vec2F, _
+    ByRef uvStart As Const Vec2F, _
+    ByRef uvEnd As Const Vec2F, _
     flipped As Boolean, _
     v() As Vertex)
   v(0) = Vertex(Vec3F(start.x, start.y, start.z), _
-                Vec2F(UV_ERROR_ADJ, UV_ERROR_ADJ))
+                Vec2F(uvStart.x + UV_ERROR_ADJ, uvStart.y + UV_ERROR_ADJ))
   v(1) = Vertex(Vec3F(start.x, start.y, start.z - size.z), _
-                Vec2F(uvSize.x - UV_ERROR_ADJ, UV_ERROR_ADJ))
+                Vec2F(uvEnd.x - UV_ERROR_ADJ, uvStart.y + UV_ERROR_ADJ))
   v(2) = Vertex(Vec3F(start.x, start.y - size.y, start.z - size.z), _
-                Vec2F(uvSize.x - UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
+                Vec2F(uvEnd.x - UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   v(3) = Vertex(Vec3F(start.x, start.y - size.y, start.z), _
-                Vec2F(UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
+                Vec2F(uvStart.x + UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   If flipped Then
     Swap v(0), v(1)
     Swap v(2), v(3)
@@ -106,17 +109,18 @@ End Sub
 Sub populateQuadVerticesXZ( _
     ByRef start As Const Vec3F, _
     ByRef size As Const Vec3F, _
-    ByRef uvSize As Const Vec2F, _
+    ByRef uvStart As Const Vec2F, _
+    ByRef uvEnd As Const Vec2F, _
     flipped As Boolean, _
     v() As Vertex)
   v(0) = Vertex(Vec3F(start.x, start.y, start.z - size.z), _
-                Vec2F(UV_ERROR_ADJ, UV_ERROR_ADJ))
+                Vec2F(uvStart.x + UV_ERROR_ADJ, uvStart.y + UV_ERROR_ADJ))
   v(1) = Vertex(Vec3F(start.x + size.x, start.y, start.z - size.z), _
-                Vec2F(uvSize.x - UV_ERROR_ADJ, UV_ERROR_ADJ))
+                Vec2F(uvEnd.x - UV_ERROR_ADJ, uvStart.y + UV_ERROR_ADJ))
   v(2) = Vertex(Vec3F(start.x + size.x, start.y, start.z), _
-                Vec2F(uvSize.x - UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
+                Vec2F(uvEnd.x - UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   v(3) = Vertex(Vec3F(start.x, start.y, start.z), _
-                Vec2F(UV_ERROR_ADJ, uvSize.y - UV_ERROR_ADJ))
+                Vec2F(uvStart.x + UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   If flipped Then
     Swap v(0), v(1)
     Swap v(2), v(3)
@@ -144,16 +148,29 @@ Constructor QuadModelTextureCube( _
   This.left = left
 End Constructor
 
+Constructor QuadModelUVIndex()
+  This.uvStart = Vec2F()
+  This.uvEnd = Vec2F()
+  This.imageIndex = 0
+End Constructor
+
+Constructor QuadModelUVIndex(ByRef uvStart As Const Vec2F, ByRef uvEnd As Const Vec2F, imageIndex As Integer)
+  This.uvStart = uvStart
+  This.uvEnd = uvEnd
+  This.imageIndex = imageIndex
+End Constructor
+
 Constructor QuadModel( _
     grid() As QuadModelTextureCube, _
     gridWidth As Integer, _
     gridHeight As Integer, _
     gridDepth As Integer, _
     sideLength As Single, _
+    uvIndices() As QuadModelUVIndex, _
     imagePaths() As String)
   construct()
 
-  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'Final
+  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'Const
   For i As Integer = 0 To UBound(imagePaths)
     tex(i) = TextureCache.get(imagePaths(i))
   Next i
@@ -163,7 +180,7 @@ Constructor QuadModel( _
 
   Dim As Single blockZ = 0.0f
   For z As Integer = 1 To gridDepth - 2
-    Dim As Single blockY = sideLength*(gridHeight - 1)
+    Dim As Single blockY = sideLength*(gridHeight - 2)
     For y As Integer = 1 To gridHeight - 2
       Dim As Single blockX = 0
       For x As Integer = 1 To gridWidth - 2
@@ -178,66 +195,73 @@ Constructor QuadModel( _
           Dim As Boolean back = grid(centerOffset + zOffset).v <> 0 'Const
           
           Dim As Vertex v(0 To 3)
-          populateQuadVerticesXY( _
-              Vec3F(blockX, blockY, blockZ), _
-              Vec3F(sideLength, sideLength, 0.0f), _
-              Vec2F(tex(texCube.front - 1)->w(), tex(texCube.front - 1)->h()), _
-              v())
 
           If (Not front) AndAlso (texCube.front <> 0) Then
+            Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.front - 1)
+            populateQuadVerticesXY( _
+                Vec3F(blockX, blockY, blockZ), _
+                Vec3F(sideLength, sideLength, 0.0f), _
+                curTex->uvStart, _
+                curTex->uvEnd, _
+                v())
+                
             DARRAY_PUSH( _
                 Quad, _
                 model, _
                 Type<Quad>( _
                     v(), _
-                    tex(texCube.front - 1), _
+                    tex(curTex->imageIndex), _
                     QuadTextureMode.TEXTURED, _
                     IIf(right <> 0, TRUE, FALSE), _
                     IIf(down <> 0, TRUE, FALSE)))
           End if
 
           If (Not up) AndAlso (texCube.up <> 0) Then
-            Dim As Image32 Ptr curTex = tex(texCube.up - 1)
+            Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.up - 1)
             populateQuadVerticesXZ( _
                 Vec3F(blockX, blockY, blockZ), _
                 Vec3F(sideLength, 0.0f, sideLength), _
-                Vec2F(curTex->w(), curTex->h()), _
+                curTex->uvStart, _
+                curTex->uvEnd, _
                 FALSE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
           EndIf
           
           If (Not right) AndAlso (texCube.right <> 0) Then
-            Dim As Image32 Ptr curTex = tex(texCube.right - 1)
+            Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.right - 1)
             populateQuadVerticesYZ( _
                 Vec3F(blockX + sideLength, blockY, blockZ), _
                 Vec3F(0.0f, sideLength, sideLength), _
-                Vec2F(curTex->w(), curTex->h()), _
+                curTex->uvStart, _
+                curTex->uvEnd, _
                 FALSE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
           EndIf
           
           If (Not down) AndAlso (texCube.down <> 0) Then
-            Dim As Image32 Ptr curTex = tex(texCube.down - 1)
+            Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.down - 1)
             populateQuadVerticesXZ( _
                 Vec3F(blockX, blockY - sideLength, blockZ), _
                 Vec3F(sideLength, 0.0f, sideLength), _
-                Vec2F(curTex->w(), curTex->h()), _
+                curTex->uvStart, _
+                curTex->uvEnd, _
                 TRUE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
           EndIf
           
           If (Not left) AndAlso (texCube.left <> 0) Then
-            Dim As Image32 Ptr curTex = tex(texCube.left - 1)
+            Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.left - 1)
             populateQuadVerticesYZ( _
                 Vec3F(blockX, blockY, blockZ), _
                 Vec3F(0.0f, sideLength, sideLength), _
-                Vec2F(curTex->w(), curTex->h()), _
+                curTex->uvStart, _
+                curTex->uvEnd, _
                 TRUE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), curTex, QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
           EndIf
         End if                  
         blockX += sideLength
@@ -246,6 +270,83 @@ Constructor QuadModel( _
     Next y
     blockZ -= sideLength
   Next z
+End Constructor
+
+Constructor QuadModel( _
+    ByRef volumeDims As Const Vec3F, _
+    ByRef texCube As Const QuadModelTextureCube, _
+    uvIndices() As QuadModelUVIndex, _
+    imagePaths() As String)
+  construct()    
+      
+  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'Const
+  For i As Integer = 0 To UBound(imagePaths)
+    tex(i) = TextureCache.get(imagePaths(i))
+  Next i
+  
+  Dim As Vertex v(0 To 3)
+
+  If texCube.front <> 0 Then
+    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.front - 1)
+    populateQuadVerticesXY( _
+        Vec3F(0.0f, volumeDims.y, 0.0f), _
+        Vec3F(volumeDims.x, volumeDims.y, 0.0f), _
+        curTex->uvStart, _
+        curTex->uvEnd, _
+        v())
+    DARRAY_PUSH( _
+        Quad, _
+        model, _
+        Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+  End If
+  
+  If texCube.up <> 0 Then
+    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.up - 1)
+    populateQuadVerticesXZ( _
+        Vec3F(0.0f, volumeDims.y, 0.0f), _
+        Vec3F(volumeDims.x, 0.0f, volumeDims.z), _
+        curTex->uvStart, _
+        curTex->uvEnd, _
+        FALSE, _
+        v())
+    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+  EndIf
+  
+  If texCube.right <> 0 Then
+    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.right - 1)
+    populateQuadVerticesYZ( _
+        Vec3F(volumeDims.x, volumeDims.y, 0.0f), _
+        Vec3F(0.0f, volumeDims.y, volumeDims.z), _
+        curTex->uvStart, _
+        curTex->uvEnd, _
+        FALSE, _
+        v())
+    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+  EndIf
+  
+  If texCube.down <> 0 Then
+    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.down - 1)
+    populateQuadVerticesXZ( _
+        Vec3F(0.0f, 0.0f, 0.0f), _
+        Vec3F(volumeDims.x, 0.0f, volumeDims.z), _
+        curTex->uvStart, _
+        curTex->uvEnd, _
+        TRUE, _
+        v())
+    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+  EndIf
+  
+  If texCube.left <> 0 Then
+    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.left - 1)
+    populateQuadVerticesYZ( _
+        Vec3F(0.0f, volumeDims.y, 0.0f), _
+        Vec3F(0.0f, volumeDims.y, volumeDims.z), _
+        curTex->uvStart, _
+        curTex->uvEnd, _
+        TRUE, _
+        v())
+    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+  EndIf
 End Constructor
 
 Sub QuadModel.project(ByRef projector As Const Projection)
