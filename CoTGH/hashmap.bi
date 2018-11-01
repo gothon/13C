@@ -392,32 +392,9 @@ namespace dsm
 end namespace
 
 #define HashMap(_KEYTYPE_, _TYPENAME_) HashMap_##_KEYTYPE_##_TYPENAME_
-
-namespace dsm
-    type HashMap_Initialization_Object
-        public:
-            declare constructor(_hashmap_construct as sub(),_
-                                _hashmap_destruct as sub())
-            declare destructor()
-        private:
-            as sub() hashmap_destruct
-    end type
-    constructor HashMap_Initialization_Object(_hashmap_construct as sub(),_
-                                              _hashmap_destruct as sub())
-        _hashmap_construct()
-        hashmap_destruct = _hashmap_destruct
-    end constructor
-    destructor HashMap_Initialization_Object()
-        hashmap_destruct()
-    end destructor
-end namespace
-
 #define HASHMAP_ROWSIZE(_K_, _T_) sizeof(HashMap_##_K_##_T_##_Row)
 
 #macro dsm_HashMap_define(_KEYTYPE_, _TYPENAME_)
-
-#ifndef HASHMAP_INITIALIZED_##_KEYTYPE_##_TYPENAME_
-#define HASHMAP_INITIALIZED_##_KEYTYPE_##_TYPENAME_
 
 namespace dsm
    
@@ -430,7 +407,16 @@ namespace dsm
         as HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr next_block
         as HashMap_##_KEYTYPE_##_TYPENAME_##_key_pair _
             slots(0 to HASHMAP_CONTIGUOUS_BLOCK_N-1)
-    end type
+    end Type
+    
+    type HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object
+        public:
+            declare constructor(_hashmap_construct as sub(),_
+                                _hashmap_destruct as sub())
+            declare destructor()
+        private:
+            as sub() hashmap_destruct
+    end Type
    
     type HashMap_##_KEYTYPE_##_TYPENAME_
        
@@ -452,7 +438,7 @@ namespace dsm
             declare static sub static_destruct()
    
         private:
-            static as HashMap_Initialization_Object init_object
+            static as HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object init_object
            
             HASHMAP_DECLARE_HASH_WRAP_##_KEYTYPE_(_KEYTYPE_, _TYPENAME_)
             HASHMAP_DECLARE_HASH_##_KEYTYPE_(_KEYTYPE_, _TYPENAME_)
@@ -472,7 +458,7 @@ namespace dsm
 
             static as size_t row_size_adjust
             static as size_t row_shift_mul
-    end type
+    end Type
     type HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor extends _
         HashMap_##_KEYTYPE_##_TYPENAME_
         public:
@@ -480,7 +466,24 @@ namespace dsm
             declare static sub destruct_()
         private:
             as integer _placeholder_
-    end type
+    end Type
+    
+end namespace
+#endmacro
+    
+#macro dsm_HashMap_implement(_KEYTYPE_, _TYPENAME_)
+namespace dsm
+  
+    constructor HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object(_hashmap_construct as sub(),_
+                                                                        _hashmap_destruct as sub())
+        _hashmap_construct()
+        hashmap_destruct = _hashmap_destruct
+    end constructor
+    destructor HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object()
+        hashmap_destruct()
+    end destructor
+
+  
     sub HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor.construct_()
         static_construct()
     end sub
@@ -488,9 +491,9 @@ namespace dsm
         static_destruct()
     end sub
    
-    dim as HashMap_Initialization_Object _
+    dim as HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object _
         HashMap_##_KEYTYPE_##_TYPENAME_.init_object = _
-        HashMap_Initialization_Object _
+        HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object _
         ( _
             @HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor.construct_, _
             @HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor.destruct_ _
@@ -836,8 +839,5 @@ namespace dsm
     end sub
    
 end namespace
-#endif
 #endmacro
-
-
 #endif

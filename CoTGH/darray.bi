@@ -13,7 +13,8 @@ Const As UInteger DARRAY_INIT_CAPACITY = 16
 'A basic dynamic array for holding types that themselves will not allocate memory.
 Type DArray
  Public:
-  Declare Constructor(ByRef rhs As DArray) 'disallowed
+  Declare Constructor()
+  Declare Constructor(ByRef rhs As DArray) 'disallowed if destination is initialized
   Declare Constructor(initCapacity As Integer, objSizeBytes As Integer)
   Declare Destructor()
   

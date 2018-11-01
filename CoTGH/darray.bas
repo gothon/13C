@@ -4,8 +4,18 @@
 #Include "debuglog.bi"
 #Include "null.bi"
 
+Constructor DArray()
+  This.elements = NULL
+End Constructor
+
 Constructor DArray(ByRef rhs As DArray)
-  DEBUG_ASSERT(FALSE)
+  DEBUG_ASSERT(This.elements = NULL)
+  This.elements = rhs.elements
+  rhs.elements = NULL
+  
+  This.capacity = rhs.capacity
+  This.elementSize = rhs.elementSize
+  This.size_ = rhs.size_
 End Constructor
 
 Constructor DArray(initCapacity As Integer, objSizeBytes As Integer)
@@ -17,8 +27,7 @@ Constructor DArray(initCapacity As Integer, objSizeBytes As Integer)
 End Constructor
 
 Destructor DArray()
-  DEBUG_ASSERT(This.elements <> NULL)
-  DeAllocate(This.elements)
+  If elements <> NULL Then DeAllocate(This.elements)
 End Destructor
   
 Sub DArray.expandBy(newObjectN As UInteger)
