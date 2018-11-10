@@ -1,24 +1,12 @@
 #Ifndef ACTORMANAGER_BI
 #Define ACTORMANAGER_BI
 
+'actors have a non-static method that consumes the 
+'last slot pushed onto its parent's stack (using it as an index into its table)
+
 Type ActorManager
  Public:
- 
-  'An index into the actor table paired with an actor's unique id
-  Type ActorId
-    actorIndex As UInteger 'Const
-    actorUid As ULongInt 'Const
-  End Type
 
-  'An index into the actor create table.
-  Type ActorCreateId As UInteger
- 
-  'A hash of a parmeter name used to match pushed parameters to slot parameters.
-  Type SlotParameterId As ULongInt
-  
-  'Indicies into an actors signal/slot table.
-  Type SignalId As UInteger 
-  Type SlotId As UInteger 
   
   'Push a parameter onto the stack
   Declare Sub pushParameter(paramId As SlotParameterId, ByRef x As Const Integer)
