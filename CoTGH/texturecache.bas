@@ -12,6 +12,7 @@ Static Function TextureCache.get(texturePath As String) As Image32 Const Ptr
   Dim As Image32Ptr loadedImage = NULL
   If Not cache.retrieve(texturePath, loadedImage) Then
     DArray_Image32_Emplace(images, texturePath)
+    loadedImage = @images.back()
     cache.insert(texturePath, loadedImage)
   EndIf
   Return loadedImage
