@@ -7,13 +7,19 @@
 #Include "darray.bi"
 
 Type QuadDrawElement
+  Declare Constructor() 'Nop
+  Declare Destructor() 'Nop
+  
+  Declare Constructor(q As Const Quad Ptr, parentId As ULongInt) 'Nop
+  
   As Const Quad Ptr q
-  As LongInt parentId
+  As ULongInt parentId
 End Type
+
+DECLARE_DARRAY(QuadDrawElement)
 
 'A buffer for binding, then drawing bound quad models.
 Type QuadDrawBuffer
-  Declare Constructor()
   
   'All models must be un-bound before destruction
   Declare Destructor()
@@ -30,7 +36,7 @@ Type QuadDrawBuffer
   Declare Sub sort()
   Declare Static Function backfaceTest(ByRef q As Const Quad) As Boolean
   
-  As DArray quads = DARRAY_CREATE(QuadDrawElement)
+  As DArray_QuadDrawElement quads
 End Type
 
 #EndIf

@@ -4,26 +4,17 @@
 #Include "darray.bi"
 #Include "image32.bi"
 
-Type TextureCacheInitializationObject
- Public:
-  Declare Constructor(construct As Sub(), destruct As Sub())
-  Declare Destructor()
- Private:
-  As Sub() destruct
-End Type
+DECLARE_DARRAY(Image32)
 
 'A cache of textures so that referencing a texture by filename is a safe pattern even after initializing an object
 'that uses textures.
 Type TextureCache
+ Public:
+  'Paths should be in all upper-case to prevent the need to UCase on every get.
   Declare Static Function get(texturePath As String) As Image32 Const Ptr
- Protected:
-  Declare Constructor()
-  Declare Static Sub construct()
-  Declare Static Sub destruct()
- 
+
  Private:
-  Static As TextureCacheInitializationObject initializationObject
-  Static As DArray images 'Image32
+  Static As DArray_Image32 images
   
   As Integer _ignored_
 End Type

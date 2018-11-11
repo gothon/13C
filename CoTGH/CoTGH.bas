@@ -1,21 +1,20 @@
-#Include "variant.bi"
+#Include "simpleaabbindex.bi"
+#Include "aabb.bi"
 #Include "vec2f.bi"
-#Include "puzzles.bi"
 
-Randomize Timer
-Dim As puzzle.ColorWheel z = puzzle.ColorWheel(puzzle.Difficulty.MEDIUM)
+DECLARE_SIMPLEAABBINDEX(String)
+DECLARE_DARRAY(SimpleAABBIndex_String_Element)
 
-Print z.getInitialColor()
-Print z.getTargetColor()
-For i As Integer = 0 To z.getOperatorsN() - 1
-	Print z.getOperator(i);
-Next i
-Print
+Dim As SimpleAABBIndex_String test
+test.add(AABB(Vec2F(-1, -1), Vec2F(2, 2)), "Is it secret, is it safe?")
+test.add(AABB(Vec2F(5, 5), Vec2F(5, 1.3)), "Unrelated tExt.")
 
-For i As Integer = 0 To z.getOperatorsN()
-	Print z.getColor(i); " ";
-Next i
+Dim As DArray_SimpleAABBIndex_String_Element elements
 
- 
-sleep
+test.query(AABB(Vec2F(-100, -100), Vec2F(100, 100)), @elements)
 
+Print elements.size()
+Print elements[0].x
+
+
+Sleep

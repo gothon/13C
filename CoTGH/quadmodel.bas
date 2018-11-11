@@ -3,6 +3,7 @@
 #Include "texturecache.bi"
 #Include "debuglog.bi"
 #Include "image32.bi"
+#Include "util.bi"
 
 Const As Single UV_ERROR_ADJ = 0.01
 
@@ -15,7 +16,16 @@ Constructor Quad(v() As Vertex, texture As Image32 Ptr, mode As QuadTextureMode,
   This.mode = mode
   This.trimX = trimX
   This.trimY = trimY
+  This.enabled = TRUE
 End Constructor
+
+Constructor Quad()
+  'Nop
+End Constructor
+
+Destructor Quad()
+  'Nop
+End Destructor
 
 Destructor QuadModelBase()
   DEBUG_ASSERT(bindings = 0)
@@ -23,7 +33,7 @@ End Destructor
 
 Sub QuadModelBase.translate(ByRef d As Const Vec3F)
   For i As Integer = 0 To model.size() - 1
-    Dim As Quad Ptr q = @DARRAY_AT(Quad, model, i)
+    Dim As Quad Ptr q = @(model[i])
     q->v(0).p += d
     q->v(1).p += d
     q->v(2).p += d
@@ -31,7 +41,7 @@ Sub QuadModelBase.translate(ByRef d As Const Vec3F)
   Next i
 End Sub
 
-Const Function QuadModelBase.id() As LongInt
+Const Function QuadModelBase.id() As ULongInt
   Return id_
 End Function
 
@@ -40,7 +50,7 @@ Const Function QuadModelBase.size() As UInteger
 End Function
 
 Const Function QuadModelBase.getQuad(i As Integer) As Const Quad Ptr
-  Return model.getConstPtr(i)
+  Return @(model.getConst(i))
 End Function
 
 Sub QuadModelBase.bind()
@@ -52,19 +62,35 @@ Sub QuadModelBase.unbind()
   bindings -= 1
 End Sub  
 
+Sub QuadModelBase.hide()
+  For i As Integer = 0 To model.size() - 1
+    model[i].enabled = FALSE
+  Next i
+End Sub
+
+Sub QuadModelBase.show()
+  For i As Integer = 0 To model.size() - 1
+    model[i].enabled = TRUE
+  Next i
+End Sub  
+
 Sub QuadModelBase.construct()
-  This.id_ = genId()
+  This.id_ = util.genUId()
   This.bindings = 0
 End Sub
 
 Static Sub QuadModelBase.calcZCentroid(q As Quad Ptr)
-  'Not actually zCentroid, but for now 
   q->zCentroid = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) / 4.0f
 End Sub
 
-Static Function QuadModelBase.genId() As LongInt
-  Return CLngInt(Rnd*CDbl(CUInt(&hffffffff)))*CLngInt(Rnd*CDbl(CUInt(&hffffffff)))
-End Function
+Constructor QuadModelEmpty()
+  This.id_ = 0
+  This.bindings = 0
+End Constructor
+
+Sub QuadModelEmpty.project(ByRef projector As Const Projection)
+  DEBUG_ASSERT(FALSE)
+End Sub
 
 'faces forward
 Sub populateQuadVerticesXY( _
@@ -204,16 +230,13 @@ Constructor QuadModel( _
                 curTex->uvStart, _
                 curTex->uvEnd, _
                 v())
-                
-            DARRAY_PUSH( _
-                Quad, _
+            DArray_Quad_Emplace( _
                 model, _
-                Type<Quad>( _
-                    v(), _
-                    tex(curTex->imageIndex), _
-                    QuadTextureMode.TEXTURED, _
-                    IIf(right <> 0, TRUE, FALSE), _
-                    IIf(down <> 0, TRUE, FALSE)))
+                v(), _
+                tex(curTex->imageIndex), _
+                QuadTextureMode.TEXTURED, _
+                IIf(right <> 0, TRUE, FALSE), _
+                IIf(down <> 0, TRUE, FALSE))
           End if
 
           If (Not up) AndAlso (texCube.up <> 0) Then
@@ -225,7 +248,7 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 FALSE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
           EndIf
           
           If (Not right) AndAlso (texCube.right <> 0) Then
@@ -237,7 +260,7 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 FALSE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
           EndIf
           
           If (Not down) AndAlso (texCube.down <> 0) Then
@@ -249,7 +272,7 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 TRUE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
           EndIf
           
           If (Not left) AndAlso (texCube.left <> 0) Then
@@ -261,7 +284,7 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 TRUE, _
                 v())
-            DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE))
+            DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
           EndIf
         End if                  
         blockX += sideLength
@@ -294,10 +317,7 @@ Constructor QuadModel( _
         curTex->uvStart, _
         curTex->uvEnd, _
         v())
-    DARRAY_PUSH( _
-        Quad, _
-        model, _
-        Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+    DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
   End If
   
   If texCube.up <> 0 Then
@@ -309,7 +329,7 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         FALSE, _
         v())
-    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+    DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
   EndIf
   
   If texCube.right <> 0 Then
@@ -321,7 +341,7 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         FALSE, _
         v())
-    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+    DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
   EndIf
   
   If texCube.down <> 0 Then
@@ -333,7 +353,7 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         TRUE, _
         v())
-    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+    DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
   EndIf
   
   If texCube.left <> 0 Then
@@ -345,13 +365,13 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         TRUE, _
         v())
-    DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE))
+    DArray_Quad_Emplace(model, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
   EndIf
 End Constructor
 
 Sub QuadModel.project(ByRef projector As Const Projection)
   For i As Integer = 0 To model.size() - 1
-    Dim As Quad Ptr q = @DARRAY_AT(Quad, model, i)
+    Dim As Quad Ptr q = @(model[i])
     projector.project(q->v(0), @q->pV(0))
     projector.project(q->v(1), @q->pV(1))  
     projector.project(q->v(2), @q->pV(2))  
@@ -376,11 +396,11 @@ Constructor QuadSprite(imagePath As String)
       Vertex(Vec3F(hw - 1, -hh, 0.0f),    Vec2F(w - UV_ERROR_ADJ, h - UV_ERROR_ADJ)), _
       Vertex(Vec3F(-hw, -hh, 0.0f),       Vec2F(UV_ERROR_ADJ, h - UV_ERROR_ADJ))} 'Const
 
-  DARRAY_PUSH(Quad, model, Type<Quad>(v(), tex, QuadTextureMode.TEXTURED, FALSE, FALSE))
+  DArray_Quad_Emplace(model, v(), tex, QuadTextureMode.TEXTURED, FALSE, FALSE)
 End Constructor
 
 Sub QuadSprite.project(ByRef projector As Const Projection)
-  Dim As Quad Ptr q = @DARRAY_AT(Quad, model, 0)
+  Dim As Quad Ptr q = @(model[0])
   projector.projectBillboard(q->v(0), q->v(1), q->v(2), q->v(3), @q->pV(0), @q->pV(1), @q->pV(2), @q->pV(3))
   calcZCentroid(q)
 End Sub

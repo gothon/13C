@@ -16,21 +16,28 @@ Enum QuadTextureMode Explicit
 End Enum
 
 Type Quad
+  Declare Constructor() 'For DArray
+  Declare Destructor() 'For DArray
+  
   Declare Constructor( _
       v() As Vertex, _
       texture As Image32 Ptr, _
       mode As QuadTextureMode, _
       trimX As Boolean, _
       trimY As Boolean)
-  
+
   As Vertex v(0 To 3)
   As Vertex pV(0 To 3)
   As Single zCentroid
+  As Boolean enabled
+  
   As Image32 Ptr texture 'Const
   As QuadTextureMode mode 'Const
   As Boolean trimX 'Const
   As Boolean trimY 'Const
 End Type
+
+DECLARE_DARRAY(Quad)
 
 'A model made entirely of quads.
 Type QuadModelBase Extends Object
@@ -44,7 +51,7 @@ Type QuadModelBase Extends Object
   Declare Sub translate(ByRef d As Const Vec3F)
  
   'Unique ID given at construction
-  Declare Const Function id() As LongInt
+  Declare Const Function id() As ULongInt
   
   'Count of quads in this model.
   Declare Const Function size() As UInteger
@@ -52,21 +59,24 @@ Type QuadModelBase Extends Object
   'Retrieve a pointer to a projected quad.
   Declare Const Function getQuad(i As Integer) As Const Quad Ptr
   
+  'Hide/show this model. Will not be drawn by bound QuadDrawBuffers.
+  Declare Sub hide()
+  Declare Sub show()
+  
   'Reference count mutators to track if this QuadModel or its data is referenced by another object i.e. a
   'QuadDrawBuffer
   Declare Sub bind()
   Declare Sub unbind()
  Protected:
   Declare Static Sub calcZCentroid(q As Quad Ptr)
-  Declare Static Function genId() As LongInt
-  
+
   Declare Sub construct()
  
   As UInteger bindings
   
-  As LongInt id_ 'Const
+  As ULongInt id_ 'Const
   
-  As DArray model = DARRAY_CREATE(Quad) 'Const
+  As DArray_Quad model
 End Type
 
 Type QuadModelTextureCube
@@ -89,6 +99,14 @@ Type QuadModelTextureCube
       As UInteger Left : 6 'Const
     End Type
   End Union
+End Type
+
+'An empty quad model that can't be modified, used for initializing a QuadModel and assigning to it
+'later.
+Type QuadModelEmpty Extends QuadModelBase
+  Declare Constructor()  
+  
+  Declare Sub project(ByRef projector As Const Projection)
 End Type
 
 Type QuadModelUVIndex
