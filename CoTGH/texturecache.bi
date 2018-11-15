@@ -6,6 +6,15 @@
 
 DECLARE_DARRAY(Image32)
 
+Type Image32Ptr
+  Declare Constructor()
+  Declare Destructor()
+  
+  Declare Constructor(p As Image32 Ptr)
+  
+  As Image32 Ptr p
+End Type
+
 'A cache of textures so that referencing a texture by filename is a safe pattern even after initializing an object
 'that uses textures.
 Type TextureCache

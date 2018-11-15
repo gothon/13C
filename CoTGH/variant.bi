@@ -7,6 +7,8 @@
 'An immutable variant for statically unknown types.
 Type Variant
  Public:
+  Declare Constructor() 'Disallowed
+  
   Declare Constructor(ByRef x As Const Integer)
   Declare Constructor(ByRef x As Const Single)
   Declare Constructor(ByRef x As Const String)
@@ -26,11 +28,11 @@ Type Variant
   
   Declare Const Function getType() As Typename
   
-  Declare Const Function getInteger() As Integer
-  Declare Const Function getSingle() As Single
-  Declare Const Function getString() As ZString Ptr
-  Declare Const Function getVec2F() ByRef As Vec2F
-  Declare Const Function getVec3F() ByRef As Vec3F
+  Declare Const Function getInteger() As Const Integer Ptr
+  Declare Const Function getSingle() As Const Single Ptr
+  Declare Const Function getString() As Const ZString Ptr
+  Declare Const Function getVec2F() As Const Vec2F Ptr
+  Declare Const Function getVec3F() As Const Vec3F Ptr
   
  Private:
   Const As Integer LOCAL_STRING_BUFFER_N = 16
