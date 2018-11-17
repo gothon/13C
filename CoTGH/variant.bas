@@ -3,6 +3,10 @@
 #Include "null.bi"
 #Include "debuglog.bi"
 
+Constructor Variant()
+  DEBUG_ASSERT(FALSE)
+End Constructor
+
 Constructor Variant(ByRef x As Const Integer)
   This.t = INTEGER_
   This.integerValue = x
@@ -51,17 +55,17 @@ Const Function Variant.getType() As Typename
   Return t
 End Function
   
-Const Function Variant.getInteger() As Integer
+Const Function Variant.getInteger() As Const Integer Ptr
   DEBUG_ASSERT(t = INTEGER_)
-  Return integerValue
+  Return @integerValue
 End Function
 
-Const Function Variant.getSingle() As Single
+Const Function Variant.getSingle() As Const Single Ptr
   DEBUG_ASSERT(t = SINGLE_)
-  Return singleValue
+  Return @singleValue
 End Function
 
-Const Function Variant.getString() As ZString Ptr
+Const Function Variant.getString() As Const ZString Ptr
   DEBUG_ASSERT(t = STRING_)
   If stringValue = NULL Then
     Return StrPtr(localStringValue)
@@ -71,12 +75,12 @@ End Function
 
 'TODO(DotStarMoney): The below two getters are pretty sketchy... the hack works for now but should have an eye kept
 '                    upon it.
-Const Function Variant.getVec2F() ByRef As Vec2F
+Const Function Variant.getVec2F() As Const Vec2F Ptr
   DEBUG_ASSERT(t = VEC2F_)
-  Return *CPtr(Vec2F Ptr, @xValue)
+  Return CPtr(Vec2F Ptr, @xValue)
 End Function
 
-Const Function Variant.getVec3F() ByRef As Vec3F
+Const Function Variant.getVec3F() As Const Vec3F Ptr
   DEBUG_ASSERT(t = VEC3F_)
-  Return *CPtr(Vec3F Ptr, @xValue)  
+  Return CPtr(Vec3F Ptr, @xValue)  
 End Function

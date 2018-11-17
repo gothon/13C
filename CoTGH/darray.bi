@@ -23,11 +23,11 @@ Type DArray_##_TYPENAME_
   
   Declare Destructor()
 
-  
   Declare Sub resize(newSize As UInteger)
   Declare Sub reserve(numElements As UInteger)  
   Declare Sub push(ByRef x As Const _TYPENAME_)
   Declare Function back() ByRef As _TYPENAME_
+  Declare Const Function backConst() ByRef As Const _TYPENAME_
   
   Declare Sub pop()
   Declare Sub clear()
@@ -133,6 +133,12 @@ Sub DArray_##_TYPENAME_.push(ByRef x As Const _TYPENAME_)
 End Sub
 
 Function DArray_##_TYPENAME_.back() ByRef As _TYPENAME_
+  DEBUG_ASSERT(elements <> NULL)
+  DEBUG_ASSERT(size_ > 0)
+  Return elements[size_ - 1]
+End Function
+
+Const Function DArray_##_TYPENAME_.backConst() ByRef As Const _TYPENAME_
   DEBUG_ASSERT(elements <> NULL)
   DEBUG_ASSERT(size_ > 0)
   Return elements[size_ - 1]

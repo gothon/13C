@@ -1,23 +1,23 @@
-#Include "simpleaabbindex.bi"
-#Include "aabb.bi"
-#Include "vec2f.bi"
+#Include "puzzles.bi"
+Randomize Timer 
+Dim As puzzle.Arboretum a = puzzle.Arboretum(puzzle.Difficulty.VERY_HARD)
 
-DECLARE_SIMPLEAABBINDEX(String)
-DECLARE_DARRAY(SimpleAABBIndex_String_Element)
-
-Dim As SimpleAABBIndex_String test
-test.add(AABB(Vec2F(-1, -1), Vec2F(2, 2)), "Is it secret, is it safe?")
-test.add(AABB(Vec2F(5, 5), Vec2F(5, 1.3)), "Unrelated tExt.")
-
-Dim As DArray_SimpleAABBIndex_String_Element elements
-
-test.query(AABB(Vec2F(-100, -100), Vec2F(200, 200)), @elements)
-
-Print elements.size()
-test.filter(AABB(Vec2F(-100, -100), Vec2F(100, 100)), @elements)
-
-
-Print elements.size()
-Print elements[0].x
+For i As Integer = 0 To 2
+  Dim As Integer pot(0 To 2)
+  a.getPot(0, i, pot())
+  Print pot(0) & ", " & pot(1) & ", " & pot(2)
+Next i
+Print
+For i As Integer = 0 To 3
+  Dim As Integer pot(0 To 2)
+  a.getPot(1, i, pot())
+  Print pot(0) & ", " & pot(1) & ", " & pot(2)
+Next i
+Print 
+For i As Integer = 0 To 4
+  Dim As Integer pot(0 To 2)
+  a.getPot(2, i, pot())
+  Print pot(0) & ", " & pot(1) & ", " & pot(2)
+Next i
 
 Sleep

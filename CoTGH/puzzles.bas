@@ -156,6 +156,12 @@ Sub ColorWheel.setOperator(opIndex As UInteger, op As ColorOperator)
 	operators(opIndex) = op
 End Sub
 
+Function ColorWheel.collectOperator(opIndex As UInteger) As ColorOperator
+	DEBUG_ASSERT(opIndex < operatorsN)
+  operators(opIndex) = ColorOperator.UNKNOWN
+	Return operators(opIndex)
+End Function
+
 Const Function ColorWheel.getOperator(opIndex As UInteger) As ColorOperator
 	DEBUG_ASSERT(opIndex < operatorsN)
 	Return operators(opIndex)
@@ -191,6 +197,249 @@ Const Function ColorWheel.getColor(stage As UInteger) As UInteger
 		End Select
 	Next i
 	Return curColor
+End Function
+  
+Constructor Arboretum(difficulty As Difficulty)
+	Select Case As Const difficulty
+	  Case puzzle.Difficulty.EASY
+	    This.variations = 4
+	  Case puzzle.Difficulty.MEDIUM
+	   	This.variations = 5
+		Case puzzle.Difficulty.HARD
+			This.variations = 6
+		Case puzzle.Difficulty.VERY_HARD
+	    This.variations = 7
+	End Select
+	prepareSolution()
+End Constructor
+
+Sub Arboretum.prepareSolution()
+  Dim As Boolean tooEasy
+  Do
+    fillRow(row1())
+    fillRow(row2())
+    fillRow(row3())
+    
+    tooEasy = FALSE
+    Dim As UInteger shuffleAttempts = 0
+    While checkSolution(0) OrElse checkSolution(1) OrElse checkSolution(2)
+      shuffleAttempts += 1
+      If shuffleAttempts >= 32 Then
+        tooEasy = TRUE
+        Exit While
+      EndIf
+      shuffle()
+    Wend
+  Loop While tooEasy
+End Sub
+
+Sub Arboretum.fillRow(row() As UInteger)
+  Dim As UInteger m = UBound(row) 'Const
+  Do
+    clearRow(row())
+    Dim As Integer curIndex = -1
+    Dim As Integer curValue = -1
+    For i As Integer = 0 To m
+      Dim As Integer lastIndex = curIndex 'Const
+      Dim As Integer lastValue = curValue 'Const
+      If curValue = -1 Then
+        curIndex = Int(Rnd*3)
+        curValue = Int(Rnd*variations)
+      ElseIf i <> m Then
+        If Rnd < 0.8 Then
+          curIndex = (lastIndex + Int(Rnd*m) + 1) Mod 3
+          curValue = Int(Rnd*variations)
+        EndIf
+      EndIf 
+      
+      If lastValue <> -1 Then row(i, lastIndex) = lastValue
+      row(i, curIndex) = curValue 
+    Next i
+  Loop While ((row(0, 0) = row(m, 0)) AndAlso (row(0, 0) <> -1)) _
+      OrElse ((row(0, 1) = row(m, 1)) AndAlso (row(0, 1) <> -1)) _
+      OrElse ((row(0, 2) = row(m, 2)) AndAlso (row(0, 2) <> -1))
+      
+  Dim As Integer rowCopy(0 To m, 0 To 2) 'Const
+  For i As Integer = 0 To m
+    rowCopy(i, 0) = row(i, 0)
+    rowCopy(i, 1) = row(i, 1)
+    rowCopy(i, 2) = row(i, 2)
+  Next i
+  Do
+    For i As Integer = 0 To m
+      For q As Integer = 0 To 2
+        If row(i, q) = -1 Then
+          Dim As Integer newValue = Int(Rnd*variations)
+          If Rnd() < 0.5 Then
+            If i = 0 Then
+              While newValue = row(i + 1, q)
+                newValue = Int(Rnd*variations)
+              Wend
+            ElseIf i = m Then
+              While newValue = row(i - 1, q)
+                newValue = Int(Rnd*variations)
+              Wend              
+            Else 
+              While (newValue = row(i - 1, q)) OrElse (newValue = row(i + 1, q))
+                newValue = Int(Rnd*variations)
+              Wend      
+            EndIf
+          EndIf
+          row(i, q) = newValue
+        EndIf
+      Next q 
+    Next i
+    If (row(0, 0) <> row(m, 0)) AndAlso (row(0, 1) <> row(m, 1)) AndAlso (row(0, 2) <> row(m, 2)) Then Exit Do
+    For i As Integer = 0 To m
+      row(i, 0) = rowCopy(i, 0)
+      row(i, 1) = rowCopy(i, 1)
+      row(i, 2) = rowCopy(i, 2)
+    Next i    
+  Loop
+End Sub
+
+Sub Arboretum.clearRow(row() As UInteger)
+  For i As Integer = 0 To UBound(row)
+    row(i, 0) = -1
+    row(i, 1) = -1
+    row(i, 2) = -1
+  Next i
+End Sub
+
+Sub Arboretum.shuffle()
+  For i As Integer = (ROW_1_N + ROW_2_N + ROW_3_N) - 1 To 1 Step -1
+    Dim As UInteger Ptr elementA
+    If i < ROW_1_N Then
+      elementA = @(row1(i, 0))
+    ElseIf i < (ROW_1_N + ROW_2_N) Then
+      elementA = @(row2(i - ROW_1_N, 0))
+    Else
+      elementA = @(row3(i - ROW_1_N - ROW_2_N, 0))
+    EndIf
+    
+    Dim As UInteger Ptr elementB
+    Dim As UInteger q = Int(Rnd*i) 'Const
+    If q < ROW_1_N Then
+      elementB = @(row1(q, 0))
+    ElseIf q < (ROW_1_N + ROW_2_N) Then
+      elementB = @(row2(q - ROW_1_N, 0))
+    Else
+      elementB = @(row3(q - ROW_1_N - ROW_2_N, 0))
+    EndIf
+    
+    Swap elementA[0], elementB[0]
+    Swap elementA[1], elementB[1]
+    Swap elementA[2], elementB[2]
+  Next i
+End Sub
+
+Const Function Arboretum.checkSolution(row As UInteger) As Boolean
+  DEBUG_ASSERT((row >= 0) AndAlso (row <= 2))
+  Select Case As Const row
+    Case 0
+      Return checkRow(row1())
+    Case 1
+      Return checkRow(row2())
+    Case 2
+      Return checkRow(row3())
+    Case Else
+      DEBUG_ASSERT(FALSE)
+  End Select
+End Function
+
+Const Function Arboretum.checkSolution() As Boolean
+  Return checkSolution(0) AndAlso checkSolution(1) AndAlso checkSolution(2)
+End Function
+	
+Sub Arboretum.collectPot(row As UInteger, index As UInteger, pot() As Integer)
+  DEBUG_ASSERT((row >= 0) AndAlso (row <= 2))
+  Select Case As Const row
+    Case 0 
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row1)))
+      pot(0) = row1(index, 0)
+      pot(1) = row1(index, 1)
+      pot(2) = row1(index, 2)
+      row1(index, 0) = -1
+      row1(index, 1) = -1
+      row1(index, 2) = -1
+    Case 1
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row2)))
+      pot(0) = row2(index, 0)
+      pot(1) = row2(index, 1)
+      pot(2) = row2(index, 2)
+      row2(index, 0) = -1
+      row2(index, 1) = -1
+      row2(index, 2) = -1
+    Case 2
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row3)))
+      pot(0) = row3(index, 0)
+      pot(1) = row3(index, 1)
+      pot(2) = row3(index, 2)
+      row3(index, 0) = -1
+      row3(index, 1) = -1
+      row3(index, 2) = -1
+    Case Else
+      DEBUG_ASSERT(FALSE)
+  End Select
+End Sub
+
+Sub Arboretum.setPot(row As UInteger, index As UInteger, pot() As Const Integer)
+  DEBUG_ASSERT((row >= 0) AndAlso (row <= 2))
+  Select Case As Const row
+    Case 0 
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row1)))
+      row1(index, 0) = pot(0)
+      row1(index, 1) = pot(1)
+      row1(index, 2) = pot(2)
+    Case 1
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row2)))
+      row2(index, 0) = pot(0)
+      row2(index, 1) = pot(1)
+      row2(index, 2) = pot(2)
+    Case 2
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row3)))
+      row3(index, 0) = pot(0)
+      row3(index, 1) = pot(1)
+      row3(index, 2) = pot(2)
+    Case Else
+      DEBUG_ASSERT(FALSE)
+  End Select 
+End Sub
+
+Const Sub Arboretum.getPot(row As UInteger, index As UInteger, pot() As Integer) 
+  DEBUG_ASSERT((row >= 0) AndAlso (row <= 2))
+  Select Case As Const row
+    Case 0 
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row1)))
+      pot(0) = row1(index, 0)
+      pot(1) = row1(index, 1)
+      pot(2) = row1(index, 2)
+    Case 1
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row2)))
+      pot(0) = row2(index, 0)
+      pot(1) = row2(index, 1)
+      pot(2) = row2(index, 2)
+    Case 2
+      DEBUG_ASSERT((index >= 0) AndAlso (index <= UBound(row3)))
+      pot(0) = row3(index, 0)
+      pot(1) = row3(index, 1)
+      pot(2) = row3(index, 2)
+    Case Else
+      DEBUG_ASSERT(FALSE)
+  End Select
+End Sub
+	
+Const Function Arboretum.getVariations() As UInteger
+  Return variations
+End Function
+
+Function Arboretum.checkRow(row() As Const UInteger) As Boolean
+  For i As Integer = 1 To UBound(row)
+    If (row(i, 0) <> row(i - 1, 0)) AndAlso (row(i, 1) <> row(i - 1, 1)) AndAlso (row(i, 2) <> row(i - 1, 2)) Then
+      Return FALSE
+    EndIf
+  Next i
+  Return TRUE
 End Function
 
 End Namespace

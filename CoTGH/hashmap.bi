@@ -32,12 +32,10 @@ namespace dsm
             else
                 if cur_row->next_block then
                     *(cur_row) = *(cur_row->next_block)
-                end if
+                end If
             end if
         end if
         used_size -= 1
-        if (cdbl(used_size) / (capacity * HASHMAP_CONTIGUOUS_BLOCK_N)) < _
-            HASHMAP_COMPACT_RATIO then down_split_entry()
         return false
     #endmacro
     ' -------------------------- LONG ----------------------------
@@ -45,7 +43,9 @@ namespace dsm
         key as long
     #endmacro
     #macro HASHMAP_long_DESTRUCT_LOGIC()
-        ''
+        for j = 0 to cur_block->size - 1
+            cur_block->slots(j).data_.Destructor()
+        next j 
     #endmacro
     #macro HASHMAP_long_INSERTION_LOGIC()
         .key = _key
@@ -69,20 +69,25 @@ namespace dsm
             return cur_row->slots(i).data_
         end if
     #endmacro   
+    #macro HASHMAP_long_RETRIEVE_R_PTR_LOGIC()
+        if _key = cur_row->slots(i).key then
+            return @(cur_row->slots(i).data_)
+        end if
+    #endmacro 
     #macro HASHMAP_long_CALC_NEW_POS(_KEYTYPE_, _INDEX_)
         new_pos = hash_##_KEYTYPE_(this, cur_row->slots(_INDEX_).key)
     #endmacro
     #macro HASHMAP_DECLARE_HASH_WRAP_long(_KEYTYPE_, _TYPENAME_)
-    function hash_wrap_long naked cdecl _
+    declare const function hash_wrap_long naked cdecl _
     ( _
-        byref _table as HashMap_##_KEYTYPE_##_TYPENAME_, _
+        byref _table as const HashMap_##_KEYTYPE_##_TYPENAME_, _
         _key as long _
     ) as size_t   
     #endmacro
     #macro HASHMAP_DEFINE_HASH_WRAP_long(_KEYTYPE_, _TYPENAME_)
-    function HashMap_##_KEYTYPE_##_TYPENAME_.hash_wrap_long naked cdecl _
+    const function HashMap_##_KEYTYPE_##_TYPENAME_.hash_wrap_long naked cdecl _
     ( _
-        byref _table as HashMap_##_KEYTYPE_##_TYPENAME_, _
+        byref _table as const HashMap_##_KEYTYPE_##_TYPENAME_, _
         _key as long _
     ) as size_t
         asm
@@ -138,16 +143,16 @@ namespace dsm
                 ret
         #endif       
         end asm
-    end function
+    end Function
     #endmacro
     #macro HASHMAP_DECLARE_HASH_long(_KEYTYPE_, _TYPENAME_)
-    declare function hash_long naked cdecl _
+    declare const function hash_long naked cdecl _
     ( _
         _key as long _
     ) as size_t   
     #endmacro
     #macro HASHMAP_DEFINE_HASH_long(_KEYTYPE_, _TYPENAME_)
-    function HashMap_##_KEYTYPE_##_TYPENAME_.hash_long naked cdecl _
+    const function HashMap_##_KEYTYPE_##_TYPENAME_.hash_long naked cdecl _
     ( _
         _key as long _
     ) as size_t
@@ -186,7 +191,7 @@ namespace dsm
                 ret
         #endif       
         end asm         
-    end function
+    end Function
     #endmacro
     ' -------------------------- ZSTRING ----------------------------
     #define HASHMAP_zstring_BUFFER_N 32
@@ -203,7 +208,8 @@ namespace dsm
             if cur_block->slots(j).is_contiguous = false then
                 deallocate(cur_block->slots(j).key_external)
             end if
-        next j   
+            cur_block->slots(j).data_.Destructor()
+        next j 
     #endmacro
     #macro HASHMAP_zstring_INSERTION_LOGIC()
         dim as size_t key_length = len(_key)
@@ -263,6 +269,17 @@ namespace dsm
             end if             
         end if
     #endmacro   
+    #macro HASHMAP_zstring_RETRIEVE_R_PTR_LOGIC()
+        if cur_row->slots(i).is_contiguous = true then
+            if _key = cur_row->slots(i).key_internal then
+                return @(cur_row->slots(i).data_)
+            end if
+        else
+            if _key = *(cur_row->slots(i).key_external) then
+                return @(cur_row->slots(i).data_)
+            end if             
+        end if
+    #endmacro   
     #macro HASHMAP_zstring_CALC_NEW_POS(_KEYTYPE_, _INDEX_)
         if cur_row->slots(_INDEX_).is_contiguous = true then
             new_pos = hash_##_KEYTYPE_ _
@@ -277,16 +294,16 @@ namespace dsm
         end if
     #endmacro
     #macro HASHMAP_DECLARE_HASH_WRAP_zstring(_KEYTYPE_, _TYPENAME_)
-    declare function hash_wrap_zstring naked cdecl _
+    declare const function hash_wrap_zstring naked cdecl _
     ( _
-        byref _table as HashMap_##_KEYTYPE_##_TYPENAME_, _
+        byref _table as const HashMap_##_KEYTYPE_##_TYPENAME_, _
         _key as zstring _
     ) as size_t   
     #endmacro
     #macro HASHMAP_DEFINE_HASH_WRAP_zstring(_KEYTYPE_, _TYPENAME_)
-    function HashMap_##_KEYTYPE_##_TYPENAME_.hash_wrap_zstring naked cdecl _
+    Const function HashMap_##_KEYTYPE_##_TYPENAME_.hash_wrap_zstring naked cdecl _
     ( _
-        byref _table as HashMap_##_KEYTYPE_##_TYPENAME_, _
+        byref _table as const HashMap_##_KEYTYPE_##_TYPENAME_, _
         _key as zstring _
     ) as size_t
         asm
@@ -295,23 +312,23 @@ namespace dsm
                 mov     rax,                    14695981039346656037
                 mov     rcx,                    1099511628211
                 mov     rbx,                    dword ptr [esp+32]
-            dsm_hashmap_hashw_zstring_loopstart_64:
+            dsm_hashmap_hashw_zstring##_TYPENAME_##_loopstart_64:
                 mov     dl,                     byte ptr [rbx]
                 or      dl,                     dl
-                jz      dsm_hashmap_hashw_zstring_return_64
+                jz      dsm_hashmap_hashw_zstring##_TYPENAME_##_return_64
                 xor     al,                     dl         
                 mul     rcx
                 inc     rbx
-                jmp     dsm_hashmap_hashw_zstring_loopstart_64
-            dsm_hashmap_hashw_zstring_return_64:
+                jmp     dsm_hashmap_hashw_zstring##_TYPENAME_##_loopstart_64
+            dsm_hashmap_hashw_zstring##_TYPENAME_##_return_64:
                 pop     rbx
                 mov     rcx,                    qword ptr [rsp+8]
                 mov     rdx,                    rax
                 and     rax,                    qword ptr [rcx+40]
                 cmp     rax,                    qword ptr [rcx+8]
-                jl      dsm_hashmap_hashw_zstring_upperlevel_64
+                jl      dsm_hashmap_hashw_zstring##_TYPENAME_##_upperlevel_64
                 ret
-            dsm_hashmap_hashw_zstring_upperlevel_64:
+            dsm_hashmap_hashw_zstring##_TYPENAME_##_upperlevel_64:
                 and     rdx,                    qword ptr [rcx+48]
                 mov     rax,                    rdx
                 ret                         
@@ -320,35 +337,35 @@ namespace dsm
                 mov     eax,                    2166136261
                 mov     ecx,                    16777619
                 mov     ebx,                    dword ptr [esp+16]
-            dsm_hashmap_hashw_zstring_loopstart_32:
+            dsm_hashmap_hashw_zstring##_TYPENAME_##_loopstart_32:
                 mov     dl,                     byte ptr [ebx]
                 or      dl,                     dl
-                jz      dsm_hashmap_hashw_zstring_return_32
+                jz      dsm_hashmap_hashw_zstring##_TYPENAME_##_return_32
                 xor     al,                     dl
                 mul     ecx
                 inc     ebx
-                jmp     dsm_hashmap_hashw_zstring_loopstart_32
-            dsm_hashmap_hashw_zstring_return_32:
+                jmp     dsm_hashmap_hashw_zstring##_TYPENAME_##_loopstart_32
+            dsm_hashmap_hashw_zstring##_TYPENAME_##_return_32:
                 pop     ebx
                 mov     ecx,                    dword ptr [esp+4]
                 mov     edx,                    eax
                 and     eax,                    dword ptr [ecx+20]
                 cmp     eax,                    dword ptr [ecx+4]
-                jl      dsm_hashmap_hashw_zstring_upperlevel_32
+                jl      dsm_hashmap_hashw_zstring##_TYPENAME_##_upperlevel_32
                 ret
-            dsm_hashmap_hashw_zstring_upperlevel_32:
+            dsm_hashmap_hashw_zstring##_TYPENAME_##_upperlevel_32:
                 and     edx,                    dword ptr [ecx+24]
                 mov     eax,                    edx
                 ret
         #endif   
         end asm     
-    end function
+    end Function
     #endmacro
     #macro HASHMAP_DECLARE_HASH_zstring(_KEYTYPE_, _TYPENAME_)
-    declare function hash_zstring naked cdecl (_key as zstring) as size_t   
+    declare const function hash_zstring naked cdecl (_key as zstring) as size_t   
     #endmacro
     #macro HASHMAP_DEFINE_HASH_zstring(_KEYTYPE_, _TYPENAME_)
-    function HashMap_##_KEYTYPE_##_TYPENAME_.hash_zstring naked cdecl _
+    const function HashMap_##_KEYTYPE_##_TYPENAME_.hash_zstring naked cdecl _
     ( _
         _key as zstring _
     ) as size_t
@@ -358,15 +375,15 @@ namespace dsm
                 mov     rax,                    14695981039346656037
                 mov     rcx,                    1099511628211
                 mov     rbx,                    dword ptr [esp+24]
-            dsm_hashmap_hash_zstring_loopstart_64:
+            dsm_hashmap_hash_zstring##_TYPENAME_##_loopstart_64:
                 mov     dl,                     byte ptr [rbx]
                 or      dl,                     dl
-                jz      dsm_hashmap_hash_zstring_return_64
+                jz      dsm_hashmap_hash_zstring##_TYPENAME_##_return_64
                 xor     al,                     dl         
                 mul     rcx
                 inc     rbx
-                jmp     dsm_hashmap_hash_zstring_loopstart_64
-            dsm_hashmap_hash_zstring_return_64:
+                jmp     dsm_hashmap_hash_zstring##_TYPENAME_##_loopstart_64
+            dsm_hashmap_hash_zstring##_TYPENAME_##_return_64:
                 pop     rbx         
                 ret
         #else   
@@ -374,20 +391,20 @@ namespace dsm
                 mov     eax,                    2166136261
                 mov     ecx,                    16777619
                 mov     ebx,                    dword ptr [esp+12]
-            dsm_hashmap_hash_zstring_loopstart_32:
+            dsm_hashmap_hash_zstring##_TYPENAME_##_loopstart_32:
                 mov     dl,                     byte ptr [ebx]
                 or      dl,                     dl
-                jz      dsm_hashmap_hash_zstring_return_32
+                jz      dsm_hashmap_hash_zstring##_TYPENAME_##_return_32
                 xor     al,                     dl
                 mul     ecx
                 inc     ebx
-                jmp     dsm_hashmap_hash_zstring_loopstart_32
-            dsm_hashmap_hash_zstring_return_32:
+                jmp     dsm_hashmap_hash_zstring##_TYPENAME_##_loopstart_32
+            dsm_hashmap_hash_zstring##_TYPENAME_##_return_32:
                 pop     ebx
                 ret
         #endif   
         end asm       
-    end function
+    end Function
     #endmacro
 end namespace
 
@@ -395,6 +412,8 @@ end namespace
 #define HASHMAP_ROWSIZE(_K_, _T_) sizeof(HashMap_##_K_##_T_##_Row)
 
 #macro dsm_HashMap_define(_KEYTYPE_, _TYPENAME_)
+#ifndef HASHMAP_##_KEYTYPE_##_TYPENAME_##_DECL
+#define HASHMAP_##_KEYTYPE_##_TYPENAME_##_DECL
 
 namespace dsm
    
@@ -431,7 +450,9 @@ namespace dsm
             declare function retrieve(_key as _KEYTYPE_, _
                                       byref _item as _TYPENAME_) as bool           
             declare function retrieve(_key as _KEYTYPE_) byref as _TYPENAME_   
-               
+            declare function retrieve_ptr(_key as _KEYTYPE_) as _TYPENAME_ ptr
+            Declare const function retrieve_constptr(_key as _KEYTYPE_) As const _TYPENAME_ ptr
+            
             declare sub clear()
         protected:
             declare static sub static_construct()
@@ -446,7 +467,6 @@ namespace dsm
             declare sub init()
             declare sub clear_data()
             declare sub up_split_entry()
-            declare sub down_split_entry()
 
             as char ptr data_
             as size_t split
@@ -468,7 +488,8 @@ namespace dsm
             as integer _placeholder_
     end Type
     
-end namespace
+end Namespace
+#endif
 #endmacro
     
 #macro dsm_HashMap_implement(_KEYTYPE_, _TYPENAME_)
@@ -549,11 +570,14 @@ namespace dsm
             while(cur_block)
                 next_block = cur_block->next_block
                 HASHMAP_##_KEYTYPE_##_DESTRUCT_LOGIC()
+                cur_block->next_block = NULL
+                cur_block->size = 0
                 if not_first_block then deallocate(cur_block)
                 not_first_block = true
                 cur_block = next_block
             wend
-        next i       
+        next i
+        used_size = 0
     end sub
    
     destructor HashMap_##_KEYTYPE_##_TYPENAME_()
@@ -590,8 +614,7 @@ namespace dsm
         if (cdbl(used_size) / (capacity * HASHMAP_CONTIGUOUS_BLOCK_N)) > _
             HASHMAP_SPLIT_RATIO then up_split_entry()
     end sub
-   
-   
+      
     function HashMap_##_KEYTYPE_##_TYPENAME_.remove _
     ( _
         _key as _KEYTYPE_ _
@@ -634,8 +657,48 @@ namespace dsm
             cur_row = cur_row->next_block
         loop while (cur_row)
         return false   
+    end Function
+    
+    function HashMap_##_KEYTYPE_##_TYPENAME_.retrieve_ptr _
+    ( _
+        _key as _KEYTYPE_ _
+    ) as _TYPENAME_ Ptr
+        dim as HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr cur_row
+        dim as integer i
+        dim as integer start
+        cur_row = cast(HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr, _
+                       data_ + hash_wrap_##_KEYTYPE_##(this, _key) shl _
+                       row_shift_mul)
+        do
+            start = cur_row->size - 1
+            for i = start to 0 step -1
+                HASHMAP_##_KEYTYPE_##_RETRIEVE_R_PTR_LOGIC()
+            next i
+            cur_row = cur_row->next_block
+        loop while (cur_row)
+        Return NULL
     end function
-
+   
+    const function HashMap_##_KEYTYPE_##_TYPENAME_.retrieve_constptr _
+    ( _
+        _key as _KEYTYPE_ _
+    ) as Const _TYPENAME_ Ptr
+        dim as HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr cur_row
+        dim as integer i
+        dim as integer start
+        cur_row = cast(HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr, _
+                       data_ + hash_wrap_##_KEYTYPE_##(this, _key) shl _
+                       row_shift_mul)
+        do
+            start = cur_row->size - 1
+            for i = start to 0 step -1
+                HASHMAP_##_KEYTYPE_##_RETRIEVE_R_PTR_LOGIC()
+            next i
+            cur_row = cur_row->next_block
+        loop while (cur_row)
+        Return NULL
+    end Function
+   
     function HashMap_##_KEYTYPE_##_TYPENAME_.retrieve _
     ( _
         _key as _KEYTYPE_, _
@@ -677,11 +740,7 @@ namespace dsm
     end function
    
     sub HashMap_##_KEYTYPE_##_TYPENAME_.clear()
-        dim as integer i
         clear_data()
-        init()
-        deallocate(data_)
-        data_ = callocate(row_size_adjust * capacity)
     end sub
    
     sub HashMap_##_KEYTYPE_##_TYPENAME_.up_split_entry()
@@ -765,79 +824,6 @@ namespace dsm
             level_wrap_mask_2x = level shl 1 - 1
         end if
     end sub
-
-    sub HashMap_##_KEYTYPE_##_TYPENAME_.down_split_entry() 
-        dim as HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr cur_row
-        dim as HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr next_row
-        dim as HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr cur_insert_row       
-        dim as integer i
-        dim as integer insert_i
-        dim as integer start
-        dim as size_t new_pos
-        dim as bool not_first_block
-       
-        if capacity > HASHMAP_INITIAL_ROW_N then
-            if split = 0 then
-                level /= 2
-                split = level - 1
-                level_wrap_mask = level - 1
-                level_wrap_mask_2x = level shl 1 - 1
-            else
-                split -= 1
-            end if
-
-            cur_row = cast(HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr, _
-                           data_ + (capacity - 1) shl row_shift_mul)   
-            if cur_row->size > 0 then
-                not_first_block = false
-                HASHMAP_##_KEYTYPE_##_CALC_NEW_POS(_KEYTYPE_, 0)
-                new_pos and= level_wrap_mask
-                cur_insert_row = cast _
-                ( _
-                    HashMap_##_KEYTYPE_##_TYPENAME_##_Row ptr, _
-                    data_ + new_pos shl row_shift_mul _
-                )
-                do
-                    next_row = cur_row->next_block
-                    start = cur_row->size - 1
-                    for i = start to 0 step -1
-                        do
-                            if cur_insert_row->size < _
-                               HASHMAP_CONTIGUOUS_BLOCK_N then
-                                cur_insert_row->size += 1
-                                cur_insert_row->slots _
-                                ( _
-                                    cur_insert_row->size - 1 _
-                                ) = cur_row->slots(i)
-                                exit do
-                            elseif cur_insert_row->next_block = NULL then
-                                cur_insert_row->next_block = callocate _
-                                ( _
-                                    HASHMAP_ROWSIZE(_KEYTYPE_, _TYPENAME_) _
-                                )
-                                cur_insert_row = cur_insert_row->next_block
-                                cur_insert_row->slots(0) = _
-                                    cur_row->slots(i)
-                                cur_insert_row->size = 1
-                                exit do
-                            else
-                                cur_insert_row = cur_insert_row->next_block
-                            end if
-                        loop
-                    next i
-                    if not_first_block then deallocate(cur_row)
-                    not_first_block = true
-                    cur_row = next_row
-                loop while (cur_row)
-            end if
-           
-            capacity -= 1
-            data_ = reallocate(data_, capacity * row_size_adjust)
-           
-        end if
-       
-    end sub
-   
 end namespace
 #endmacro
 #endif

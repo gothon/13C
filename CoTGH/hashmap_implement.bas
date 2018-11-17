@@ -1,7 +1,11 @@
 #Include "hashmap.bi"
 
-#Include "image32.bi"
+#Include "texturecache.bi"
+#Include "simpletagindex.bi"
 
-Type Image32Ptr As Image32 Ptr 
 dsm_HashMap_define(ZString, Image32Ptr)
 dsm_HashMap_implement(ZString, Image32Ptr)
+
+DECLARE_SIMPLETAGINDEX(String)
+dsm_HashMap_define(ZString, DArray_SimpleTagIndex_String_Element)
+dsm_HashMap_implement(ZString, DArray_SimpleTagIndex_String_Element)

@@ -25,6 +25,8 @@ DECLARE_DARRAY(SimpleAABBIndex_##_TYPENAME_##_Element)
 Type SimpleAABBIndex_##_TYPENAME_
  Public:
  	Declare Function add(ByRef index As Const AABB, ByRef x As Const _TYPENAME_) As ULongInt
+ 	Declare Function add(ByRef index As Const AABB, id As ULongInt, ByRef x As Const _TYPENAME_) As ULongInt
+ 	
  	Declare Sub remove(id As ULongInt)
 	Declare Const Sub query(ByRef predicate As Const AABB, result As DArray_SimpleAABBIndex_##_TYPENAME_##_Element Ptr)
 	Declare Const Sub filter(ByRef predicate As Const AABB, result As DArray_SimpleAABBIndex_##_TYPENAME_##_Element Ptr)
@@ -53,9 +55,12 @@ Constructor SimpleAABBIndex_##_TYPENAME_##_Element(ByRef x As Const _TYPENAME_, 
 End Constructor
 
 Function SimpleAABBIndex_##_TYPENAME_.add(ByRef index As Const AABB, ByRef x As Const _TYPENAME_) As ULongInt
-  Dim As ULongInt uid = util.genUId()
+  Return add(index, util.genUId(), x)
+End Function
+
+Function SimpleAABBIndex_##_TYPENAME_.add(ByRef index As Const AABB, id As ULongInt, ByRef x As Const _TYPENAME_) As ULongInt
   DArray_SimpleAABBIndex_##_TYPENAME_##_Element_Emplace(elements, x, index, uid)
-  Return uid
+  Return id
 End Function
 
 Sub SimpleAABBIndex_##_TYPENAME_.remove(id As ULongInt)
