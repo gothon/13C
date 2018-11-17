@@ -1,0 +1,4 @@
+#Ifndef ACTORGROUP_BI
+#Define ACTORGROUP_BI
+
+#EndIf

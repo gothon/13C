@@ -2,13 +2,14 @@
 Namespace act
   
 Type __act_TestActor
-  
-  
+ 
+ Public:
+ 	 
+ 	
  Private:
   
   
 End Type
-
 
 
 Sub __act_TestActor.serialize(pB As BinaryBlob Ptr)
