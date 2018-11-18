@@ -10,7 +10,8 @@ Enum Difficulty Explicit
 	HARD = 3
 	VERY_HARD = 4
 End Enum
-	
+
+'A puzzle about modular arithmetic. Colors are from 0 - 15.
 Type ColorWheel
  Public:
 	Const As UInteger MAX_COLORS = 12
@@ -33,7 +34,9 @@ Type ColorWheel
 	Declare Const Function getOperator(opIndex As UInteger) As ColorOperator 
 	
 	Declare Sub setOperator(opIndex As UInteger, op As ColorOperator)
-	
+
+	'Get the color before the given stage. Specifying stage = getOperatorsN() will provide the
+	'final color after passing through each operator.	
 	Declare Const Function getColor(stage As UInteger) As UInteger
 
  Private:
