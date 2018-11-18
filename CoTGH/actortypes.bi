@@ -4,10 +4,7 @@
 Namespace bw
 	
 'An index into the actor table paired with an actor's unique id
-Type ActorId
-  actorIndex As UInteger 'Const
-  actorUid As ULongInt 'Const
-End Type
+Type ActorRef As ULongInt
 
 'An index into the actor create table.
 Type ActorCreateIndex As UInteger
