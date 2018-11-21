@@ -6,7 +6,6 @@
 Namespace act
   
 Type __act_TestActor
-<<<<<<< HEAD
   
   Declare Sub __enter( _
       ByRef paramValues As Const DArray_Variant, _
@@ -25,12 +24,9 @@ Type __act_TestActor
   Declare Sub __signal_assign_ENABLEPANEL(dest As SlotUId)  
   Declare Const Sub __fire_ENABLEPANEL(paramCount As UInteger))
 
-=======
- 
  Public:
  	 
- 	
->>>>>>> dc6c3c3b5750d414bf5cfa08de5e6355804be1ff
+ 
  Private:
   Declare Static Function __getParameter(paramId As ULongInt, _
       ByRef paramValues As Const DArray_Variant, _
@@ -77,7 +73,6 @@ Sub __act_TestActor.__deserialize(ByRef blob As ByteBlob) Override
   blob.write(__d_COOL)
   blob.write(__d_TEST)
 
-<<<<<<< HEAD
   blob.write(__p_COOLNAME)
 End Sub
 
@@ -90,9 +85,6 @@ Const Sub __act_TestActor.__serialize(ByRef blob As ByteBlob) Override
 
   blob.write(__v_AVALUE)
   blob.write(__v_AVALUETHATSASTRING)
-=======
-Sub __act_TestActor.serialize(pB As BinaryBlob Ptr)
->>>>>>> dc6c3c3b5750d414bf5cfa08de5e6355804be1ff
 End Sub
 
 Const Sub __act_TestActor.__getValue(index As UInteger, emplacementLoc As Variant Ptr)
