@@ -28,13 +28,13 @@ Type Quad
 
   As Vertex v(0 To 3)
   As Vertex pV(0 To 3)
-  As Single zCentroid
-  As Boolean enabled
+  As Single zCentroid = Any
+  As Boolean enabled = Any
   
-  As Image32 Ptr texture 'Const
-  As QuadTextureMode mode 'Const
-  As Boolean trimX 'Const
-  As Boolean trimY 'Const
+  As Image32 Ptr texture = Any 'Const
+  As QuadTextureMode mode = Any 'Const
+  As Boolean trimX = Any 'Const
+  As Boolean trimY = Any 'Const
 End Type
 
 DECLARE_DARRAY(Quad)
@@ -72,9 +72,9 @@ Type QuadModelBase Extends Object
 
   Declare Sub construct()
  
-  As UInteger bindings
+  As UInteger bindings = Any
   
-  As ULongInt id_ 'Const
+  As ULongInt id_ = Any 'Const
   
   As DArray_Quad model
 End Type

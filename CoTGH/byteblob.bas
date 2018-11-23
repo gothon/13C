@@ -24,33 +24,33 @@ Operator ByteBlob.Let(ByRef other As ByteBlob)
   DEBUG_ASSERT(FALSE)
 End Operator
 
-#Macro WRITE_INLINE(X)
+#Macro WRITE_INLINE(_TYPE_, X)
   expandBy(SizeOf(X))
-  *(CPtr(TypeOf(X) Ptr, @(CPtr(Byte Ptr, bytes)[size])) - 1) = (X)
+  *(CPtr(_TYPE_ Ptr, @(CPtr(Byte Ptr, bytes)[size])) - 1) = (X)
 #EndMacro
   
 Sub ByteBlob.write(ByRef x As Const UInteger)
-  WRITE_INLINE(x)
+  WRITE_INLINE(UInteger, x)
 End Sub
-
+  
 Sub ByteBlob.write(ByRef x As Const Integer)
-  WRITE_INLINE(x)
+  WRITE_INLINE(Integer, x)
 End Sub
 
 Sub ByteBlob.write(ByRef x As Const Single)
-  WRITE_INLINE(x)
+  WRITE_INLINE(Single, x)
 End Sub
 
 Sub ByteBlob.write(ByRef x As Const Double)
-  WRITE_INLINE(x)
+  WRITE_INLINE(Double, x)
 End Sub
 
 Sub ByteBlob.write(ByRef x As Const Vec2F)
-  WRITE_INLINE(x)
+  WRITE_INLINE(Vec2F, x)
 End Sub
 
 Sub ByteBlob.write(ByRef x As Const Vec3F)
-  WRITE_INLINE(x)
+  WRITE_INLINE(Vec3F, x)
 End Sub
 
 Sub ByteBlob.write(ByRef x As Const String)
@@ -66,8 +66,8 @@ Sub ByteBlob.write(x As Const Any Ptr, count As UInteger)
   memcpy(@(CPtr(Byte Ptr, bytes)[size - count]), x, count) 
 End Sub
 
-Sub ByteBlob.expandBy(bytes As UInteger)
-  size += bytes
+Sub ByteBlob.expandBy(addedBytes As UInteger)
+  size += addedBytes
   If size > capacity Then
     Do
       capacity *= 2
@@ -84,7 +84,7 @@ End Sub
 #EndMacro
   
 Sub ByteBlob.read(ByRef x As UInteger)
-  DEBUG_ASSERT(size > SizeOf(x)
+  DEBUG_ASSERT(size > SizeOf(x))
 End Sub
 
 Sub ByteBlob.read(ByRef x As Integer)
@@ -110,10 +110,10 @@ End Sub
 Sub ByteBlob.read(ByRef x As String)
   DEBUG_ASSERT(2 <= size)
   size -= 2
-  Dim As UShort sizeBytes = *CPtr(UShort Ptr, @(CPtr(Byte Ptr, bytes)[size])) 'Const
-  DEBUG_ASSERT(sizeBytes <= size)
-  size -= sizeBytes
-  Dim As ZString Ptr stringPtr = *CPtr(ZString Ptr, @(CPtr(Byte Ptr, bytes)[size])) 'Const
+  Dim As UShort lenBytes = *CPtr(UShort Ptr, @(CPtr(Byte Ptr, bytes)[size])) 'Const
+  DEBUG_ASSERT(lenBytes <= size)
+  size -= lenBytes
+  Dim As ZString Ptr stringPtr = CPtr(ZString Ptr, @(CPtr(Byte Ptr, bytes)[size])) 'Const
   x = *stringPtr
 End Sub
 
@@ -122,3 +122,11 @@ Sub ByteBlob.read(x As Any Ptr, count As UInteger)
   size -= count
   memcpy(x, @(CPtr(Byte Ptr, bytes)[size]), count) 
 End Sub
+
+Const Function ByteBlob.sizeBytes() As UInteger
+  Return size
+End Function
+
+Const Function ByteBlob.getBytes() As Const Any Ptr
+  Return bytes
+End Function

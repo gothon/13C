@@ -318,7 +318,7 @@ Sub Arboretum.shuffle()
     EndIf
     
     Dim As UInteger Ptr elementB
-    Dim As UInteger q = Int(Rnd*i) 'Const
+    Dim As UInteger q = Int(Rnd*(i + 1)) 'Const
     If q < ROW_1_N Then
       elementB = @(row1(q, 0))
     ElseIf q < (ROW_1_N + ROW_2_N) Then

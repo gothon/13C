@@ -16,9 +16,9 @@ Type SlotInvocationElement
   
   Declare Constructor(actorUId As ULongInt, slotIndex As UInteger, range As UInteger)
   
-  As ULongInt actorUId 'Const
-  As UInteger slotIndex 'Const
-  As UInteger range 'Const
+  As ULongInt actorUId = Any 'Const
+  As UInteger slotIndex = Any 'Const
+  As UInteger range = Any 'Const
 End Type
 
 'Required to appease the storage element requirements of DArray
@@ -28,7 +28,7 @@ Type SlotParameterIndex
   
   Declare Constructor(parameterIndex As UInteger)
   
-  As UInteger parameterIndex
+  As UInteger parameterIndex = Any
 End Type
 
 DECLARE_DARRAY(SlotInvocationElement)

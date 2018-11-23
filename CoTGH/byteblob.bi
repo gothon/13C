@@ -7,9 +7,9 @@
 'A blob of binary data used for serialization. 
 Type ByteBlob
  Public:
-  Static As UInteger INITIAL_CAPACITY = 64
+  Const As UInteger INITIAL_CAPACITY = 64
   Declare Constructor(capacity As UInteger = INITIAL_CAPACITY)
-  Declare Destructor(capacity As UInteger = INITIAL_CAPACITY)
+  Declare Destructor()
   
   Declare Constructor(ByRef other As ByteBlob) 'Disallowed
   Declare Operator Let(ByRef other As ByteBlob) 'Disallowed
@@ -32,7 +32,10 @@ Type ByteBlob
   Declare Sub read(ByRef x As Vec3F)
   Declare Sub read(ByRef x As String)
   Declare Sub read(x As Any Ptr, count As UInteger)
- 
+  
+  Declare Const Function sizeBytes() As UInteger
+  Declare Const Function getBytes() As Const Any Ptr
+  
  Private:
   Declare Sub expandBy(bytes As UInteger)
  

@@ -12,13 +12,13 @@ Type Vertex
       ByRef c As Const Vec3F = Type(1.0f, 1.0f, 1.0f))
  
   'Position
-  As Vec3F p
+  As Vec3F p = Any
   
   'Texture coordinates
-  As Vec2F t
+  As Vec2F t = Any
   
   'Color modulator
-  As Vec3F c
+  As Vec3F c = Any
 End Type
 
 #EndIf

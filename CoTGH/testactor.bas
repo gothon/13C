@@ -1,4 +1,4 @@
-
+/'
 #Include "actor.bi"
 #Include "byteblob.bi"
 #Include "variant.bi"
@@ -142,3 +142,4 @@ Sub __act_TestActor.__slot_KABOOM(ByRef paramQ As Const Vec3F, ByRef __act_ref A
 End Sub
 
 End Namespace
+'/

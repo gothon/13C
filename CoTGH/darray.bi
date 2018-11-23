@@ -44,14 +44,14 @@ Type DArray_##_TYPENAME_
   Declare Function pushBytes() As _TYPENAME_ Ptr 
   
   'Unused: for assignment following emplace.
-  As Any Ptr unused
+  As Any Ptr unused = Any
  Private:
   Declare Sub destruct()
   Declare Sub maybeIncreaseCapacity()
  
-  As UInteger size_
-  As UInteger capacity
-  As _TYPENAME_ Ptr elements
+  As UInteger size_ = Any
+  As UInteger capacity = Any
+  As _TYPENAME_ Ptr elements = Any
 End Type
 #EndIf
 #EndMacro

@@ -30,8 +30,8 @@ Type Vec2F
   'Point-wise subtract another vector from this.
   Declare Operator -=(ByRef rhs As Const Vec2F)
   
-  As Single x
-  As Single y
+  As Single x = Any
+  As Single y = Any
 End Type
 
 'Multiply each component of rhs by lhs.

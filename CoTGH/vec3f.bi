@@ -35,9 +35,9 @@ Type Vec3F
   'Point-wise subtract another vector from this.
   Declare Operator -=(ByRef rhs As Const Vec3F)
   
-  As Single x
-  As Single y
-  As Single z
+  As Single x = Any
+  As Single y = Any
+  As Single z = Any
 End Type
 
 'Multiply each component of rhs by lhs.
