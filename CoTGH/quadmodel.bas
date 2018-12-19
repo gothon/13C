@@ -79,8 +79,12 @@ Sub QuadModelBase.construct()
   This.bindings = 0
 End Sub
 
-Static Sub QuadModelBase.calcZCentroid(q As Quad Ptr)
-  q->zCentroid = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) / 4.0f
+Static Sub QuadModelBase.calcZSort(q As Quad Ptr)
+	Dim As Single minZ = q->pV(0).p.z
+	If q->pV(1).p.z > minZ Then minZ = q->pV(1).p.z
+	If q->pV(2).p.z > minZ Then minZ = q->pV(2).p.z
+	If q->pV(3).p.z > minZ Then minZ = q->pV(3).p.z
+  q->zSort = minZ
 End Sub
 
 Constructor QuadModelEmpty()
@@ -376,7 +380,7 @@ Sub QuadModel.project(ByRef projector As Const Projection)
     projector.project(q->v(1), @q->pV(1))  
     projector.project(q->v(2), @q->pV(2))  
     projector.project(q->v(3), @q->pV(3))
-    calcZCentroid(q)
+    calcZSort(q)
   Next i
 End Sub
 
@@ -402,5 +406,5 @@ End Constructor
 Sub QuadSprite.project(ByRef projector As Const Projection)
   Dim As Quad Ptr q = @(model[0])
   projector.projectBillboard(q->v(0), q->v(1), q->v(2), q->v(3), @q->pV(0), @q->pV(1), @q->pV(2), @q->pV(3))
-  calcZCentroid(q)
+  calcZSort(q)
 End Sub

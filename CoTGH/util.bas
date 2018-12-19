@@ -44,4 +44,13 @@ util_hash_return_32:
   End asm       
 End Function
 
+Function min(a As Integer, b As Integer) As Integer
+	Return IIf(a <= b, a, b)
+End Function
+
+Function max(a As Integer, b As Integer) As Integer
+	Return IIf(a >= b, a, b)
+End Function
+
+
 End Namespace

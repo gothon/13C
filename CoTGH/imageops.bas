@@ -1,5 +1,4 @@
 #Include "imageops.bi"
-
 #Include "pixel32.bi"
 #Include "debuglog.bi"
 

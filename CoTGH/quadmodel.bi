@@ -28,7 +28,7 @@ Type Quad
 
   As Vertex v(0 To 3)
   As Vertex pV(0 To 3)
-  As Single zCentroid = Any
+  As Single zSort = Any
   As Boolean enabled = Any
   
   As Image32 Ptr texture = Any 'Const
@@ -68,7 +68,7 @@ Type QuadModelBase Extends Object
   Declare Sub bind()
   Declare Sub unbind()
  Protected:
-  Declare Static Sub calcZCentroid(q As Quad Ptr)
+  Declare Static Sub calcZSort(q As Quad Ptr)
 
   Declare Sub construct()
  
@@ -94,9 +94,9 @@ Type QuadModelTextureCube
     Type
       As UInteger front : 6 'Const
       As UInteger up : 6 'Const
-      As UInteger Right : 6 'Const
+      As UInteger right : 6 'Const
       As UInteger down : 6 'Const
-      As UInteger Left : 6 'Const
+      As UInteger left : 6 'Const
     End Type
   End Union
 End Type

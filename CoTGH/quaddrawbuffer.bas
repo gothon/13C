@@ -101,7 +101,7 @@ Sub QuadDrawBuffer.sort()
   While i < quads.size()
     Dim As QuadDrawElement qElement = quads[i] 'Const
     Dim As Integer j = i - 1
-    While j >= 0 AndAlso (quads[j].q->zCentroid > qElement.q->zCentroid)
+    While j >= 0 AndAlso (quads[j].q->zSort > qElement.q->zSort)
        quads[j + 1] = quads[j]
         j -= 1
     Wend

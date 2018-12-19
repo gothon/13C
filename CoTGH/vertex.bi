@@ -10,7 +10,7 @@ Type Vertex
       ByRef p As Const Vec3F = Type(0.0f, 0.0f, 0.0f), _
       ByRef t As Const Vec2F = Type(0.0f, 0.0f), _
       ByRef c As Const Vec3F = Type(1.0f, 1.0f, 1.0f))
- 
+ 	 
   'Position
   As Vec3F p = Any
   
