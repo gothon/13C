@@ -13,6 +13,8 @@ Declare Function getPropStringOrDie(e As Const xmlNode Ptr, attrName As Const ZS
 
 Declare Function getPropNumberOrDie(e As Const xmlNode Ptr, attrName As Const ZString Ptr) As Double
 
+Declare Function getDocOrDie(path As Const ZString Ptr) As xmlDoc Ptr
+
 End Namespace
 
 #EndIf

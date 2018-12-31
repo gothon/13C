@@ -27,11 +27,11 @@ Type Image32
   Declare Const Function h() As Integer
   
  Private:
-  As Integer w_ 'Const
-  As Integer h_ 'Const
+  As Integer w_ = Any 'Const
+  As Integer h_ = Any 'Const
   
-  As Any Ptr imageData 'Const Ptr
-  As Pixel32 Ptr pixels_ 'Const Ptr
+  As Any Ptr imageData = Any 'Const Ptr
+  As Pixel32 Ptr pixels_ = Any 'Const Ptr
 End Type
 
 #EndIf

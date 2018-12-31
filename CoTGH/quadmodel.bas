@@ -7,7 +7,7 @@
 
 Const As Single UV_ERROR_ADJ = 0.01
 
-Constructor Quad(v() As Vertex, texture As Image32 Ptr, mode As QuadTextureMode, trimX As Boolean, trimY As Boolean)
+Constructor Quad(v() As Vertex, texture As Const Image32 Ptr, mode As QuadTextureMode, trimX As Boolean, trimY As Boolean)
   This.v(0) = v(0)
   This.v(1) = v(1)
   This.v(2) = v(2)
@@ -197,13 +197,8 @@ Constructor QuadModel( _
     gridDepth As Integer, _
     sideLength As Single, _
     uvIndices() As QuadModelUVIndex, _
-    imagePaths() As String)
+    tex() As Const Image32 Ptr)
   construct()
-
-  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'Const
-  For i As Integer = 0 To UBound(imagePaths)
-    tex(i) = TextureCache.get(imagePaths(i))
-  Next i
  
   Dim As Integer yOffset = gridWidth 'Const
   Dim As Integer zOffset = gridWidth*gridHeight 'Const

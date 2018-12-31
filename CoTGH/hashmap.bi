@@ -454,13 +454,8 @@ namespace dsm
             Declare const function retrieve_constptr(_key as _KEYTYPE_) As const _TYPENAME_ ptr
             
             declare sub clear()
-        protected:
-            declare static sub static_construct()
-            declare static sub static_destruct()
-   
+            
         private:
-            static as HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object init_object
-           
             HASHMAP_DECLARE_HASH_WRAP_##_KEYTYPE_(_KEYTYPE_, _TYPENAME_)
             HASHMAP_DECLARE_HASH_##_KEYTYPE_(_KEYTYPE_, _TYPENAME_)
            
@@ -468,80 +463,23 @@ namespace dsm
             declare sub clear_data()
             declare sub up_split_entry()
 
-            as char ptr data_
-            as size_t split
-            as size_t capacity
-            as size_t used_size
-            as size_t level
-            as size_t level_wrap_mask
-            as size_t level_wrap_mask_2x
+            as char ptr data_ = Any
+            as size_t split = Any 
+            as size_t capacity = Any
+            as size_t used_size = Any
+            as size_t level = Any
+            as size_t level_wrap_mask = Any
+            as size_t level_wrap_mask_2x = Any
 
-            static as size_t row_size_adjust
-            static as size_t row_shift_mul
-    end Type
-    type HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor extends _
-        HashMap_##_KEYTYPE_##_TYPENAME_
-        public:
-            declare static sub construct_()
-            declare static sub destruct_()
-        private:
-            as integer _placeholder_
-    end Type
-    
+            as size_t row_size_adjust = Any
+            as size_t row_shift_mul = Any
+    end Type    
 end Namespace
 #endif
 #endmacro
     
 #macro dsm_HashMap_implement(_KEYTYPE_, _TYPENAME_)
 namespace dsm
-  
-    constructor HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object(_hashmap_construct as sub(),_
-                                                                        _hashmap_destruct as sub())
-        _hashmap_construct()
-        hashmap_destruct = _hashmap_destruct
-    end constructor
-    destructor HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object()
-        hashmap_destruct()
-    end destructor
-
-  
-    sub HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor.construct_()
-        static_construct()
-    end sub
-    sub HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor.destruct_()
-        static_destruct()
-    end sub
-   
-    dim as HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object _
-        HashMap_##_KEYTYPE_##_TYPENAME_.init_object = _
-        HashMap_##_KEYTYPE_##_TYPENAME_##_Initialization_Object _
-        ( _
-            @HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor.construct_, _
-            @HashMap_##_KEYTYPE_##_TYPENAME_##_Accessor.destruct_ _
-        )
-       
-    dim as size_t HashMap_##_KEYTYPE_##_TYPENAME_.row_size_adjust = 1
-    dim as size_t HashMap_##_KEYTYPE_##_TYPENAME_.row_shift_mul = 0
-
-    sub HashMap_##_KEYTYPE_##_TYPENAME_.static_construct()
-        dim as size_t temp_size
-        temp_size = sizeof(HashMap_##_KEYTYPE_##_TYPENAME_##_Row)
-        do
-            row_shift_mul += 1
-            temp_size shr= 1
-        loop while (temp_size <> 0)
-        row_size_adjust shl= row_shift_mul
-        if ((row_size_adjust shr 1) = sizeof( _
-            HashMap_##_KEYTYPE_##_TYPENAME_##_Row)) then
-           
-            row_shift_mul -= 1
-            row_size_adjust shr= 1
-        end if
-    end sub
-   
-    sub HashMap_##_KEYTYPE_##_TYPENAME_.static_destruct()
-        ''
-    end sub
    
     sub HashMap_##_KEYTYPE_##_TYPENAME_.init()
         split = 0
@@ -549,7 +487,23 @@ namespace dsm
         level_wrap_mask = level - 1
         level_wrap_mask_2x = level shl 1 - 1
         used_size = 0
-        capacity = HASHMAP_INITIAL_ROW_N   
+        capacity = HASHMAP_INITIAL_ROW_N
+        
+        dim as size_t temp_size
+        temp_size = sizeof(HashMap_##_KEYTYPE_##_TYPENAME_##_Row)        
+        row_shift_mul = 0
+        do
+            row_shift_mul += 1
+            temp_size shr= 1
+        loop while (temp_size <> 0)
+        
+        row_size_adjust = 1 shl row_shift_mul
+        if ((row_size_adjust shr 1) = sizeof( _
+            HashMap_##_KEYTYPE_##_TYPENAME_##_Row)) then
+           
+            row_shift_mul -= 1
+            row_size_adjust shr= 1
+        end If
     end sub
    
     constructor HashMap_##_KEYTYPE_##_TYPENAME_()

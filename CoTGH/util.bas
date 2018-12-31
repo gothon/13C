@@ -1,5 +1,7 @@
 #Include "util.bi"
 
+#Include "debuglog.bi"
+
 Namespace util
   
 Function genUId() As ULongInt
@@ -52,5 +54,14 @@ Function max(a As Integer, b As Integer) As Integer
 	Return IIf(a >= b, a, b)
 End Function
 
+Function pathRelativeToAbsolute(ByRef src As Const String, ByRef rel As Const String) As String
+	Return Left(src, InStrRev(src, "/")) & rel
+End Function
+
+Const As String WHITESPACE_SET = !" \t\n\v\f\r" 
+ 
+Function trimWhitespace(in As Const String) As String
+	Return Trim(in, Any WHITESPACE_SET)
+End Function
 
 End Namespace

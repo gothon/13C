@@ -3,6 +3,7 @@
 #Include "quaddrawbuffer.bi"
 #Include "image32.bi"
 #Include "slotstack.bi"
+#Include "tileset.bi"
 
 DECLARE_DARRAY(Quad)
 DEFINE_DARRAY(Quad)
@@ -12,6 +13,9 @@ DEFINE_DARRAY(QuadDrawElement)
 
 DECLARE_DARRAY(Image32)
 DEFINE_DARRAY(Image32)
+
+DECLARE_DARRAY(Tileset)
+DEFINE_DARRAY(Tileset)
 
 DECLARE_DARRAY(Variant)
 DEFINE_DARRAY(Variant)

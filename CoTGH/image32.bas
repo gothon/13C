@@ -24,8 +24,7 @@ Constructor Image32(path As String)
 End Constructor
 
 Destructor Image32()
-  DEBUG_ASSERT(imageData <> NULL)
-  ImageDestroy(imageData)
+	If imageData <> NULL Then ImageDestroy(imageData)
 End Destructor
 
 Function Image32.pixels() As Pixel32 Ptr

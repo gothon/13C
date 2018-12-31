@@ -38,4 +38,10 @@ Function getPropNumberOrDie(e As Const xmlNode Ptr, attrName As Const ZString Pt
 	Return Val(*attrVal)
 End Function
 
+Function getDocOrDie(path As Const ZString Ptr) As xmlDoc Ptr
+	Dim As xmlDoc Ptr document = xmlReadFile(path, "ASCII", 0)
+	DEBUG_ASSERT(document <> NULL)
+	Return document
+End Function
+
 End Namespace

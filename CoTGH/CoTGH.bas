@@ -19,7 +19,7 @@ maputils.parseMap("res/example.tmx")
 '
 
 
-
+/'
 Dim As Projection proj = Projection(640, 480, 320, 240, 256)
 
 ScreenRes 640, 480, 32
@@ -256,3 +256,4 @@ Do
 Loop Until MultiKey(FB.SC_ESCAPE)
 drawBuffer.unbind(@model)
 drawBuffer.unbind(@model3)
+'/

@@ -27,7 +27,7 @@ Type Quad
   
   Declare Constructor( _
       v() As Vertex, _
-      texture As Image32 Ptr, _
+      texture As Const Image32 Ptr, _
       mode As QuadTextureMode, _
       trimX As Boolean, _
       trimY As Boolean)
@@ -37,7 +37,7 @@ Type Quad
   As Single zSort = Any
   As Boolean enabled = Any
   
-  As Image32 Ptr texture = Any 'Const
+  As Const Image32 Ptr texture = Any 'Const
   As QuadTextureMode mode = Any 'Const
   As Boolean trimX = Any 'Const
   As Boolean trimY = Any 'Const
@@ -138,7 +138,7 @@ Type QuadModel Extends QuadModelBase
       gridDepth As Integer, _
       sideLength As Single, _
       uvIndices() As QuadModelUVIndex, _
-      imagePaths() As String)
+      tex() As Const Image32 Ptr)
   
   'Create a 3D volume of the specified size with it's lower left front corner at the origin. The back face is
   'omitted.
