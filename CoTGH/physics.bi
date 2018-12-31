@@ -11,6 +11,7 @@ Enum BlockType Explicit
 	ONE_WAY_UP = 2
 End Enum
 
+'Along which axis a collision occured
 Enum Axis Explicit
 	NONE = 0
 	X = 1
@@ -18,13 +19,15 @@ Enum Axis Explicit
 	XY = 3
 End Enum
 
+'Result of a collision. No collision is when clipAxis = Axis.NONE
 Type ClipResult
 	Declare Constructor() 'nop
-	Declare Constructor(ByRef clipped As Const Vec2F, clipAxis As Axis)
-	As Vec2F clipped = Any
+	Declare Constructor(ByRef clipV As Const Vec2F, clipAxis As Axis)
+	As Vec2F clipV = Any
 	As Axis clipAxis = Any
 End Type
 
+'A collide-able block grid.
 Type BlockGrid
  Public:
 	Declare Constructor(w As UInteger, h As UInteger, l As Double)
@@ -35,6 +38,8 @@ Type BlockGrid
   
   Declare Function getBlock(x As UInteger, y As UInteger) As BlockType
 
+	'Given a rect not currently interpenetrating the block grid moving over v, get an updated
+	'v clipped to the block grid. It is assumed that v is traveled over for 1s.
 	Declare Function clipRect( _
 			ByRef rect As Const AABB, _
 			ByVal v As Vec2F) As ClipResult
