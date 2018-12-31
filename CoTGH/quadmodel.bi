@@ -7,6 +7,12 @@
 #Include "vertex.bi"
 #Include "image32.bi"
 
+
+'make vertices index based
+'register lights with quaddrawbuffer
+
+
+
 'These map to raster.drawPlanarQuad_X methods
 Enum QuadTextureMode Explicit
   FLAT

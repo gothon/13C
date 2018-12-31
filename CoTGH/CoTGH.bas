@@ -7,6 +7,10 @@
 #Include "quadmodel.bi"
 #Include "quaddrawbuffer.bi"
 #Include "physics.bi"
+#Include "maputils.bi"
+
+
+maputils.parseMap("res/example.tmx")
 
 'translate ISG
 '	
@@ -248,7 +252,7 @@ Do
   EndIf
   f += 1
   '/
-  Sleep 30
+  Sleep 15
 Loop Until MultiKey(FB.SC_ESCAPE)
 drawBuffer.unbind(@model)
 drawBuffer.unbind(@model3)
