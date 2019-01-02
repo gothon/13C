@@ -64,4 +64,60 @@ Function trimWhitespace(in As Const String) As String
 	Return Trim(in, Any WHITESPACE_SET)
 End Function
 
+Dim As UInteger ASCII_TABLE(0 To 255) = { _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 62,  0,  0,  0, 63, _
+  52, 53, 54, 55, 56, 57, 58, 59, 60, 61,  0,  0,  0,  0,  0,  0, _
+   0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, _
+  15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  0,  0,  0,  0,  0, _
+   0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, _
+  41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, _
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}
+
+Const As UByte EQUALS_CHAR = 61 '=
+
+Sub decodeBase64(in As Const String, mem As Any Ptr)
+	DEBUG_ASSERT((Len(in) And 3) = 0)
+	If Len(in) = 0 Then Return
+	
+	Dim As Const UByte Ptr src = StrPtr(in)
+	Dim As Const UByte Ptr endPtr = src + Len(in)
+  
+  Dim As UInteger bytes = Any
+ 	Do
+		Dim As UInteger lookup1 = ASCII_TABLE(src[1])
+		Dim As UInteger lookup2 = ASCII_TABLE(src[2])
+		
+		bytes = _
+				((ASCII_TABLE(src[0]) Shl 2) Or (lookup1 Shr 4)) Or _
+				(((lookup1 And &h0f) Shl 12) Or ((lookup2 Shr 2) Shl 8)) Or _
+				(((lookup2 And &h03) Shl 22) Or (ASCII_TABLE(src[3]) Shl 16)) 'const
+
+		mem += 3
+		src += 4
+		
+		If src >= endPtr Then Exit Do
+		*CPtr(UInteger Ptr, mem - 3) = bytes
+ 	Loop
+ 	
+  If *(endPtr - 1) = EQUALS_CHAR Then
+    If *(endPtr - 2) = EQUALS_CHAR Then
+	  	*CPtr(UByte Ptr, mem) = bytes
+    Else
+	  	*CPtr(UShort Ptr, mem) = bytes
+    EndIf
+  Else
+	  *CPtr(UShort Ptr, mem) = bytes
+	  *CPtr(UByte Ptr, mem + 2) = bytes Shr 16
+  EndIf
+End Sub
+
 End Namespace

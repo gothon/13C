@@ -70,6 +70,7 @@ Sub getRawVisData(root As Const xmlNode Ptr, layerOffset As UInteger, layerStrid
 	Do 
 		If nodeIsElementWithName(node, "layer") AndAlso _
 				(UCase(*xmlutils.getPropStringOrDie(node, "name")) <> META_LAYER_NAME) Then
+				
 			Dim As Const xmlNode Ptr dataNode = xmlutils.findOrDie(node, "data") 'const
 			DEBUG_ASSERT(*(xmlutils.getPropStringOrDie(dataNode, "encoding")) = "base64")
 			
