@@ -2,6 +2,7 @@
 #Define XMLUTILS_BI
 
 #Include "libxml/tree.bi"
+#Include "win/ws2tcpip.bi"
 
 Namespace xmlutils
 	

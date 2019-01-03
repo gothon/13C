@@ -99,7 +99,7 @@ Sub decodeBase64(in As Const String, mem As Any Ptr)
 		bytes = _
 				((ASCII_TABLE(src[0]) Shl 2) Or (lookup1 Shr 4)) Or _
 				(((lookup1 And &h0f) Shl 12) Or ((lookup2 Shr 2) Shl 8)) Or _
-				(((lookup2 And &h03) Shl 22) Or (ASCII_TABLE(src[3]) Shl 16)) 'const
+				(((lookup2 And &h03) Shl 22) Or (ASCII_TABLE(src[3]) Shl 16))
 
 		mem += 3
 		src += 4
@@ -107,11 +107,12 @@ Sub decodeBase64(in As Const String, mem As Any Ptr)
 		If src >= endPtr Then Exit Do
 		*CPtr(UInteger Ptr, mem - 3) = bytes
  	Loop
+ 	mem -= 3
  	
   If *(endPtr - 1) = EQUALS_CHAR Then
     If *(endPtr - 2) = EQUALS_CHAR Then
-	  	*CPtr(UByte Ptr, mem) = bytes
-    Else
+    	*CPtr(UByte Ptr, mem) = bytes
+	  Else
 	  	*CPtr(UShort Ptr, mem) = bytes
     EndIf
   Else

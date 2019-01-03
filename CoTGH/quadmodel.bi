@@ -7,12 +7,6 @@
 #Include "vertex.bi"
 #Include "image32.bi"
 
-
-'make vertices index based
-'register lights with quaddrawbuffer
-
-
-
 'These map to raster.drawPlanarQuad_X methods
 Enum QuadTextureMode Explicit
   FLAT
@@ -78,11 +72,11 @@ Type QuadModelBase Extends Object
 
   Declare Sub construct()
  
-  As UInteger bindings = Any
+  As UInteger bindings_ = Any
   
   As ULongInt id_ = Any 'Const
   
-  As DArray_Quad model
+  As DArray_Quad model_
 End Type
 
 Type QuadModelTextureCube
@@ -107,14 +101,6 @@ Type QuadModelTextureCube
   End Union
 End Type
 
-'An empty quad model that can't be modified, used for initializing a QuadModel and assigning to it
-'later.
-Type QuadModelEmpty Extends QuadModelBase
-  Declare Constructor()  
-  
-  Declare Sub project(ByRef projector As Const Projection)
-End Type
-
 Type QuadModelUVIndex
   Declare Constructor()
   Declare Constructor(ByRef uvStart As Const Vec2F, ByRef uvEnd As Const Vec2F, imageIndex As Integer)
@@ -127,6 +113,10 @@ End Type
 Type QuadModel Extends QuadModelBase
  Public:
   Declare Sub project(ByRef projector As Const Projection)
+  
+  'Declare custom copy constructor/assignment to avoid copying binding counter
+  Declare Constructor(ByRef other As Const QuadModel)
+  Declare Operator Let(ByRef other As Const QuadModel)
   
   'Create a grid of 3D blocks from a 3D grid. Blocks are added where grid() <> 1. grid() is assumed to be flattened
   'row-major order and padded with zeroed texture cubes at each border. The back face of each block (cube) is not 
@@ -152,6 +142,10 @@ End Type
 Type QuadSprite Extends QuadModelBase
  Public:
   Declare Sub project(ByRef projector As Const Projection)
+  
+  'Declare custom copy constructor/assignment to avoid copying binding counter
+  Declare Constructor(ByRef other As Const QuadModel)
+  Declare Operator Let(ByRef other As Const QuadModel)
   
   'Create a centered billboard sprite from the given image path.
   Declare Constructor(imagePath As String)

@@ -8,8 +8,13 @@
 Namespace maputils
 
 Const As String META_LAYER_NAME = "META"
-Dim As Const ZString Ptr META_TILESET_NAMES(0 To 5) = {StrPtr("COLLISION.TSX"), StrPtr("CSHAPES.TSX"), StrPtr("CSHAPES1.TSX"), _
-																										   StrPtr("CSHAPES2.TSX"), StrPtr("CSHAPES3.TSX"), StrPtr("META.TSX")} 'const
+Dim As Const ZString Const Ptr META_TILESET_NAMES(0 To 5) = { _
+		StrPtr("COLLISION.TSX"), _
+		StrPtr("CSHAPES.TSX"), _
+	  StrPtr("CSHAPES1.TSX"), _
+		StrPtr("CSHAPES2.TSX"), _
+		StrPtr("CSHAPES3.TSX"), _
+		StrPtr("META.TSX")} 'const
 
 Const As UInteger MAX_TILESETS = 16
 
@@ -79,12 +84,28 @@ Sub getRawVisData(root As Const xmlNode Ptr, layerOffset As UInteger, layerStrid
 			DEBUG_ASSERT(*content <> "")		 
 			
 			util.decodeBase64(util.trimWhitespace(*content), visData + layerOffset) 
-
+			
 			layerOffset -= layerStride
 		End If
 		node = node->Next
 	Loop Until node = NULL
 End Sub
+
+Function createTileModel( _
+	  visData() As Const UInteger, _
+		tileWidth As UInteger, _
+		tileHeight As UInteger, _
+		mapWidth As UInteger, _
+		mapHeight As UInteger, _
+		mapDepth As UInteger, _
+		tilesets() As Const TilesetInfo) As QuadModel
+	'Extra padding dimensions for model interpretation. We let these default construct to empty cubes.
+	Dim As QuadModelTextureCube modelDef(0 To (mapWidth + 2)*(mapHeight + 2)*(mapDepth + 2) - 1)
+	For i As UInteger = 0 To UBound(visData)
+		
+	Next i
+	
+End Function
 
 
 Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
@@ -102,11 +123,16 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	
 	Dim As TilesetInfo tilesets(0 To MAX_TILESETS - 1) = Any
 	Dim As UInteger tilesets_n = getTilesets(root, Left(*tmxPath, InStrRev(*tmxPath, "/")), @(tilesets(0))) 'const
-
+	
 	Dim As UInteger rawVisData(0 To mapWidth*mapHeight*mapDepth - 1) = Any
 	Dim As UInteger layerStride = mapWidth * mapHeight 'const
+	'We read layers in backwards to preserve visualization order when translating to 3D
 	getRawVisData(root, layerStride*(mapDepth - 1), layerStride, @(rawVisData(0)))
-		
+	
+	
+	
+	'2) model from vis data method
+	'3) block grid filler method
 
 	xmlFreeDoc(document)
 End Function
