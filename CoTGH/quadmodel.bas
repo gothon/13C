@@ -123,6 +123,8 @@ Sub populateQuadVerticesYZ( _
   If flipped Then
     Swap v(0), v(1)
     Swap v(2), v(3)
+  	Swap v(0).t, v(1).t
+  	Swap v(2).t, v(3).t
   EndIf
 End Sub
 
@@ -145,6 +147,8 @@ Sub populateQuadVerticesXZ( _
   If flipped Then
     Swap v(0), v(1)
     Swap v(2), v(3)
+    Swap v(0).t, v(3).t
+  	Swap v(1).t, v(2).t
   EndIf
 End Sub
 
@@ -201,24 +205,24 @@ Constructor QuadModel( _
     tex() As Const Image32 Ptr)
   construct()
  
-  Dim As Integer yOffset = gridWidth 'Const
-  Dim As Integer zOffset = gridWidth*gridHeight 'Const
+  Dim As Integer yOffset = gridWidth+2 'const
+  Dim As Integer zOffset = (gridWidth+2)*(gridHeight+2) 'const
 
   Dim As Single blockZ = 0.0f
-  For z As Integer = 1 To gridDepth - 2
-    Dim As Single blockY = sideLength*(gridHeight - 2)
-    For y As Integer = 1 To gridHeight - 2
+  For z As Integer = 1 To gridDepth
+    Dim As Single blockY = sideLength*gridHeight
+    For y As Integer = 1 To gridHeight
       Dim As Single blockX = 0
-      For x As Integer = 1 To gridWidth - 2
-        Dim As Integer centerOffset = z*zOffset + y*yOffset + x 'Const
-        Dim As QuadModelTextureCube texCube = grid(centerOffset) 'Const
+      For x As Integer = 1 To gridWidth
+        Dim As Integer centerOffset = z*zOffset + y*yOffset + x 'const
+        Dim As QuadModelTextureCube texCube = grid(centerOffset) 'const
         If texCube.v <> 0 Then
-          Dim As Boolean up = grid(centerOffset - yOffset).v <> 0 'Const
-          Dim As Boolean right = grid(centerOffset + 1).v <> 0 'Const
-          Dim As Boolean down = grid(centerOffset + yOffset).v <> 0 'Const
-          Dim As Boolean left = grid(centerOffset - 1).v <> 0 'Const
-          Dim As Boolean front = grid(centerOffset - zOffset).v <> 0 'Const
-          Dim As Boolean back = grid(centerOffset + zOffset).v <> 0 'Const
+          Dim As Boolean up = grid(centerOffset - yOffset).v <> 0 'const
+          Dim As Boolean right = grid(centerOffset + 1).v <> 0 'const
+          Dim As Boolean down = grid(centerOffset + yOffset).v <> 0 'const
+          Dim As Boolean left = grid(centerOffset - 1).v <> 0 'const
+          Dim As Boolean front = grid(centerOffset - zOffset).v <> 0 'const
+          Dim As Boolean back = grid(centerOffset + zOffset).v <> 0 'const
           
           Dim As Vertex v(0 To 3)
 
@@ -302,7 +306,7 @@ Constructor QuadModel( _
     imagePaths() As String)
   construct()    
       
-  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'Const
+  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'const
   For i As Integer = 0 To UBound(imagePaths)
     tex(i) = TextureCache.get(imagePaths(i))
   Next i
@@ -393,18 +397,18 @@ End Operator
 Constructor QuadSprite(imagePath As String)
   construct()
 
-  Dim As Image32 Ptr tex = TextureCache.get(imagePath) 'Const
+  Dim As Image32 Ptr tex = TextureCache.get(imagePath) 'const
  
-  Dim As Integer w = tex->w() 'Const
-  Dim As Integer h = tex->h() 'Const
-  Dim As Integer hw = w * 0.5f 'Const
-  Dim As Integer hh = h * 0.5f 'Const
+  Dim As Integer w = tex->w() 'const
+  Dim As Integer h = tex->h() 'const
+  Dim As Integer hw = w * 0.5f 'const
+  Dim As Integer hh = h * 0.5f 'const
   
   Dim As Vertex v(0 To 3) = { _
       Vertex(Vec3F(-hw, hh - 1, 0.0f),    Vec2F(UV_ERROR_ADJ, UV_ERROR_ADJ)), _
       Vertex(Vec3F(hw - 1, hh - 1, 0.0f), Vec2F(w - UV_ERROR_ADJ, UV_ERROR_ADJ)), _
       Vertex(Vec3F(hw - 1, -hh, 0.0f),    Vec2F(w - UV_ERROR_ADJ, h - UV_ERROR_ADJ)), _
-      Vertex(Vec3F(-hw, -hh, 0.0f),       Vec2F(UV_ERROR_ADJ, h - UV_ERROR_ADJ))} 'Const
+      Vertex(Vec3F(-hw, -hh, 0.0f),       Vec2F(UV_ERROR_ADJ, h - UV_ERROR_ADJ))} 'const
 
   DArray_Quad_Emplace(model_, v(), tex, QuadTextureMode.TEXTURED, FALSE, FALSE)
 End Constructor

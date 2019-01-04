@@ -92,11 +92,11 @@ Type QuadModelTextureCube
   Union
     As UInteger v 'Const
     Type
-      As UInteger front : 6 'Const
-      As UInteger up : 6 'Const
-      As UInteger right : 6 'Const
-      As UInteger down : 6 'Const
-      As UInteger left : 6 'Const
+      As UInteger front : 6 'const
+      As UInteger up : 6 'const
+      As UInteger right : 6 'const
+      As UInteger down : 6 'const
+      As UInteger left : 6 'const
     End Type
   End Union
 End Type
@@ -112,6 +112,9 @@ End Type
 
 Type QuadModel Extends QuadModelBase
  Public:
+	'This comes from QuadModelTextureCube specifying indices with 6 bits.
+	Const As UInteger MAX_UVINDEX = 64
+ 
   Declare Sub project(ByRef projector As Const Projection)
   
   'Declare custom copy constructor/assignment to avoid copying binding counter

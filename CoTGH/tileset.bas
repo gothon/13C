@@ -38,7 +38,7 @@ Const Sub Tileset.getTileStart(index As UInteger, start As Vec2F Ptr)
 	DEBUG_ASSERT(image_ <> NULL)
 	DEBUG_ASSERT(index < totalTiles_)
 	start->x = (index*tileWidth_) Mod image_->w()
-	start->y = (index*tileWidth_) / image_->w()
+	start->y = Int((index*tileWidth_) / image_->w())*tileHeight_
 End Sub
 
 Const Sub Tileset.getTileSize(size As Vec2F Ptr)

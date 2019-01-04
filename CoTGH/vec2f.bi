@@ -54,4 +54,7 @@ Declare Operator -(ByRef lhs As Const Vec2F, ByRef rhs As Const Vec2F) As Vec2F
 'Invert the given vector.
 Declare Operator -(ByRef v As Const Vec2F) As Vec2F
 
+'Point-wise equality test
+Declare Operator =(ByRef a As Const Vec2F, ByRef b As Const Vec2F) As Boolean
+
 #EndIf

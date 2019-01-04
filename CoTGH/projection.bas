@@ -3,7 +3,7 @@
 #Include "vecmath.bi"
 #Include "vec2f.bi"
 
-'Constants to make indices into the view matrix more clear.
+'Constants to view matrix indices.
 Const As UInteger MAT_X_AXIS = 0
 Const As UInteger MAT_Y_AXIS = 3
 Const As UInteger MAT_Z_AXIS = 6
@@ -22,17 +22,14 @@ Constructor Projection( _
   This.planeHMul = viewHeight / planeHeight
   This.planeDepth = planeDepth
   
-  'Vector defining x axis
   This.v(MAT_X_AXIS + MAT_X) = 1.0f
   This.v(MAT_X_AXIS + MAT_Y) = 0.0f
   This.v(MAT_X_AXIS + MAT_Z) = 0.0f
  
-  'Vector defining y axis
   This.v(MAT_Y_AXIS + MAT_X) = 0.0f
   This.v(MAT_Y_AXIS + MAT_Y) = 1.0f
   This.v(MAT_Y_AXIS + MAT_Z) = 0.0f
   
-  'Vector defining z axis
   This.v(MAT_Z_AXIS + MAT_X) = 0.0f
   This.v(MAT_Z_AXIS + MAT_Y) = 0.0f
   This.v(MAT_Z_AXIS + MAT_Z) = 1.0f

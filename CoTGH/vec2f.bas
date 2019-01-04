@@ -74,3 +74,7 @@ End Operator
 Operator -(ByRef v As Const Vec2F) As Vec2F
   Return Vec2F(-v.x, -v.y)
 End Operator
+
+Operator =(ByRef a As Const Vec2F, ByRef b As Const Vec2F) As Boolean
+	Return (a.x = b.x) AndAlso (a.y = b.y)
+End Operator
