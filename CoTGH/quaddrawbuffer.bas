@@ -100,9 +100,9 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
     		(q->pV(1).p.y >= dst->h()) AndAlso _
     		(q->pV(2).p.y >= dst->h()) AndAlso _
     		(q->pV(3).p.y >= dst->h())) Then Continue For      
-    
     Select Case q->mode
-      Case QuadTextureMode.FLAT:
+    	Case QuadTextureMode.FLAT:
+    		lightQuad(q)
         raster.drawPlanarQuad_Flat( _
             *q->texture, _ 
             @q->pV(0), _ 
@@ -134,6 +134,7 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
             q->trimY, _ 
             dst)
     	Case QuadTextureMode.TEXTURED_CONST:
+    		lightQuadConst(q)
         raster.drawPlanarQuad_TexturedConstant( _
             *q->texture, _ 
             @q->pV(0), _ 
@@ -159,18 +160,53 @@ Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
 	q->pV(2).c = col
 	q->pV(3).c = col
 
-	For i As UInteger = 0 To lights_.size() - 1
-		Dim As Const Light Ptr light = lights_[i]
-		light->add(q->v(0).p, q->v(0).n, @q->pV(0))
-		light->add(q->v(1).p, q->v(1).n, @q->pV(1))
-		light->add(q->v(2).p, q->v(2).n, @q->pV(2))
-		light->add(q->v(3).p, q->v(3).n, @q->pV(3))
-	Next i
+	If q->useVertexNorm Then
+		For i As UInteger = 0 To lights_.size() - 1
+			Dim As Const Light Ptr light = lights_[i]
+			light->add(q->v(0).p, q->v(0).n, @q->pV(0))
+			light->add(q->v(1).p, q->v(1).n, @q->pV(1))
+			light->add(q->v(2).p, q->v(2).n, @q->pV(2))
+			light->add(q->v(3).p, q->v(3).n, @q->pV(3))
+		Next i
+	Else
+		For i As UInteger = 0 To lights_.size() - 1
+			Dim As Const Light Ptr light = lights_[i]		
+			light->distanceAdd(q->v(0).p, @q->pV(0))
+			light->distanceAdd(q->v(1).p, @q->pV(1))
+			light->distanceAdd(q->v(2).p, @q->pV(2))
+			light->distanceAdd(q->v(3).p, @q->pV(3))
+		Next i		
+	EndIf 
 
 	vecmath.maxsat(@(q->pV(0).c))
 	vecmath.maxsat(@(q->pV(1).c))
 	vecmath.maxsat(@(q->pV(2).c))
 	vecmath.maxsat(@(q->pV(3).c))
+End Sub
+
+
+Sub QuadDrawBuffer.lightQuadConst(q As Quad Ptr)
+	Dim As Double l = (1 - vecmath.dot(q->fixedNorm, globalLightDirection_))*0.5
+	l *= globalLightMax_ - globalLightMin_
+	l += globalLightMin_
+
+	Dim As Vec3F col = Vec3F(1.0, 1.0, 1.0)*l 'const
+
+	q->pV(0).c = col
+
+	If q->useVertexNorm Then
+		For i As UInteger = 0 To lights_.size() - 1
+			Dim As Const Light Ptr light = lights_[i]
+			light->add(q->v(0).p, q->v(0).n, @q->pV(0))
+		Next i
+	Else
+		For i As UInteger = 0 To lights_.size() - 1
+			Dim As Const Light Ptr light = lights_[i]		
+			light->distanceAdd(q->v(0).p, @q->pV(0))
+		Next i		
+	EndIf 
+
+	vecmath.maxsat(@(q->pV(0).c))
 End Sub
 
 Sub QuadDrawBuffer.sort()

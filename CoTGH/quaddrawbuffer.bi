@@ -45,6 +45,7 @@ Type QuadDrawBuffer
  Private:
   Declare Sub sort()
   Declare Sub lightQuad(q As Quad Ptr)
+  Declare Sub lightQuadConst(q As Quad Ptr)
   Declare Static Function backfaceTest(ByRef q As Const Quad) As Boolean
   
   As Double globalLightMin_ = Any

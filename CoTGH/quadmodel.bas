@@ -17,6 +17,7 @@ Constructor Quad( _
 	  trimX As Boolean, _
 	  trimY As Boolean, _
 	  ByRef fixedNorm As Const Vec3F, _
+	  useVertexNorm As Boolean, _
 	  cull As Boolean)
   This.v(0) = v(0)
   This.v(1) = v(1)
@@ -28,6 +29,7 @@ Constructor Quad( _
   This.trimY = trimY
   This.cull = cull
   This.fixedNorm = fixedNorm
+  This.useVertexNorm = useVertexNorm
   This.enabled = TRUE
 End Constructor
 
@@ -259,8 +261,8 @@ Function getTransType( _
 		x1 As UInteger, _
 		y1 As UInteger) As TransType
 	Dim As Boolean seenTrans = FALSE
-	For y As UInteger = y0 To y1
-		For x As UInteger = x0 To x1
+	For y As UInteger = y0 To y1 - 1
+		For x As UInteger = x0 To x1 - 1
 			Dim As Pixel32 col = *(img->constPixels() + (y*img->w()) + x) 'const
 			If seenTrans AndAlso (col.value <> raster.TRANSPARENT_COLOR_INT) Then 
 				Return TransType.SEMI_SOLID
@@ -351,6 +353,7 @@ Constructor QuadModel( _
                 IIf(right <> 0, TRUE, FALSE), _
                 IIf(down <> 0, TRUE, FALSE), _
                 Vec3F(0, 0, 1), _
+                TRUE, _
                 cull)
           End if
 
@@ -373,6 +376,7 @@ Constructor QuadModel( _
             		TRUE, _
             		TRUE, _
             		Vec3F(0, 1, 0), _
+            		TRUE, _
             		cull)
           EndIf
           
@@ -395,6 +399,7 @@ Constructor QuadModel( _
             		TRUE, _
             		TRUE, _
             		Vec3F(1, 0, 0), _
+            		TRUE, _
             		cull)
           EndIf
           
@@ -417,6 +422,7 @@ Constructor QuadModel( _
             	  TRUE, _
             	  TRUE, _
             	  Vec3F(0, -1, 0), _
+            	  TRUE, _
             	  cull)
           EndIf
           
@@ -439,6 +445,7 @@ Constructor QuadModel( _
             		TRUE, _
             		TRUE, _
             		Vec3F(-1, 0, 0), _
+            		TRUE, _
             		cull)
           EndIf
         End if                  
@@ -474,7 +481,11 @@ Constructor QuadModel( _
     		QuadTextureMode.TEXTURED_MOD, _
     		FALSE, _
     		FALSE, _
-    		Vec3F(0, 0, 1))
+    		Vec3F(0, 0, 1), _
+    		IIf((texCube.up <> 0) OrElse _
+    				(texCube.right <> 0) OrElse _
+    				(texCube.down <> 0) OrElse _
+    				(texCube.left <> 0), TRUE, FALSE))
   End If
   
   If texCube.up <> 0 Then
@@ -493,7 +504,8 @@ Constructor QuadModel( _
     		QuadTextureMode.TEXTURED_MOD, _
     		FALSE, _
     		FALSE, _
-    		Vec3F(0, 1, 0))
+    		Vec3F(0, 1, 0), _
+    		TRUE)
   EndIf
   
   If texCube.right <> 0 Then
@@ -512,7 +524,8 @@ Constructor QuadModel( _
     		QuadTextureMode.TEXTURED_MOD, _
     		FALSE, _
     		FALSE, _
-    		Vec3F(1, 0, 0))
+    		Vec3F(1, 0, 0), _
+    		TRUE)
   EndIf
   
   If texCube.down <> 0 Then
@@ -531,7 +544,8 @@ Constructor QuadModel( _
     		QuadTextureMode.TEXTURED_MOD, _
     		FALSE, _
     		FALSE, _
-    		Vec3F(0, -1, 0))
+    		Vec3F(0, -1, 0), _
+    		TRUE)
   EndIf
   
   If texCube.left <> 0 Then
@@ -550,7 +564,8 @@ Constructor QuadModel( _
     		QuadTextureMode.TEXTURED_MOD, _
     		FALSE, _
     		FALSE, _
-    		Vec3F(-1, 0, 0))
+    		Vec3F(-1, 0, 0), _
+    		TRUE)
   EndIf
 End Constructor
 
@@ -600,7 +615,7 @@ Constructor QuadSprite(imagePath As String)
   v(2).n = Vec3F(0, 0, 1)
   v(3).n = Vec3F(0, 0, 1)
   
-  DArray_Quad_Emplace(model_, v(), tex, QuadTextureMode.TEXTURED_CONST, FALSE, FALSE, Vec3F(0, 0, 1))
+  DArray_Quad_Emplace(model_, v(), tex, QuadTextureMode.TEXTURED_CONST, FALSE, FALSE, Vec3F(0, 0, 1), FALSE)
 End Constructor
 
 Sub QuadSprite.project(ByRef projector As Const Projection)

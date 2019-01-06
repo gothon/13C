@@ -51,14 +51,28 @@ Const Sub Light.add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex 
 	lightNorm /= m
 	
 	Dim As Double s = (r_ - m)/r_
-	s *= s
 	If s < 0 Then s = 0
+	s *= s
 
 	Dim As Double l = vecmath.dot(lightNorm, n)*s'const
 	If l < 0 Then l = 0
 	
 	v->c += c_*l
 End Sub
+
+Const Sub Light.distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr)
+	If Not inRange(p) Then Return 
+	
+	Dim As Vec3F lightNorm = p_ - p 'const
+	Dim As Double m = lightNorm.m() 'const
+
+	Dim As Double s = (r_ - m)/r_
+	If s < 0 Then s = 0
+	s *= s
+
+	v->c += c_*s
+End Sub
+ 	
  	
 Const Function Light.inRange(ByRef p As Const Vec3F) As Boolean
 	If enabled_ = FALSE Then Return FALSE

@@ -14,7 +14,8 @@ Type Light
  	Declare Destructor()
  	
 	Declare Const Sub add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex Ptr)
- 	
+ 	Declare Const Sub distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr)
+
  	Declare Sub update(t As Double)
  	
  	Declare Sub translate(ByRef v As Const Vec3F)

@@ -26,6 +26,7 @@ Type Quad
       trimX As Boolean, _
       trimY As Boolean, _
       ByRef fixedNorm As Const Vec3F, _
+      useVertexNorm As Boolean, _
       cull As Boolean = TRUE)
 
   As Vertex v(0 To 3)
@@ -39,6 +40,7 @@ Type Quad
   As Boolean trimY = Any 'Const
   As Boolean cull = Any 'Const
   
+  As Boolean useVertexNorm = Any
   As Vec3F fixedNorm = Any 'Const
 End Type
 

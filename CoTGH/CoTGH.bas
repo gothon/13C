@@ -12,10 +12,7 @@
 
 
 'translate ISG
-'	
-'
-'
-'
+'fix light normal calculation in quad model
 
 ScreenRes 640, 480, 32
 
