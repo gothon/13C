@@ -19,6 +19,10 @@ Declare Function cross OverLoad (ByRef lhs As Const Vec3F, ByRef rhs As Const Ve
 Declare Sub normalize OverLoad (v As Vec2F Const Ptr)
 Declare Sub normalize OverLoad (v As Vec3F Const Ptr)
 
+'Saturate Max
+Declare Sub maxsat OverLoad (v As Vec2F Const Ptr)
+Declare Sub maxsat OverLoad (v As Vec3F Const Ptr)
+
 End Namespace
 
 #EndIf

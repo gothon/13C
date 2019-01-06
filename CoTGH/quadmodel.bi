@@ -25,6 +25,7 @@ Type Quad
       mode As QuadTextureMode, _
       trimX As Boolean, _
       trimY As Boolean, _
+      ByRef fixedNorm As Const Vec3F, _
       cull As Boolean = TRUE)
 
   As Vertex v(0 To 3)
@@ -36,8 +37,9 @@ Type Quad
   As QuadTextureMode mode = Any 'Const
   As Boolean trimX = Any 'Const
   As Boolean trimY = Any 'Const
+  As Boolean cull = Any 'Const
   
-  As Boolean cull = Any
+  As Vec3F fixedNorm = Any 'Const
 End Type
 
 DECLARE_DARRAY(Quad)
@@ -60,7 +62,7 @@ Type QuadModelBase Extends Object
   Declare Const Function size() As UInteger
   
   'Retrieve a pointer to a projected quad.
-  Declare Const Function getQuad(i As Integer) As Const Quad Ptr
+  Declare Function getQuad(i As Integer) As Quad Ptr
   
   'Hide/show this model. Will not be drawn by bound QuadDrawBuffers.
   Declare Sub hide()
@@ -71,7 +73,7 @@ Type QuadModelBase Extends Object
   Declare Sub bind()
   Declare Sub unbind()
  Protected:
-  Declare Static Sub calcZSort(q As Quad Ptr)
+  Declare Abstract Sub calcZSort(q As Quad Ptr)
 
   Declare Sub construct()
  
@@ -80,6 +82,16 @@ Type QuadModelBase Extends Object
   As ULongInt id_ = Any 'Const
   
   As DArray_Quad model_
+End Type
+
+Type QuadModelBasePtr
+	Declare Constructor() 'Nop
+	Declare Constructor(p As QuadModelBase Ptr)
+	
+	Declare Destructor()
+	Declare Operator Cast() As QuadModelBase Ptr
+	
+	As QuadModelBase Ptr p = Any
 End Type
 
 Type QuadModelTextureCube
@@ -111,7 +123,7 @@ End Type
 
 Type QuadModel Extends QuadModelBase
  Public:
-  Declare Sub project(ByRef projector As Const Projection)
+  Declare Sub project(ByRef projector As Const Projection) Override
   
   'Declare custom copy constructor/assignment to avoid copying binding counter
   Declare Constructor(ByRef other As Const QuadModel)
@@ -135,12 +147,15 @@ Type QuadModel Extends QuadModelBase
       ByRef volumeDims As Const Vec3F, _
       ByRef texCube As Const QuadModelTextureCube, _
       uvIndices() As QuadModelUVIndex, _
-      imagePaths() As String)
+      tex() As Const Image32 Ptr)
+       
+ Protected:
+  Declare Sub calcZSort(q As Quad Ptr) Override
 End Type
 
 Type QuadSprite Extends QuadModelBase
  Public:
-  Declare Sub project(ByRef projector As Const Projection)
+  Declare Sub project(ByRef projector As Const Projection) Override
   
   'Declare custom copy constructor/assignment to avoid copying binding counter
   Declare Constructor(ByRef other As Const QuadModel)
@@ -148,6 +163,8 @@ Type QuadSprite Extends QuadModelBase
   
   'Create a centered billboard sprite from the given image path.
   Declare Constructor(imagePath As String)
+ Protected:
+   Declare Sub calcZSort(q As Quad Ptr) Override
 End Type
 
 #EndIf

@@ -12,21 +12,39 @@ Destructor QuadDrawElement()
   'Nop
 End Destructor
 
-Constructor QuadDrawElement(q As Const Quad Ptr, parentId As ULongInt)
+Constructor QuadDrawElement(q As Quad Ptr, parentId As ULongInt)
   This.q = q
   This.parentId = parentId
 End Constructor
 
+Constructor QuadDrawBuffer()
+	This.globalLightMin_ = 1
+	This.globalLightMax_ = 1
+	This.globalLightDirection_ = Vec3F(0, 0, -1)
+End Constructor
+
+Sub QuadDrawBuffer.setGlobalLightDirection(ByRef d As Const Vec3F)
+	globalLightDirection_ = d
+	vecmath.normalize(@globalLightDirection_)
+End Sub
+
+Sub QuadDrawBuffer.setGlobalLightMinMax(min As Double, max As Double)
+	globalLightMin_ = min
+	globalLightMax_ = max
+	DEBUG_ASSERT(min <= max)
+End Sub
+
 Destructor QuadDrawBuffer()
-  DEBUG_ASSERT(quads.size() = 0)
+  DEBUG_ASSERT(quads_.size() = 0)
+  DEBUG_ASSERT(lights_.size() = 0)
 End Destructor
 
 Sub QuadDrawBuffer.bind(model As QuadModelBase Ptr)
   DEBUG_ASSERT(model->size() > 0)
-  Dim As UInteger nextIndex = quads.size()
-  quads.reserve(model->size())
+  Dim As UInteger nextIndex = quads_.size()
+  quads_.reserve(model->size())
   For i As Integer = 0 To model->size() - 1
-    DArray_QuadDrawElement_Emplace(quads, model->getQuad(i), model->id())
+    DArray_QuadDrawElement_Emplace(quads_, model->getQuad(i), model->id())
     nextIndex += 1
   Next i
   model->bind()
@@ -34,10 +52,10 @@ End Sub
 
 Sub QuadDrawBuffer.unbind(model As QuadModelBase Ptr)
   Dim As Integer curQuadIndex = 0
-  While (curQuadIndex < quads.size())
-    If quads[curQuadIndex].parentId = model->id() Then
-      Swap quads.back(), quads[curQuadIndex]
-      quads.pop()
+  While (curQuadIndex < quads_.size())
+    If quads_[curQuadIndex].parentId = model->id() Then
+      Swap quads_.back(), quads_[curQuadIndex]
+      quads_.pop()
       Continue While
     EndIf
     curQuadIndex += 1
@@ -45,11 +63,44 @@ Sub QuadDrawBuffer.unbind(model As QuadModelBase Ptr)
   model->unbind()
 End Sub
 
+Sub QuadDrawBuffer.bind(l As Light Ptr)
+  lights_.push(l)
+  l->bind()
+End Sub
+
+Sub QuadDrawBuffer.unbind(l As Light Ptr)
+  For i As UInteger = 0 To lights_.size()
+    If lights_[i] = l Then
+      Swap lights_.back(), lights_[i]
+      lights_.pop()
+      Exit For
+    EndIf
+  Next i
+  l->unbind()
+End Sub
+
 Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
   sort()
-  For i As Integer = quads.size() - 1 To 0 Step -1
-    Dim As Const Quad Ptr q = quads[i].q
+  For i As Integer = quads_.size() - 1 To 0 Step -1
+    Dim As Quad Ptr q = quads_[i].q
     If (Not q->enabled) OrElse (q->cull AndAlso backfaceTest(*q)) Then Continue For
+    If ((q->pV(0).p.x < 0) AndAlso _
+    		(q->pV(1).p.x < 0) AndAlso _
+    		(q->pV(2).p.x < 0) AndAlso _
+    		(q->pV(3).p.x < 0)) OrElse _
+    		((q->pV(0).p.x >= dst->w()) AndAlso _
+    		(q->pV(1).p.x >= dst->w()) AndAlso _
+    		(q->pV(2).p.x >= dst->w()) AndAlso _
+    		(q->pV(3).p.x >= dst->w())) OrElse _
+    		((q->pV(0).p.y < 0) AndAlso _
+    		(q->pV(1).p.y < 0) AndAlso _
+    		(q->pV(2).p.y < 0) AndAlso _
+    		(q->pV(3).p.y < 0)) OrElse _    		  
+    		((q->pV(0).p.y >= dst->h()) AndAlso _
+    		(q->pV(1).p.y >= dst->h()) AndAlso _
+    		(q->pV(2).p.y >= dst->h()) AndAlso _
+    		(q->pV(3).p.y >= dst->h())) Then Continue For      
+    
     Select Case q->mode
       Case QuadTextureMode.FLAT:
         raster.drawPlanarQuad_Flat( _
@@ -71,7 +122,8 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
             q->trimX, _ 
             q->trimY, _ 
             dst)
-      Case QuadTextureMode.TEXTURED_MOD:
+    	Case QuadTextureMode.TEXTURED_MOD:
+    		lightQuad(q)
         raster.drawPlanarQuad_TexturedModulated( _
             *q->texture, _ 
             @q->pV(0), _ 
@@ -81,7 +133,7 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
             q->trimX, _ 
             q->trimY, _ 
             dst)
-      Case QuadTextureMode.TEXTURED_CONST:
+    	Case QuadTextureMode.TEXTURED_CONST:
         raster.drawPlanarQuad_TexturedConstant( _
             *q->texture, _ 
             @q->pV(0), _ 
@@ -95,17 +147,43 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
   Next i 
 End Sub
 
+Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
+	Dim As Double l = (1 - vecmath.dot(q->fixedNorm, globalLightDirection_))*0.5
+	l *= globalLightMax_ - globalLightMin_
+	l += globalLightMin_
+
+	Dim As Vec3F col = Vec3F(1.0, 1.0, 1.0)*l 'const
+
+	q->pV(0).c = col
+	q->pV(1).c = col
+	q->pV(2).c = col
+	q->pV(3).c = col
+
+	For i As UInteger = 0 To lights_.size() - 1
+		Dim As Const Light Ptr light = lights_[i]
+		light->add(q->v(0).p, q->v(0).n, @q->pV(0))
+		light->add(q->v(1).p, q->v(1).n, @q->pV(1))
+		light->add(q->v(2).p, q->v(2).n, @q->pV(2))
+		light->add(q->v(3).p, q->v(3).n, @q->pV(3))
+	Next i
+
+	vecmath.maxsat(@(q->pV(0).c))
+	vecmath.maxsat(@(q->pV(1).c))
+	vecmath.maxsat(@(q->pV(2).c))
+	vecmath.maxsat(@(q->pV(3).c))
+End Sub
+
 Sub QuadDrawBuffer.sort()
   'Insertion sort since we expect between draw() calls that little will change
   Dim As Integer i = 1
-  While i < quads.size()
-    Dim As QuadDrawElement qElement = quads[i] 'Const
+  While i < quads_.size()
+    Dim As QuadDrawElement qElement = quads_[i] 'Const
     Dim As Integer j = i - 1
-    While j >= 0 AndAlso (quads[j].q->zSort > qElement.q->zSort)
-       quads[j + 1] = quads[j]
+    While j >= 0 AndAlso (quads_[j].q->zSort > qElement.q->zSort)
+       quads_[j + 1] = quads_[j]
         j -= 1
     Wend
-    quads[j + 1] = qElement  
+    quads_[j + 1] = qElement  
     i += 1
   Wend
 End Sub

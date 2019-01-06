@@ -122,4 +122,19 @@ Type Double_
   As Double value = Any
 End Type
 
+Type ConstZStringPtr
+ Public:
+  Const As ZString Ptr DEFAULT_VALUE = 0 'NULL
+ 
+  Declare Constructor(value As Const ZString Ptr = DEFAULT_VALUE)
+  Declare Destructor() 'Nop
+    
+  Declare Const Operator Cast() As Const ZString Ptr
+  Declare Operator Let(ByRef rhs As Const ZString Ptr)
+  
+  Declare Const Function getValue() As Const ZString Ptr
+ Private:
+  As Const ZString Ptr value = Any
+End Type
+
 #EndIf

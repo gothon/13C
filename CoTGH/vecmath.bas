@@ -32,4 +32,15 @@ Sub normalize(v As Vec3F Const Ptr)
   *v /= m
 End Sub
 
+Sub maxsat(v As Vec2F Const Ptr)
+	v->x = IIf(v->x > 1, 1, v->x)
+	v->y = IIf(v->y > 1, 1, v->y)
+End Sub
+
+Sub maxsat(v As Vec3F Const Ptr)
+	v->x = IIf(v->x > 1, 1, v->x)
+	v->y = IIf(v->y > 1, 1, v->y)
+	v->z = IIf(v->z > 1, 1, v->z)
+End Sub
+
 End Namespace

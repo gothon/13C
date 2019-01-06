@@ -3,12 +3,18 @@
 
 #Include "physics.bi"
 #Include "quadmodel.bi"
+#Include "light.bi"
+#Include "darray.bi"
+
+DECLARE_DARRAY(QuadModelBasePtr)
+DECLARE_DARRAY(LightPtr)
 
 Namespace maputils
 	
 Type ParseResult
 	As physics.BlockGrid Ptr blockGrid
-	As QuadModelBase Ptr model
+	As DArray_QuadModelBasePtr models
+	As DArray_LightPtr lights
 End Type
 
 Declare Function parseMap(tmxPath As Const ZString Ptr) As ParseResult

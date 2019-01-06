@@ -4,6 +4,13 @@
 #Include "image32.bi"
 #Include "slotstack.bi"
 #Include "tileset.bi"
+#Include "maputils.bi"
+
+DECLARE_DARRAY(QuadModelBasePtr)
+DEFINE_DARRAY(QuadModelBasePtr)
+
+DECLARE_DARRAY(LightPtr)
+DEFINE_DARRAY(LightPtr)
 
 DECLARE_DARRAY(Quad)
 DEFINE_DARRAY(Quad)

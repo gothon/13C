@@ -4,8 +4,14 @@
 #Include "debuglog.bi"
 #Include "image32.bi"
 #Include "tilesetcache.bi"
+#Include "texturecache.bi"
 #Include "util.bi"
 #Include "xmlutils.bi"
+#Include "hashmap.bi"
+#Include "primitive.bi"
+#Include "light.bi"
+
+dsm_HashMap_define(ZString, ConstZStringPtr)
 
 Namespace maputils
 
@@ -282,6 +288,161 @@ Function createTileModel( _
 	Return New QuadModel(modelDef(), mapWidth, mapHeight, mapDepth, tileWidth, modelUv(), modelTex())
 End Function
 
+Function getPropOrNull( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		propName As ZString Ptr) As Const ZString Ptr
+	Dim As Const ConstZStringPtr Ptr propNamePtr = props->retrieve_constptr(*propName)
+	If propNamePtr = NULL Then Return NULL
+	Return *propNamePtr
+End Function
+
+Function getPropOrDie( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		propName As ZString Ptr) As Const ZString Ptr
+	Dim As Const ZString Ptr ret = getPropOrNull(props, propName)
+	DEBUG_ASSERT(ret <> NULL)
+	Return ret
+End Function
+
+Sub addBillboard( _
+		ByRef relativePath As Const String, _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  z As Single, _
+	  models As DArray_QuadModelBasePtr Ptr)
+	Dim As Const ZString Ptr source = getPropOrDie(props, "source") 'const
+	Dim As String extension = UCase(Right(*source, 3)) 'const
+	Dim As Const Image32 Ptr image = Any
+	If extension = "TSX" Then
+		image = TilesetCache.get(relativePath & *source)->image()
+	Else
+		image = TextureCache.get(relativePath & *source)
+	EndIf
+
+	Dim As UInteger startX = Val(*getPropOrDie(props, "start_x")) 'const
+	Dim As UInteger startY = Val(*getPropOrDie(props, "start_y")) 'const
+	
+	DEBUG_ASSERT((startX + w) <= image->w())
+	DEBUG_ASSERT((startY + h) <= image->h())
+	
+	Dim As QuadModelUVIndex uvIndex(0 To 0) = _
+			{QuadModelUVIndex(Vec2F(startX, startY), Vec2F(startX + w, startY + h), 0)} 'const
+	Dim As Const Image32 Ptr tex(0 To 0) = {image}
+
+	models->push(New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex()))
+	models->back().p->translate(Vec3F(x, mapPixelHeight - y - h, z))
+End Sub
+
+Sub addLight( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  z As Single, _
+	  lights As DArray_LightPtr Ptr)
+	Dim As Const ZString Ptr modeString = getPropOrNull(props, "mode") 'const
+	Dim As LightMode mode = Any
+	If (modeString = NULL) OrElse UCase(*modeString) = "SOLID" Then
+		mode = LightMode.SOLID
+	ElseIf UCase(*modeString) = "FLICKER" Then
+		mode = LightMode.FLICKER
+	Else
+		DEBUG_ASSERT(FALSE)
+	EndIf
+	lights->push(New Light( _
+			Vec3F(x + w*0.5, mapPixelHeight - (y + h*0.5), z), _
+			Vec3F(Val(*getPropOrDie(props, "b")), Val(*getPropOrDie(props, "g")), Val(*getPropOrDie(props, "r"))), _
+			Val(*getPropOrDie(props, "radius")), _
+			mode))
+End Sub
+
+Sub processObject( _
+		objectType As Const ZString Ptr, _
+		ByRef relativePath As Const String, _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  z As Single, _
+	  res As ParseResult Ptr)
+	Select Case UCase(*objectType)
+		Case "BILLBOARD"
+			addBillboard(relativePath, props, mapPixelHeight, x, y, w, h, z, @(res->models))
+		Case "LIGHT"
+			addLight(props, mapPixelHeight, x, y, w, h, z, @(res->lights))
+		Case Else
+			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
+	End Select
+End Sub
+	  
+Sub processObjects( _
+		layerNode As Const xmlNode Ptr, _
+		mapPixelHeight As UInteger, _
+		z As Single, _
+		ByRef relativePath As Const String, _
+	  res As ParseResult Ptr)
+	Dim As dsm.HashMap(ZString, ConstZStringPtr) props	
+	Do 
+		If nodeIsElementWithName(layerNode, "object") Then
+			Dim As UInteger x = xmlutils.getPropNumberOrDie(layerNode, "x") 'const
+			Dim As UInteger y = xmlutils.getPropNumberOrDie(layerNode, "y") 'const
+			Dim As UInteger w = xmlutils.getPropNumberOrDie(layerNode, "width") 'const
+			Dim As UInteger h = xmlutils.getPropNumberOrDie(layerNode, "height") 'const
+
+			Dim As Const xmlNode Ptr node = xmlutils.findOrDie(layerNode->children, "properties")->children 'const
+			props.clear()
+			While node <> NULL
+				If nodeIsElementWithName(node, "property") Then 
+					'
+					'NOTE: This is an awful hack, we're basically erasing the const'ness of the const char*	-_-. The way to fix this
+					'is to switch hashmap to use Const ZString not ZString.
+					'
+					props.insert( _
+							*CPtr(ZString Ptr, CLng(xmlutils.getPropStringOrDie(node, "name"))), _
+							xmlutils.getPropStringOrDie(node, "value"))
+				EndIf 
+				node = node->Next
+			Wend
+			Dim As Const ZString Ptr Ptr objectTypePtr = props.retrieve_ptr("type") 'const
+			DEBUG_ASSERT(objectTypePtr <> NULL)
+			
+			Dim As Const ZString Ptr zOffset = getPropOrNull(@props, "offset_z") 'const
+			z += IIf(zOffset = NULL, 0.0, Val(*zOffset))
+			processObject(*objectTypePtr, relativePath, @props, mapPixelHeight, x, y, w, h, z, res)
+		EndIf
+		layerNode = layerNode->next
+	Loop Until layerNode = NULL
+End Sub
+
+Sub processObjectLayers( _
+		root As Const xmlNode Ptr, _
+		mapPixelHeight As UInteger, _
+		layerStartDepth As Single, _
+		sideLength As Single, _
+		ByRef relativePath As Const String, _
+		res As ParseResult Ptr)
+	Dim As Const xmlNode Ptr node = getMapChildrenFromRootOrDie(root)
+	'Push objects in layer to center of layer block z
+	layerStartDepth -= sideLength*0.5
+	Do 
+		If nodeIsElementWithName(node, "objectgroup") Then
+			If node->children Then processObjects(node->children, mapPixelHeight, layerStartDepth, relativePath, res)
+			layerStartDepth += sideLength
+		ElseIf nodeIsElementWithName(node, "layer") AndAlso _
+				(UCase(*xmlutils.getPropStringOrDie(node, "name")) <> META_LAYER_NAME) Then
+			layerStartDepth += sideLength
+		End If
+		node = node->next
+	Loop Until node = NULL
+End Sub
 
 Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As xmlDoc Ptr document = xmlutils.getDocOrDie(tmxPath)
@@ -296,8 +457,10 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As UInteger tileHeight = xmlutils.getPropNumberOrDie(node, "tileheight") 'const
 	DEBUG_ASSERT(tileWidth = tileHeight)
 	
+	Dim As Const String relativePath = Left(*tmxPath, InStrRev(*tmxPath, "/")) 'const
+	
 	Dim As TilesetInfo tilesets(0 To MAX_TILESETS - 1) = Any
-	Dim As UInteger tilesetsN = getTilesets(root, Left(*tmxPath, InStrRev(*tmxPath, "/")), @(tilesets(0))) 'const
+	Dim As UInteger tilesetsN = getTilesets(root, relativePath, @(tilesets(0))) 'const
 	DEBUG_ASSERT(tilesetsN > 0)
 	
 	Dim As UInteger rawVisLayer(0 To mapWidth*mapHeight*mapDepth - 1) = Any
@@ -308,14 +471,15 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As UInteger rawMetaLayer(0 To mapWidth*mapHeight - 1) = Any
 	getRawMetaLayer(root, @(rawMetaLayer(0)))
 	
-	Dim As ParseResult res = Type<ParseResult>( _
-			createBlockGrid( _
-					rawMetaLayer(), _
-					tileWidth, _
-					mapWidth, _
-					mapHeight, _
-					tilesetsN, _
-					tilesets()), _
+	Dim As ParseResult res
+	res.blockGrid = createBlockGrid( _
+			rawMetaLayer(), _
+			tileWidth, _
+			mapWidth, _
+			mapHeight, _
+			tilesetsN, _
+			tilesets())
+	res.models.push( _
 			createTileModel( _
 					rawVisLayer(), _
 		  		tileWidth, _
@@ -325,9 +489,10 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 		  		mapDepth, _
 		  		tilesetsN, _
 		  		tilesets()))
-
+	
+	processObjectLayers(root, mapHeight*tileHeight, -CSng(mapDepth - 1)*tileWidth, tileWidth, relativePath, @res)
+	
 	xmlFreeDoc(document)
-
 	Return res
 End Function
  	

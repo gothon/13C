@@ -26,7 +26,7 @@ End Sub
 Function CameraController.proj() ByRef As Const Projection
 	If needsUpdate_ Then 
 		needsUpdate_ = FALSE
-		proj_.placeAndLookAt(Vec3F(p_.x - leadingX_*0.1, p_.y + 44, 200), Vec3F(p_.x, p_.y + 24, 0))
+		proj_.placeAndLookAt(Vec3F(p_.x - leadingX_*0.5, p_.y + 44, 180), Vec3F(p_.x, p_.y + 24, 0))
 	EndIf
 	Return proj_
 End Function

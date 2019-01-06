@@ -6,6 +6,7 @@
 #Include "pixel32.bi"
 #Include "raster.bi"
 #Include "util.bi"
+#Include "vecmath.bi"
 
 Const As Single UV_ERROR_ADJ = 0.01
 
@@ -15,6 +16,7 @@ Constructor Quad( _
 	  mode As QuadTextureMode, _
 	  trimX As Boolean, _
 	  trimY As Boolean, _
+	  ByRef fixedNorm As Const Vec3F, _
 	  cull As Boolean)
   This.v(0) = v(0)
   This.v(1) = v(1)
@@ -25,6 +27,7 @@ Constructor Quad( _
   This.trimX = trimX
   This.trimY = trimY
   This.cull = cull
+  This.fixedNorm = fixedNorm
   This.enabled = TRUE
 End Constructor
 
@@ -35,6 +38,22 @@ End Constructor
 Destructor Quad()
   'Nop
 End Destructor
+
+Constructor QuadModelBasePtr()
+	''
+End Constructor
+
+Constructor QuadModelBasePtr(p As QuadModelBase Ptr)
+	This.p = p
+End Constructor
+
+Destructor QuadModelBasePtr()
+	''
+End Destructor
+
+Operator QuadModelBasePtr.Cast() As QuadModelBase Ptr
+	Return p
+End Operator
 
 Destructor QuadModelBase()
   DEBUG_ASSERT(bindings_ = 0)
@@ -58,8 +77,8 @@ Const Function QuadModelBase.size() As UInteger
   Return model_.size()
 End Function
 
-Const Function QuadModelBase.getQuad(i As Integer) As Const Quad Ptr
-  Return @(model_.getConst(i))
+Function QuadModelBase.getQuad(i As Integer) As Quad Ptr
+  Return @(model_[i])
 End Function
 
 Sub QuadModelBase.bind()
@@ -88,14 +107,6 @@ Sub QuadModelBase.construct()
   This.bindings_ = 0
 End Sub
 
-Static Sub QuadModelBase.calcZSort(q As Quad Ptr)
-	Dim As Single minZ = q->pV(0).p.z
-	If q->pV(1).p.z > minZ Then minZ = q->pV(1).p.z
-	If q->pV(2).p.z > minZ Then minZ = q->pV(2).p.z
-	If q->pV(3).p.z > minZ Then minZ = q->pV(3).p.z
-  q->zSort = minZ
-End Sub
-
 'faces forward
 Sub populateQuadVerticesXY( _
     ByRef start As Const Vec3F, _
@@ -111,6 +122,11 @@ Sub populateQuadVerticesXY( _
                 Vec2F(uvEnd.x - UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   v(3) = Vertex(Vec3F(start.x, start.y - size.y, start.z), _
                 Vec2F(uvStart.x + UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
+  
+  v(0).n = Vec3F(0, 0, 1)
+  v(1).n = Vec3F(0, 0, 1)
+  v(2).n = Vec3F(0, 0, 1)
+  v(3).n = Vec3F(0, 0, 1)               
 End Sub
 
 'If flipped = false quad faces right, o/w it faces left
@@ -129,11 +145,22 @@ Sub populateQuadVerticesYZ( _
                 Vec2F(uvEnd.x - UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   v(3) = Vertex(Vec3F(start.x, start.y - size.y, start.z), _
                 Vec2F(uvStart.x + UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
+                
+  v(0).n = Vec3F(1, 0, 0)
+  v(1).n = Vec3F(1, 0, 0)
+  v(2).n = Vec3F(1, 0, 0)
+  v(3).n = Vec3F(1, 0, 0)
+                    
   If flipped Then
     Swap v(0), v(1)
     Swap v(2), v(3)
   	Swap v(0).t, v(1).t
   	Swap v(2).t, v(3).t
+  	
+  	v(0).n.x = -1
+  	v(1).n.x = -1
+  	v(2).n.x = -1
+  	v(3).n.x = -1
   EndIf
 End Sub
 
@@ -153,11 +180,22 @@ Sub populateQuadVerticesXZ( _
                 Vec2F(uvEnd.x - UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
   v(3) = Vertex(Vec3F(start.x, start.y, start.z), _
                 Vec2F(uvStart.x + UV_ERROR_ADJ, uvEnd.y - UV_ERROR_ADJ))
+                
+  v(0).n = Vec3F(0, 1, 0)
+  v(1).n = Vec3F(0, 1, 0)
+  v(2).n = Vec3F(0, 1, 0)
+  v(3).n = Vec3F(0, 1, 0)
+                                
   If flipped Then
     Swap v(0), v(1)
     Swap v(2), v(3)
     Swap v(0).t, v(3).t
   	Swap v(1).t, v(2).t
+  	
+  	v(0).n.y = -1
+  	v(1).n.y = -1
+  	v(2).n.y = -1
+  	v(3).n.y = -1
   EndIf
 End Sub
 
@@ -309,9 +347,10 @@ Constructor QuadModel( _
                 model_, _
                 v(), _
                 tex(curTex->imageIndex), _
-                QuadTextureMode.TEXTURED, _
+                QuadTextureMode.TEXTURED_MOD, _
                 IIf(right <> 0, TRUE, FALSE), _
                 IIf(down <> 0, TRUE, FALSE), _
+                Vec3F(0, 0, 1), _
                 cull)
           End if
 
@@ -326,7 +365,15 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 FALSE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
+            DArray_Quad_Emplace( _
+            		model_, _
+            		v(), _
+            		tex(curTex->imageIndex), _
+            		QuadTextureMode.TEXTURED_MOD, _
+            		TRUE, _
+            		TRUE, _
+            		Vec3F(0, 1, 0), _
+            		cull)
           EndIf
           
       		If (Not right) AndAlso _
@@ -340,7 +387,15 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 FALSE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
+            DArray_Quad_Emplace( _
+            		model_, _
+            		v(), _
+            		tex(curTex->imageIndex), _
+            		QuadTextureMode.TEXTURED_MOD, _
+            		TRUE, _
+            		TRUE, _
+            		Vec3F(1, 0, 0), _
+            		cull)
           EndIf
           
         	If (Not down) AndAlso _
@@ -354,7 +409,15 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 TRUE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
+            DArray_Quad_Emplace( _
+            		model_, _
+            	  v(), _
+            	  tex(curTex->imageIndex), _
+            	  QuadTextureMode.TEXTURED_MOD, _
+            	  TRUE, _
+            	  TRUE, _
+            	  Vec3F(0, -1, 0), _
+            	  cull)
           EndIf
           
           If (Not left) AndAlso _
@@ -368,7 +431,15 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 TRUE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
+            DArray_Quad_Emplace( _
+            		model_, _
+            		v(), _
+            		tex(curTex->imageIndex), _
+            		QuadTextureMode.TEXTURED_MOD, _
+            		TRUE, _
+            		TRUE, _
+            		Vec3F(-1, 0, 0), _
+            		cull)
           EndIf
         End if                  
         blockX += sideLength
@@ -383,14 +454,9 @@ Constructor QuadModel( _
     ByRef volumeDims As Const Vec3F, _
     ByRef texCube As Const QuadModelTextureCube, _
     uvIndices() As QuadModelUVIndex, _
-    imagePaths() As String)
+    tex() As Const Image32 Ptr)
   construct()    
-      
-  Dim As Image32 Ptr tex(0 To UBound(imagePaths)) 'const
-  For i As Integer = 0 To UBound(imagePaths)
-    tex(i) = TextureCache.get(imagePaths(i))
-  Next i
-  
+        
   Dim As Vertex v(0 To 3)
 
   If texCube.front <> 0 Then
@@ -401,7 +467,14 @@ Constructor QuadModel( _
         curTex->uvStart, _
         curTex->uvEnd, _
         v())
-    DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
+    DArray_Quad_Emplace( _
+    		model_, _
+    		v(), _
+    		tex(curTex->imageIndex), _
+    		QuadTextureMode.TEXTURED_MOD, _
+    		FALSE, _
+    		FALSE, _
+    		Vec3F(0, 0, 1))
   End If
   
   If texCube.up <> 0 Then
@@ -413,7 +486,14 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         FALSE, _
         v())
-    DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
+    DArray_Quad_Emplace( _
+    		model_, _
+    		v(), _
+    		tex(curTex->imageIndex), _
+    		QuadTextureMode.TEXTURED_MOD, _
+    		FALSE, _
+    		FALSE, _
+    		Vec3F(0, 1, 0))
   EndIf
   
   If texCube.right <> 0 Then
@@ -425,7 +505,14 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         FALSE, _
         v())
-    DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
+    DArray_Quad_Emplace( _
+    		model_, _
+    		v(), _
+    		tex(curTex->imageIndex), _
+    		QuadTextureMode.TEXTURED_MOD, _
+    		FALSE, _
+    		FALSE, _
+    		Vec3F(1, 0, 0))
   EndIf
   
   If texCube.down <> 0 Then
@@ -437,7 +524,14 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         TRUE, _
         v())
-    DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
+    DArray_Quad_Emplace( _
+    		model_, _
+    		v(), _
+    		tex(curTex->imageIndex), _
+    		QuadTextureMode.TEXTURED_MOD, _
+    		FALSE, _
+    		FALSE, _
+    		Vec3F(0, -1, 0))
   EndIf
   
   If texCube.left <> 0 Then
@@ -449,7 +543,14 @@ Constructor QuadModel( _
         curTex->uvEnd, _
         TRUE, _
         v())
-    DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, FALSE, FALSE)
+    DArray_Quad_Emplace( _
+    		model_, _
+    		v(), _
+    		tex(curTex->imageIndex), _
+    		QuadTextureMode.TEXTURED_MOD, _
+    		FALSE, _
+    		FALSE, _
+    		Vec3F(-1, 0, 0))
   EndIf
 End Constructor
 
@@ -462,6 +563,10 @@ Sub QuadModel.project(ByRef projector As Const Projection)
     projector.project(q->v(3), @q->pV(3))
     calcZSort(q)
   Next i
+End Sub
+
+Sub QuadModel.calcZSort(q As Quad Ptr)
+	q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) * 0.25
 End Sub
 
 Constructor QuadSprite(ByRef other As Const QuadModel)
@@ -489,12 +594,23 @@ Constructor QuadSprite(imagePath As String)
       Vertex(Vec3F(hw - 1, hh - 1, 0.0f), Vec2F(w - UV_ERROR_ADJ, UV_ERROR_ADJ)), _
       Vertex(Vec3F(hw - 1, -hh, 0.0f),    Vec2F(w - UV_ERROR_ADJ, h - UV_ERROR_ADJ)), _
       Vertex(Vec3F(-hw, -hh, 0.0f),       Vec2F(UV_ERROR_ADJ, h - UV_ERROR_ADJ))} 'const
-
-  DArray_Quad_Emplace(model_, v(), tex, QuadTextureMode.TEXTURED, FALSE, FALSE)
+      
+  v(0).n = Vec3F(0, 0, 1)
+  v(1).n = Vec3F(0, 0, 1)
+  v(2).n = Vec3F(0, 0, 1)
+  v(3).n = Vec3F(0, 0, 1)
+  
+  DArray_Quad_Emplace(model_, v(), tex, QuadTextureMode.TEXTURED_CONST, FALSE, FALSE, Vec3F(0, 0, 1))
 End Constructor
 
 Sub QuadSprite.project(ByRef projector As Const Projection)
   Dim As Quad Ptr q = @(model_[0])
   projector.projectBillboard(q->v(0), q->v(1), q->v(2), q->v(3), @q->pV(0), @q->pV(1), @q->pV(2), @q->pV(3))
   calcZSort(q)
+End Sub
+
+Const As Double SPRITE_ZSHIFT_EPSILON = 0.01
+
+Sub QuadSprite.calcZSort(q As Quad Ptr)
+  q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z)*0.25 - SPRITE_ZSHIFT_EPSILON
 End Sub

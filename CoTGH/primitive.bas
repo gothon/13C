@@ -30,3 +30,23 @@ DEFINE_PRIMITIVE(LongInt_, LongInt)
 DEFINE_PRIMITIVE(ULongInt_, ULongInt)
 DEFINE_PRIMITIVE(Single_, Single)
 DEFINE_PRIMITIVE(Double_, Double)
+
+Constructor ConstZStringPtr(value As Const ZString Ptr)
+  This.value = value
+End Constructor
+
+Destructor ConstZStringPtr()
+  'Nop
+End Destructor
+    
+Operator ConstZStringPtr.Cast() As Const ZString Ptr
+  Return value
+End Operator
+
+Operator ConstZStringPtr.Let(ByRef rhs As Const ZString Ptr)
+  value = rhs
+End Operator
+
+Const Function ConstZStringPtr.getValue() As Const ZString Ptr
+  Return value
+End Function
