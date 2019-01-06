@@ -24,7 +24,8 @@ Type Quad
       texture As Const Image32 Ptr, _
       mode As QuadTextureMode, _
       trimX As Boolean, _
-      trimY As Boolean)
+      trimY As Boolean, _
+      cull As Boolean = TRUE)
 
   As Vertex v(0 To 3)
   As Vertex pV(0 To 3)
@@ -35,6 +36,8 @@ Type Quad
   As QuadTextureMode mode = Any 'Const
   As Boolean trimX = Any 'Const
   As Boolean trimY = Any 'Const
+  
+  As Boolean cull = Any
 End Type
 
 DECLARE_DARRAY(Quad)
@@ -88,17 +91,13 @@ Type QuadModelTextureCube
       right As UInteger, _
       down As UInteger, _
       left As UInteger)
+  Declare Const Function v() As UInteger 
 
-  Union
-    As UInteger v 'Const
-    Type
-      As UInteger front : 6 'const
-      As UInteger up : 6 'const
-      As UInteger right : 6 'const
-      As UInteger down : 6 'const
-      As UInteger left : 6 'const
-    End Type
-  End Union
+  As UInteger front 'const
+  As UInteger up 'const
+  As UInteger right 'const
+  As UInteger down 'const
+  As UInteger left 'const
 End Type
 
 Type QuadModelUVIndex
@@ -112,9 +111,6 @@ End Type
 
 Type QuadModel Extends QuadModelBase
  Public:
-	'This comes from QuadModelTextureCube specifying indices with 6 bits.
-	Const As UInteger MAX_UVINDEX = 64
- 
   Declare Sub project(ByRef projector As Const Projection)
   
   'Declare custom copy constructor/assignment to avoid copying binding counter

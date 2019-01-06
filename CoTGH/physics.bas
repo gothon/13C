@@ -48,7 +48,7 @@ Function ceilFromZero(x As Single) As Single
     Return IIf((x - Int(x)) > 0, Int(x + 1), Int(x))
 End Function
 
-Const As Double IMPACT_SOFTEN = 0.9
+Const As Double IMPACT_SOFTEN = 0.99
 
 Function BlockGrid.clipRect( _
 		ByRef rect As Const AABB, _
@@ -123,7 +123,7 @@ Function BlockGrid.clipRect( _
 			End If
 		EndIf 
 
-    If (timeToX < timeToY) OrElse (overrideAxis = Axis.X) Then     
+    If (timeToX < timeToY) OrElse (overrideAxis = Axis.X) Then   
     	Dim As Double shiftY = timeToX * v.y 
 
       Dim As Integer startSquareX = squareX + rSignX
@@ -138,11 +138,11 @@ Function BlockGrid.clipRect( _
         startSquareY += 1
       Wend
       
-    	tEnd.x += wallX - boundX
-      tEnd.y += shiftY
+    	tEnd.x += (wallX - boundX)*IMPACT_SOFTEN
+      tEnd.y += shiftY*IMPACT_SOFTEN
       
       boundX = wallX
-      boundY += shiftY
+      boundY += shiftY*IMPACT_SOFTEN
   
       wallX += rSignX * l_
       squareX += rSignX
@@ -158,7 +158,7 @@ Function BlockGrid.clipRect( _
       		collideAxis = Axis.XY
       	EndIf
       EndIf
-    Else     
+    Else
       Dim As Double shiftX = timeToY * v.x
       
       Dim As Integer startSquareX = Int((tEnd.x + shiftX) / l_)       
@@ -174,10 +174,10 @@ Function BlockGrid.clipRect( _
 	      startSquareX += 1
       Wend
             
-      tEnd.x += shiftX
-      tEnd.y += wallY - boundY
+      tEnd.x += shiftX*IMPACT_SOFTEN
+      tEnd.y += (wallY - boundY)*IMPACT_SOFTEN
       
-      boundX += shiftX
+      boundX += shiftX*IMPACT_SOFTEN
       boundY = wallY         
       
       wallY += rSignY * l_

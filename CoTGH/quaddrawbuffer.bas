@@ -49,7 +49,7 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
   sort()
   For i As Integer = quads.size() - 1 To 0 Step -1
     Dim As Const Quad Ptr q = quads[i].q
-    If (Not q->enabled) OrElse backfaceTest(*q) Then Continue For
+    If (Not q->enabled) OrElse (q->cull AndAlso backfaceTest(*q)) Then Continue For
     Select Case q->mode
       Case QuadTextureMode.FLAT:
         raster.drawPlanarQuad_Flat( _

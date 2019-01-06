@@ -3,11 +3,19 @@
 #Include "texturecache.bi"
 #Include "debuglog.bi"
 #Include "image32.bi"
+#Include "pixel32.bi"
+#Include "raster.bi"
 #Include "util.bi"
 
 Const As Single UV_ERROR_ADJ = 0.01
 
-Constructor Quad(v() As Vertex, texture As Const Image32 Ptr, mode As QuadTextureMode, trimX As Boolean, trimY As Boolean)
+Constructor Quad( _ 
+		v() As Vertex, _
+		texture As Const Image32 Ptr, _
+	  mode As QuadTextureMode, _
+	  trimX As Boolean, _
+	  trimY As Boolean, _
+	  cull As Boolean)
   This.v(0) = v(0)
   This.v(1) = v(1)
   This.v(2) = v(2)
@@ -16,6 +24,7 @@ Constructor Quad(v() As Vertex, texture As Const Image32 Ptr, mode As QuadTextur
   This.mode = mode
   This.trimX = trimX
   This.trimY = trimY
+  This.cull = cull
   This.enabled = TRUE
 End Constructor
 
@@ -153,11 +162,11 @@ Sub populateQuadVerticesXZ( _
 End Sub
 
 Constructor QuadModelTextureCube()
-  This.v = 0
-End Constructor
-
-Constructor QuadModelTextureCube(v As UInteger)
-  This.v = v
+  This.front = 0
+  This.up = 0
+  This.right = 0
+  This.down = 0
+  This.left = 0
 End Constructor
 
 Constructor QuadModelTextureCube( _
@@ -172,6 +181,10 @@ Constructor QuadModelTextureCube( _
   This.down = down
   This.left = left
 End Constructor
+
+Const Function QuadModelTextureCube.v() As UInteger
+	Return front Or up Or right Or down Or left
+End Function 
 
 Constructor QuadModelUVIndex()
   This.uvStart = Vec2F()
@@ -195,6 +208,49 @@ Operator QuadModel.Let(ByRef other As Const QuadModel)
 	This.model_ = other.model_
 End Operator
 
+Enum TransType Explicit
+	SOLID = 0
+	SEMI_SOLID = 1
+	CLEAR = 2
+End Enum
+
+Function getTransType( _
+		img As Const Image32 Ptr, _
+		x0 As UInteger, _
+		y0 As UInteger, _
+		x1 As UInteger, _
+		y1 As UInteger) As TransType
+	Dim As Boolean seenTrans = FALSE
+	For y As UInteger = y0 To y1
+		For x As UInteger = x0 To x1
+			Dim As Pixel32 col = *(img->constPixels() + (y*img->w()) + x) 'const
+			If seenTrans AndAlso (col.value <> raster.TRANSPARENT_COLOR_INT) Then 
+				Return TransType.SEMI_SOLID
+			ElseIf (Not seenTrans) AndAlso (col.value = raster.TRANSPARENT_COLOR_INT) Then
+				If (x <> x0) OrElse (y <> y0) Then Return TransType.SEMI_SOLID
+				seenTrans = TRUE
+			EndIf
+		Next x
+	Next y
+	Return IIf(seenTrans, TransType.CLEAR, TransType.SOLID)
+End Function
+
+Function cubeIsSolid( _
+		ByRef cube As Const QuadModelTextureCube, _
+		transT() As Const TransType) As Boolean
+	Return (transT(cube.front - 1) Or _
+			transT(cube.up - 1) Or _
+			transT(cube.right - 1) Or _
+			transT(cube.down - 1) Or _
+			transT(cube.left - 1)) = TransType.SOLID	
+End Function
+
+Function adjacentCubeIsSolid( _
+		ByRef cube As Const QuadModelTextureCube, _
+		transT() As Const TransType) As Boolean
+	Return (cube.v() <> 0) AndAlso cubeIsSolid(cube, transT())
+End Function
+
 Constructor QuadModel( _
     grid() As QuadModelTextureCube, _
     gridWidth As Integer, _
@@ -207,6 +263,17 @@ Constructor QuadModel( _
  
   Dim As Integer yOffset = gridWidth+2 'const
   Dim As Integer zOffset = (gridWidth+2)*(gridHeight+2) 'const
+  
+  Dim As TransType uvQuadTransType(0 To UBound(uvIndices)) = Any
+  For i As UInteger = 0 To UBound(uvIndices)
+  	Dim As QuadModelUVIndex uvIndex = uvIndices(i) 'const
+  	uvQuadTransType(i) = getTransType( _
+  			tex(uvIndex.imageIndex), _
+  			uvIndex.uvStart.x, _
+  			uvIndex.uvStart.y, _
+  			uvIndex.uvEnd.x, _
+  			uvIndex.uvEnd.y)
+  Next i
 
   Dim As Single blockZ = 0.0f
   For z As Integer = 1 To gridDepth
@@ -216,17 +283,21 @@ Constructor QuadModel( _
       For x As Integer = 1 To gridWidth
         Dim As Integer centerOffset = z*zOffset + y*yOffset + x 'const
         Dim As QuadModelTextureCube texCube = grid(centerOffset) 'const
-        If texCube.v <> 0 Then
-          Dim As Boolean up = grid(centerOffset - yOffset).v <> 0 'const
-          Dim As Boolean right = grid(centerOffset + 1).v <> 0 'const
-          Dim As Boolean down = grid(centerOffset + yOffset).v <> 0 'const
-          Dim As Boolean left = grid(centerOffset - 1).v <> 0 'const
-          Dim As Boolean front = grid(centerOffset - zOffset).v <> 0 'const
-          Dim As Boolean back = grid(centerOffset + zOffset).v <> 0 'const
-          
+        If texCube.v() <> 0 Then
+          Dim As Boolean up = adjacentCubeIsSolid(grid(centerOffset - yOffset), uvQuadTransType()) 'const
+          Dim As Boolean right = adjacentCubeIsSolid(grid(centerOffset + 1), uvQuadTransType()) 'const
+          Dim As Boolean down = adjacentCubeIsSolid(grid(centerOffset + yOffset), uvQuadTransType()) 'const
+          Dim As Boolean left = adjacentCubeIsSolid(grid(centerOffset - 1), uvQuadTransType()) 'const
+          Dim As Boolean front = adjacentCubeIsSolid(grid(centerOffset - zOffset), uvQuadTransType()) 'const
+          Dim As Boolean back = adjacentCubeIsSolid(grid(centerOffset + zOffset), uvQuadTransType()) 'const
+    
           Dim As Vertex v(0 To 3)
-
-          If (Not front) AndAlso (texCube.front <> 0) Then
+          
+      	  Dim As Boolean cull = cubeIsSolid(texCube, uvQuadTransType()) 'const
+					
+          If (Not front) AndAlso _
+          		(texCube.front <> 0) AndAlso _
+          		(uvQuadTransType(texCube.front - 1) <> TransType.CLEAR) Then
             Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.front - 1)
             populateQuadVerticesXY( _
                 Vec3F(blockX, blockY, blockZ), _
@@ -240,10 +311,13 @@ Constructor QuadModel( _
                 tex(curTex->imageIndex), _
                 QuadTextureMode.TEXTURED, _
                 IIf(right <> 0, TRUE, FALSE), _
-                IIf(down <> 0, TRUE, FALSE))
+                IIf(down <> 0, TRUE, FALSE), _
+                cull)
           End if
 
-          If (Not up) AndAlso (texCube.up <> 0) Then
+          If (Not up) AndAlso _
+          		(texCube.up <> 0) AndAlso _
+          		(uvQuadTransType(texCube.up - 1) <> TransType.CLEAR) Then
             Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.up - 1)
             populateQuadVerticesXZ( _
                 Vec3F(blockX, blockY, blockZ), _
@@ -252,10 +326,12 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 FALSE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
+            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
           EndIf
           
-          If (Not right) AndAlso (texCube.right <> 0) Then
+      		If (Not right) AndAlso _
+          		(texCube.right <> 0) AndAlso _
+          		(uvQuadTransType(texCube.right - 1) <> TransType.CLEAR) Then
             Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.right - 1)
             populateQuadVerticesYZ( _
                 Vec3F(blockX + sideLength, blockY, blockZ), _
@@ -264,10 +340,12 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 FALSE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
+            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
           EndIf
           
-          If (Not down) AndAlso (texCube.down <> 0) Then
+        	If (Not down) AndAlso _
+          		(texCube.down <> 0) AndAlso _
+          		(uvQuadTransType(texCube.down - 1) <> TransType.CLEAR) Then
             Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.down - 1)
             populateQuadVerticesXZ( _
                 Vec3F(blockX, blockY - sideLength, blockZ), _
@@ -276,10 +354,12 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 TRUE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
+            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
           EndIf
           
-          If (Not left) AndAlso (texCube.left <> 0) Then
+          If (Not left) AndAlso _
+          		(texCube.left <> 0) AndAlso _
+          		(uvQuadTransType(texCube.left - 1) <> TransType.CLEAR) Then
             Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.left - 1)
             populateQuadVerticesYZ( _
                 Vec3F(blockX, blockY, blockZ), _
@@ -288,7 +368,7 @@ Constructor QuadModel( _
                 curTex->uvEnd, _
                 TRUE, _
                 v())
-            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE)
+            DArray_Quad_Emplace(model_, v(), tex(curTex->imageIndex), QuadTextureMode.TEXTURED, TRUE, TRUE, cull)
           EndIf
         End if                  
         blockX += sideLength

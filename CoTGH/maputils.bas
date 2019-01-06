@@ -167,7 +167,7 @@ Function createBlockGrid( _
 				blockType = physics.BlockType.ONE_WAY_UP
 		End Select
 		
-		blocks->putBlock(i, blockType)
+		blocks->putBlock(i Mod mapWidth, mapHeight - Int(i / mapHeight) - 1, blockType)
 	Next i
 	Return blocks
 End Function
@@ -252,7 +252,6 @@ Function createTileModel( _
 		End If 
 		
 		If uVFound = FALSE Then
-			DEBUG_ASSERT(UBound(modelUv) <= QuadModel.MAX_UVINDEX)
 			Dim As UInteger subtileIndex = 0
 			For q As UInteger = modelUvIndex To modelUvIndex + 4
 				modelUv(q).imageIndex = modelTexIndex

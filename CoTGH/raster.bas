@@ -8,9 +8,6 @@
 
 Namespace raster
 
-'Opaque max-pink
-#Define TRANSPARENT_COLOR_INT &hFFFF00FF
-
 Type VIndex
   Declare Constructor (v As Const Vertex Ptr, i As Integer) 
   As Const Vertex Ptr v

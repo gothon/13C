@@ -6,6 +6,9 @@
 
 'Utilities for rasterizing vector primitives 
 Namespace raster
+	
+'Opaque max-pink
+Const As UInteger TRANSPARENT_COLOR_INT = &hFFFF00FF
 
 'Draw textured quad
 Declare Sub drawPlanarQuad_Textured( _
