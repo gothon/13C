@@ -1,7 +1,7 @@
 #Ifndef INDEXGRAPH_BI
 #Define INDEXGRAPH_BI
 
-#inclib "indexgraph-32-static"
+#inclib "isg"
 
 Type ig_GraphBuilder As Any Ptr
 Type ig_IndexGraph As Any Ptr

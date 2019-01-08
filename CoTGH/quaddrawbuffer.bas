@@ -99,7 +99,7 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
     		((q->pV(0).p.y >= dst->h()) AndAlso _
     		(q->pV(1).p.y >= dst->h()) AndAlso _
     		(q->pV(2).p.y >= dst->h()) AndAlso _
-    		(q->pV(3).p.y >= dst->h())) Then Continue For      
+    		(q->pV(3).p.y >= dst->h())) Then Continue For    
     Select Case q->mode
     	Case QuadTextureMode.FLAT:
     		lightQuad(q)
@@ -162,7 +162,7 @@ Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
 
 	If q->useVertexNorm Then
 		For i As UInteger = 0 To lights_.size() - 1
-			Dim As Const Light Ptr light = lights_[i]
+			Dim As Const Light Ptr light = lights_.getConst(i)
 			light->add(q->v(0).p, q->v(0).n, @q->pV(0))
 			light->add(q->v(1).p, q->v(1).n, @q->pV(1))
 			light->add(q->v(2).p, q->v(2).n, @q->pV(2))
@@ -170,7 +170,7 @@ Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
 		Next i
 	Else
 		For i As UInteger = 0 To lights_.size() - 1
-			Dim As Const Light Ptr light = lights_[i]		
+			Dim As Const Light Ptr light = lights_.getConst(i)	
 			light->distanceAdd(q->v(0).p, @q->pV(0))
 			light->distanceAdd(q->v(1).p, @q->pV(1))
 			light->distanceAdd(q->v(2).p, @q->pV(2))
@@ -196,17 +196,20 @@ Sub QuadDrawBuffer.lightQuadConst(q As Quad Ptr)
 
 	If q->useVertexNorm Then
 		For i As UInteger = 0 To lights_.size() - 1
-			Dim As Const Light Ptr light = lights_[i]
+			Dim As Const Light Ptr light = lights_.getConst(i)
 			light->add(q->v(0).p, q->v(0).n, @q->pV(0))
 		Next i
 	Else
 		For i As UInteger = 0 To lights_.size() - 1
-			Dim As Const Light Ptr light = lights_[i]		
+			Dim As Const Light Ptr light = lights_.getConst(i)	
 			light->distanceAdd(q->v(0).p, @q->pV(0))
 		Next i		
 	EndIf 
 
 	vecmath.maxsat(@(q->pV(0).c))
+	q->pV(1).c = q->pV(0).c
+	q->pV(2).c = q->pV(0).c
+	q->pV(3).c = q->pV(0).c
 End Sub
 
 Sub QuadDrawBuffer.sort()

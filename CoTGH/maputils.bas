@@ -357,7 +357,7 @@ Sub addLight( _
 	EndIf
 	lights->push(New Light( _
 			Vec3F(x + w*0.5, mapPixelHeight - (y + h*0.5), z), _
-			Vec3F(Val(*getPropOrDie(props, "b")), Val(*getPropOrDie(props, "g")), Val(*getPropOrDie(props, "r"))), _
+			Vec3F(Val(*getPropOrDie(props, "r")), Val(*getPropOrDie(props, "g")), Val(*getPropOrDie(props, "b"))), _
 			Val(*getPropOrDie(props, "radius")), _
 			mode))
 End Sub

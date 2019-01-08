@@ -16,13 +16,15 @@ Destructor LightPtr()
 	'Nop
 End Destructor
 
-Operator LightPtr.Cast() As Light Ptr
+Const Operator LightPtr.Cast() As Light Ptr
 	Return p
 End Operator
  	
 Constructor Light(ByRef p As Const Vec3F, ByRef c As Const Vec3F, r As Double, mode As LightMode)
 	This.p_ = p
 	This.c_ = c
+	'Since colors are reversed in the vertices
+	Swap This.c_.x, This.c_.z
 	This.r_ = r
 	This.mode_ = mode
 	This.enabled_ = TRUE
@@ -54,10 +56,10 @@ Const Sub Light.add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex 
 	If s < 0 Then s = 0
 	s *= s
 
-	Dim As Double l = vecmath.dot(lightNorm, n)*s'const
+	Dim As Double l = Sqr(vecmath.dot(lightNorm, n))
 	If l < 0 Then l = 0
 	
-	v->c += c_*l
+	v->c += c_*l*s
 End Sub
 
 Const Sub Light.distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr)

@@ -10,16 +10,42 @@
 #Include "physics.bi"
 #Include "maputils.bi"
 
+#Include "indexgraph.bi"
 
-'translate ISG
-'fix light normal calculation in quad model
 
+
+Dim As ig_GraphBuilder gb = ig_CreateGraphBuilder()
+
+
+Dim As ig_Data testA = Type<ig_Data>(4, New Integer(111))
+Dim As ig_Data testB = Type<ig_Data>(9, StrPtr("garbonzo"))
+
+ig_AddBaseToBuilder(gb, "rooma", testA, testB)
+
+Delete(CPtr(Integer Ptr, testA.raw))
+
+Dim As ig_IndexGraph graph = ig_Build(@gb)
+
+Dim As ig_Index ind = ig_CreateIndex(graph, "rooma")
+
+Dim As ig_Data ret = ig_GetContent(ind)
+
+Print *CPtr(ZString Ptr, ret.raw)
+
+ig_DeleteIndex(@ind)
+
+ig_DeleteGraph(@graph)
+
+sleep
+
+
+/'
 ScreenRes 640, 480, 32
 
 Dim As CameraController camera = CameraController(Projection(640, 480, 320, 240, 256))
 Dim As Image32 b = Image32(640, 480)   
 Dim As QuadDrawBuffer drawBuffer
-drawBuffer.setGlobalLightMinMax(0, 0.7)
+drawBuffer.setGlobalLightMinMax(0, 0.5)
 drawBuffer.setGlobalLightDirection(Vec3F(0.1, -0.5, -1))
 
 Dim As maputils.ParseResult res = maputils.parseMap("res/example.tmx")
@@ -37,8 +63,14 @@ Next i
 Dim As Vec2F v = Vec2f(0.0, 0.0)
 Dim As AABB p = AABB(Vec2F(60, 60), Vec2F(16, 24))
 Dim As QuadSprite playerModel = QuadSprite("res/object.png")
-playerModel.translate(Vec3F(p.o.x + p.s.x*0.5, p.o.y + p.s.y*0.5))
+Dim As Light playerLight = Light(Vec3F(0, 0, 0), Vec3F(0, 1, 0), 128, LightMode.SOLID)
 
+
+playerModel.translate(Vec3F(p.o.x + p.s.x*0.5, p.o.y + p.s.y*0.5))
+playerLight.translate(Vec3F(p.o.x + p.s.x*0.5, p.o.y + p.s.y*0.5))
+playerLight.off()
+
+drawBuffer.bind(@playerLight)
 drawBuffer.bind(@playerModel)
 
 Dim As Integer f = 0
@@ -77,6 +109,7 @@ Do
 
   p.o += clipRes.clipV
 	playerModel.translate(Vec3F(clipRes.clipV.x, clipRes.clipV.y, 0.0))
+	playerLight.translate(Vec3F(clipRes.clipV.x, clipRes.clipV.y, 0.0))
 
 	grounded = FALSE
   If clipRes.clipAxis And physics.Axis.X Then
@@ -94,6 +127,7 @@ Do
 	For i As UInteger = 0 To res.lights.size() - 1
 		res.lights[i].p->update(0.3333) 
 	Next i
+	playerLight.update(0.3333)	
 	
 	camera.update(1.0, p.o + p.s*0.5, facingRight)
   
@@ -121,6 +155,7 @@ Do
 Loop Until MultiKey(FB.SC_ESCAPE)
 
 drawBuffer.unbind(@playerModel)
+drawBuffer.unbind(@playerLight)
 
 For i As UInteger = 0 To res.models.size() - 1
 	drawBuffer.unbind(res.models[i].p)
@@ -133,3 +168,4 @@ For i As UInteger = 0 To res.lights.size() - 1
 Next i
 
 Delete(res.blockGrid)
+'/

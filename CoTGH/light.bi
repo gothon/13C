@@ -53,7 +53,7 @@ Type LightPtr
 	Declare Constructor(p As Light Ptr)
 	
 	Declare Destructor()
-	Declare Operator Cast() As Light Ptr
+	Declare Const Operator Cast() As Light Ptr
 	
 	As Light Ptr p = Any
 End Type
