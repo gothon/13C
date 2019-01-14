@@ -1,1 +1,10 @@
 #Include "staticlist.bi"
+#Include "physics.bi"
+
+DECLARE_PRIMITIVE_PTR(BlockGrid)
+DECLARE_STATICLIST(BlockGridPtr)
+DEFINE_STATICLIST(BlockGridPtr)
+
+DECLARE_PRIMITIVE_PTR(DynamicAABB)
+DECLARE_STATICLIST(DynamicAABBPtr)
+DEFINE_STATICLIST(DynamicAABBPtr)

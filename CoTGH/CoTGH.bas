@@ -1,171 +1,116 @@
 #Include "aabb.bi"
 #Include "projection.bi"
 #Include "cameracontroller.bi"
-#Include "vec3f.bi"
-#Include "fbgfx.bi"
-#include "image32.bi"
-#Include "imageops.bi"
-#Include "quadmodel.bi"
-#Include "quaddrawbuffer.bi"
 #Include "physics.bi"
-#Include "maputils.bi"
+#Include "fbgfx.bi"
+#Include "vec2f.bi"
 
-#Include "indexgraph.bi"
+ScreenRes 640, 480, 32, 2
+ScreenSet 1,0 
 
+Dim As BlockGrid grid = BlockGrid(NULL, 20, 15, 32)
 
-
-Dim As ig_GraphBuilder gb = ig_CreateGraphBuilder()
-
-
-Dim As ig_Data testA = Type<ig_Data>(4, New Integer(111))
-Dim As ig_Data testB = Type<ig_Data>(9, StrPtr("garbonzo"))
-
-ig_AddBaseToBuilder(gb, "rooma", testA, testB)
-
-Delete(CPtr(Integer Ptr, testA.raw))
-
-Dim As ig_IndexGraph graph = ig_Build(@gb)
-
-Dim As ig_Index ind = ig_CreateIndex(graph, "rooma")
-
-Dim As ig_Data ret = ig_GetContent(ind)
-
-Print *CPtr(ZString Ptr, ret.raw)
-
-ig_DeleteIndex(@ind)
-
-ig_DeleteGraph(@graph)
-
-sleep
-
-
-/'
-ScreenRes 640, 480, 32
-
-Dim As CameraController camera = CameraController(Projection(640, 480, 320, 240, 256))
-Dim As Image32 b = Image32(640, 480)   
-Dim As QuadDrawBuffer drawBuffer
-drawBuffer.setGlobalLightMinMax(0, 0.5)
-drawBuffer.setGlobalLightDirection(Vec3F(0.1, -0.5, -1))
-
-Dim As maputils.ParseResult res = maputils.parseMap("res/example.tmx")
-
-For i As UInteger = 0 To res.models.size() - 1
-	res.models[i].p->translate(Vec3F(0,0,8))
-	drawBuffer.bind(res.models[i])
+For i As UInteger = 0 To 19
+	grid.putBlock(i, 0, BlockType.FULL)
+	grid.putBlock(i, 14, BlockType.FULL)
 Next i
 
-For i As UInteger = 0 To res.lights.size() - 1
-	res.lights[i].p->translate(Vec3F(0,0,8))
-	drawBuffer.bind(res.lights[i])
+For i As UInteger = 1 To 13
+	grid.putBlock(0, i, BlockType.FULL)
+	grid.putBlock(19, i, BlockType.FULL)
 Next i
 
-Dim As Vec2F v = Vec2f(0.0, 0.0)
-Dim As AABB p = AABB(Vec2F(60, 60), Vec2F(16, 24))
-Dim As QuadSprite playerModel = QuadSprite("res/object.png")
-Dim As Light playerLight = Light(Vec3F(0, 0, 0), Vec3F(0, 1, 0), 128, LightMode.SOLID)
+grid.putBlock(9, 12, BlockType.FULL)
+grid.putBlock(10, 12, BlockType.FULL)
+grid.putBlock(11, 10, BlockType.ONE_WAY_UP)
+
+Dim As DynamicAABB box = DynamicAABB(NULL, AABB(Vec2F(50, 300), Vec2F(32, 48)))
+
+Randomize 10
+
+Dim As Double range(0 To 4)
+range(0) = 32 + Rnd*50
+For i As Integer = 1 To 4
+	range(i) = range(i - 1) + 80 + Rnd*50
+Next i
+
+Dim As DynamicAABB boxes(0 To 4) = { _ 
+		DynamicAABB(NULL, AABB(Vec2F(range(0), 40), Vec2F(32, 32))), _
+		DynamicAABB(NULL, AABB(Vec2F(range(1), 40), Vec2F(32, 32))), _
+		DynamicAABB(NULL, AABB(Vec2F(range(2), 40), Vec2F(32, 32))), _
+		DynamicAABB(NULL, AABB(Vec2F(range(3), 40), Vec2F(32, 32))), _
+		DynamicAABB(NULL, AABB(Vec2F(range(4), 40), Vec2F(32, 32)))}
+		
+For i As Integer = 0 To 4
+	boxes(i).setV(Vec2f(Rnd * 300 - 150, Rnd * 300 - 150))
+Next i
 
 
-playerModel.translate(Vec3F(p.o.x + p.s.x*0.5, p.o.y + p.s.y*0.5))
-playerLight.translate(Vec3F(p.o.x + p.s.x*0.5, p.o.y + p.s.y*0.5))
-playerLight.off()
+Dim As Simulation sim
+sim.setForce(Vec2F(0, 100))
 
-drawBuffer.bind(@playerLight)
-drawBuffer.bind(@playerModel)
 
-Dim As Integer f = 0
-Dim As Single fps = 0
-Dim As Single lastFps
-Dim As Integer fpsCaptures = 0
-Dim As Single fpsTimer = Timer 
+sim.add(@grid)
+sim.add(@box)
 
-Dim As Boolean grounded = FALSE
-Dim As Boolean lastUpKey = FALSE
-Dim As Boolean upKey = FALSE
+For i As Integer = 0 To 4
+	sim.add(@(boxes(i)))
+Next i
 
-Dim As Boolean facingRight = TRUE
+Dim As Boolean lastSpace = FALSE
+Dim As boolean gravity = FALSE
 
-Do  
+Do 
+	Dim As Vec2F v = box.getV() 
 
-	v.x *= IIf(grounded, 0.80, 0.97)
-	If Abs(v.x) > 4 Then v.x = 4*Sgn(v.x)
-	v -= Vec2F(0, 0.5)	
-	
-	lastUpKey = upKey
-	upKey = MultiKey(fb.SC_UP)
-	If grounded AndAlso upKey AndAlso Not lastUpKey Then v += Vec2F(0, 9)
-	
-	Dim As Single speed = IIf(grounded, 0.4, 0.05)
-	If MultiKey(fb.SC_RIGHT) Then 
-		v += Vec2F(speed, 0)
-		facingRight = TRUE
-	EndIf
-	If MultiKey(fb.SC_LEFT) Then 
-		v += Vec2F(-speed, 0)
-		facingRight = FALSE
+	If MultiKey(fb.SC_SPACE) Then
+		If Not lastSpace Then 
+			gravity = Not gravity
+			If gravity Then
+				sim.setForce(Vec2F(0, 0))
+			Else
+				sim.setForce(Vec2F(0, 100))
+			EndIf
+		EndIf
+		lastSpace = TRUE
+	Else 
+		lastSpace = FALSE
 	EndIf
 
- 	Dim As physics.ClipResult clipRes = res.blockGrid->clipRect(p, v) 
+	If MultiKey(fb.SC_UP) Then v.y -= 10
+	If MultiKey(fb.SC_RIGHT) Then v.x += 10
+	If MultiKey(fb.SC_DOWN) Then v.y += 10
+	If MultiKey(fb.SC_LEFT) Then v.x -= 10
 
-  p.o += clipRes.clipV
-	playerModel.translate(Vec3F(clipRes.clipV.x, clipRes.clipV.y, 0.0))
-	playerLight.translate(Vec3F(clipRes.clipV.x, clipRes.clipV.y, 0.0))
-
-	grounded = FALSE
-  If clipRes.clipAxis And physics.Axis.X Then
-  	If clipRes.clipAxis And physics.Axis.Y Then
-  		grounded = IIf(v.y < 0, TRUE, FALSE)
-  		v = Vec2F(0,0)
-  	Else 
-  		v.x = 0
-  	End If
-  ElseIf clipRes.clipAxis And physics.Axis.Y Then
-  	grounded = IIf(v.y < 0, TRUE, FALSE)
-  	v.y = 0
-  EndIf
+	box.setV(v)
 	
-	For i As UInteger = 0 To res.lights.size() - 1
-		res.lights[i].p->update(0.3333) 
-	Next i
-	playerLight.update(0.3333)	
+	sim.update(0.03333)
 	
-	camera.update(1.0, p.o + p.s*0.5, facingRight)
-  
-  playerModel.project(camera.proj())
-	For i As UInteger = 0 To res.models.size() - 1
-		res.models[i].p->project(camera.proj())
+	Cls
+	For y As UInteger = 0 To 14
+		For x As UInteger = 0 To 19
+			If grid.getBlock(x, y) = BlockType.FULL Then
+				Line (x*32, y*32)-(x*32+31, y*32+31), RGB(0,255,0), BF
+			ElseIf grid.getBlock(x, y) = BlockType.ONE_WAY_UP Then
+				Line (x*32, y*32+31)-(x*32+31, y*32+31), RGB(0,255,0), B
+			EndIf
+		Next x
+	Next y
+
+	Line (box.getAABB().o.x, box.getAABB().o.y)-(box.getAABB().o.x + box.getAABB().s.x - 1, box.getAABB().o.y + box.getAABB().s.y - 1), RGB(0,0,255), BF
+
+	For i As Integer = 0 To 4
+			Line (boxes(i).getAABB().o.x, boxes(i).getAABB().o.y)-(boxes(i).getAABB().o.x + boxes(i).getAABB().s.x - 1, boxes(i).getAABB().o.y + boxes(i).getAABB().s.y - 1), RGB(255,128,0), BF
 	Next i
+	
 
-	Line b.fbImg(), (0, 0)-(639, 479), RGB(0, 0, 0), BF
-  drawBuffer.draw(@b)
-  ScreenLock
-  Put (0,0), b.fbImg(), PSET
-  ScreenUnLock
+	Sleep 30
+	flip
+Loop Until MultiKey(fb.SC_ESCAPE)
 
-  Locate 1, 1: Print fps / fpsCaptures, lastFps
-  If (Timer - fpsTimer) > 1.0f Then
-    fps += f
-    lastFps = f
-    fpsCaptures += 1
-    f = 0
-    fpsTimer = Timer
-  EndIf
-  f += 1
-  Sleep 10
-Loop Until MultiKey(FB.SC_ESCAPE)
+sim.remove(@grid)
+sim.remove(@box)
 
-drawBuffer.unbind(@playerModel)
-drawBuffer.unbind(@playerLight)
-
-For i As UInteger = 0 To res.models.size() - 1
-	drawBuffer.unbind(res.models[i].p)
-	Delete(res.models[i].p)
+For i As Integer = 0 To 4
+	sim.remove(@(boxes(i)))
 Next i
-
-For i As UInteger = 0 To res.lights.size() - 1
-	drawBuffer.unbind(res.lights[i].p)
-	Delete(res.lights[i].p)
-Next i
-
-Delete(res.blockGrid)
-'/

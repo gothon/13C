@@ -140,7 +140,7 @@ Function createBlockGrid( _
 		mapWidth As UInteger, _
 		mapHeight As UInteger, _
 		tilesetsN As UInteger, _
-		tilesets() As Const TilesetInfo) As physics.BlockGrid Ptr
+		tilesets() As Const TilesetInfo) As BlockGrid Ptr
 		
 	Dim As UInteger metaGid = 0
 	For i As UInteger = 0 To tilesetsN - 1
@@ -150,7 +150,7 @@ Function createBlockGrid( _
 		EndIf
 	Next i
 		
-	Dim As physics.BlockGrid Ptr blocks = New physics.BlockGrid(mapWidth, mapHeight, tileSide)
+	Dim As BlockGrid Ptr blocks = New BlockGrid(mapWidth, mapHeight, tileSide, NULL)
 	For i As UInteger = 0 To UBound(metaLayer)
 		Dim As UInteger metaIndex = metaLayer(i) 'const
 #Ifdef DEBUG
@@ -163,17 +163,17 @@ Function createBlockGrid( _
 		If metaIndex = 0 Then Continue For
 		metaIndex = (metaIndex - metaGid) + 1
 		
-		Dim As physics.BlockType blockType = physics.BlockType.NONE
+		Dim As BlockType bType = BlockType.NONE
 		
 		'-------- THE TABLE THAT MAPS THE META TILESET TO ACTUAL BLOCK TYPES --------
 		Select Case As Const metaIndex
 			Case 1 
-				blockType = physics.BlockType.FULL
+				bType = BlockType.FULL
 			Case 58
-				blockType = physics.BlockType.ONE_WAY_UP
+				bType = BlockType.ONE_WAY_UP
 		End Select
 		
-		blocks->putBlock(i Mod mapWidth, mapHeight - Int(i / mapHeight) - 1, blockType)
+		blocks->putBlock(i Mod mapWidth, mapHeight - Int(i / mapWidth) - 1, bType)
 	Next i
 	Return blocks
 End Function
@@ -479,6 +479,7 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 			mapHeight, _
 			tilesetsN, _
 			tilesets())
+			
 	res.models.push( _
 			createTileModel( _
 					rawVisLayer(), _

@@ -37,6 +37,11 @@ Type QuadDrawBuffer
   'Unbinds the supplied light so that it will no longer be applied.
   Declare Sub unbind(l As Light Ptr)
   
+  ''
+  'Declare Sub bind(model As ActorBank Ptr)
+  ''
+  'Declare Sub unbind(model As ActorBank Ptr)
+  
   'Draws all bound models.
   Declare Sub draw(dst As Image32 Ptr)
   

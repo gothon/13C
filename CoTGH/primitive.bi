@@ -137,4 +137,46 @@ Type ConstZStringPtr
   As Const ZString Ptr value = Any
 End Type
 
+#Macro DECLARE_PRIMITIVE_PTR(_TYPENAME_)
+#Ifndef PRIMITIVE_PTR_##_TYPENAME_##_DECL
+#Define PRIMITIVE_PTR_##_TYPENAME_##_DECL
+Type _TYPENAME_##Ptr
+ Public:
+  Const As _TYPENAME_ Ptr DEFAULT_VALUE = CPtr(_TYPENAME_ Ptr, 0)
+ 
+  Declare Constructor(value As _TYPENAME_ Ptr = DEFAULT_VALUE)
+  Declare Destructor() 'Nop
+    
+  Declare Const Operator Cast() As _TYPENAME_ Ptr
+  Declare Operator Let(ByRef rhs As _TYPENAME_ Ptr)
+  
+  Declare Const Function getValue() As _TYPENAME_ Ptr
+ Private:
+  As _TYPENAME_ Ptr value = Any
+End Type
+#EndIf
+#EndMacro 
+
+#Macro DEFINE_PRIMITIVE_PTR(_TYPENAME_)
+Constructor _TYPENAME_##Ptr(value As _TYPENAME_ Ptr)
+	This.value = value
+End Constructor
+
+Destructor _TYPENAME_##Ptr()
+	'Nop
+End Destructor
+
+Const Operator _TYPENAME_##Ptr.Cast() As _TYPENAME_ Ptr
+	Return value
+End Operator
+
+Operator _TYPENAME_##Ptr.Let(ByRef rhs As _TYPENAME_ Ptr)
+	value = rhs
+End Operator
+  
+Const Function _TYPENAME_##Ptr.getValue() As _TYPENAME_ Ptr
+	Return value
+End Function
+#EndMacro 
+
 #EndIf

@@ -1,35 +1,35 @@
 #Ifndef ACTOR_BI
 #Define ACTOR_BI
 
-#Include "actorgroup.bi"
-#Include "byteblob.bi"
-#Include "slotstack.bi"
-#Include "variant.bi"
-#Include "vec2f.bi"
+#Include "quadmodel.bi"
+#Include "light.bi"
+#Include "primitive.bi"
 
-Type ActorRef As ULongInt
+
+Type ActorBankFwd As ActorBank
+Type ColliderFwd As Collider 
 
 Type Actor Extends Object
  Public:
-  Declare Constructor(parent As ActorGroup Ptr)
-  
-  Declare Abstract Sub __enter()
-  Declare Abstract Sub __dispatchSlot(index As UInteger, ByRef stack As Const SlotStack, ByRef ref As Const ActorRef)
-  Declare Abstract Const Sub __getValue(index As UInteger, emplacementLoc As Variant Ptr)
-  Declare Abstract Sub __deserialize(ByRef blob As ByteBlob)
-  Declare Abstract Const Sub __serialize(ByRef blob As ByteBlob)
-  Declare Abstract Sub __step(dT As Double)
-  
+ 	Declare Virtual Destructor()
+ 	
+ 	Declare Constructor(ByRef rhs As Const Actor) 'disallowed
+  Declare Operator Let(ByRef rhs As Const Actor) 'disallowed
+ 	
+ 	Declare Virtual Function update(t As Single) As Boolean
+ 	
+ 	Declare Sub ref()
+ 	Declare Sub unref()
  Private:
-  As ActorRef thisRef 'Const
-  As ActorGroup Ptr parent
-    
-  As DArray_UInteger publishTagRefs
-  As DArray_UInteger publishSpatialRefs
-
-  As Vec2F origin
+ 	
+ 	As ActorBankFwd Ptr parent_ = NULL
+ 	As QuadModel Ptr model_ = NULL
+ 	As Light Ptr light_ = NULL
+ 	As ColliderFwd Ptr collision_ = NULL
+ 	
+ 	As UInteger refs_ = 0
 End Type
 
-
+DECLARE_PRIMITIVE_PTR(Actor)
 
 #EndIf

@@ -39,7 +39,7 @@ Destructor ConstZStringPtr()
   'Nop
 End Destructor
     
-Operator ConstZStringPtr.Cast() As Const ZString Ptr
+Const Operator ConstZStringPtr.Cast() As Const ZString Ptr
   Return value
 End Operator
 

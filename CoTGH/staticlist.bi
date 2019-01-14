@@ -35,6 +35,15 @@ Type StaticList_##_TYPENAME_
   
   Declare Sub remove(index As UInteger)
   
+  'For iterating over the list; use like so:
+  '
+  '  Dim As UInteger index = -1 'Pass -1 into getNext to get the index of the first element.
+  '  While(list.getNext(@index))
+  '	   Print list.get(index)
+  '	 Wend
+  '
+  Declare Function getNext(index As UInteger Ptr) As Boolean
+  
   Declare Function get(index As UInteger) ByRef As _TYPENAME_
   Declare Const Function getConst(index As UInteger) ByRef As Const _TYPENAME_
    
@@ -156,6 +165,20 @@ Sub StaticList_##_TYPENAME_.clear()
   Wend
   lastValidIndex = curIndex
 End Sub
+  
+Function StaticList_##_TYPENAME_.getNext(index As UInteger Ptr) As Boolean
+	If usedSize = 0 Then Return FALSE
+	If *index = -1 Then 
+		*index = lastValidIndex
+		Return TRUE
+	EndIf
+
+	'If we're on the first element of the list:
+	If elements[*index].prevIndex = *index Then Return FALSE
+	
+	*index = elements[*index].prevIndex
+	Return TRUE
+End Function
 
 Sub StaticList_##_TYPENAME_.remove(index As UInteger)
   DEBUG_ASSERT(elements <> NULL)

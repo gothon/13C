@@ -12,7 +12,7 @@ DECLARE_DARRAY(LightPtr)
 Namespace maputils
 	
 Type ParseResult
-	As physics.BlockGrid Ptr blockGrid
+	As BlockGrid Ptr blockGrid
 	As DArray_QuadModelBasePtr models
 	As DArray_LightPtr lights
 End Type

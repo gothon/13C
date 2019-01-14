@@ -2,9 +2,10 @@
 #Include "quadmodel.bi"
 #Include "quaddrawbuffer.bi"
 #Include "image32.bi"
-#Include "slotstack.bi"
 #Include "tileset.bi"
 #Include "maputils.bi"
+#Include "actor.bi"
+#Include "physics.bi"
 
 DECLARE_DARRAY(QuadModelBasePtr)
 DEFINE_DARRAY(QuadModelBasePtr)
@@ -24,13 +25,8 @@ DEFINE_DARRAY(Image32)
 DECLARE_DARRAY(Tileset)
 DEFINE_DARRAY(Tileset)
 
-DECLARE_DARRAY(Variant)
-DEFINE_DARRAY(Variant)
+DECLARE_DARRAY(ActorPtr)
+DEFINE_DARRAY(ActorPtr)
 
-Namespace act
-DECLARE_DARRAY(SlotInvocationElement)
-DEFINE_DARRAY(SlotInvocationElement)
-
-DECLARE_DARRAY(SlotParameterIndex)
-DEFINE_DARRAY(SlotParameterIndex)
-End Namespace
+DECLARE_DARRAY(Arbiter)
+DEFINE_DARRAY(Arbiter)
