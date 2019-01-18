@@ -6,6 +6,7 @@
 #Include "maputils.bi"
 #Include "actor.bi"
 #Include "physics.bi"
+#Include "primitive.bi"
 
 DECLARE_DARRAY(QuadModelBasePtr)
 DEFINE_DARRAY(QuadModelBasePtr)
@@ -30,3 +31,6 @@ DEFINE_DARRAY(ActorPtr)
 
 DECLARE_DARRAY(Arbiter)
 DEFINE_DARRAY(Arbiter)
+
+DECLARE_DARRAY(ZStringPtr)
+DEFINE_DARRAY(ZStringPtr)

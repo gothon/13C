@@ -10,20 +10,17 @@
 Type Collider Extends Object
  Public:
  	Declare Virtual Destructor()
- 	
- 	Declare Constructor(ByRef rhs As Const Collider) 'disallowed
-  Declare Operator Let(ByRef rhs As Const Collider) 'disallowed
 	
 	Declare Function getTag() As UInteger
 	Declare Sub tag(tagz As UInteger)
 	Declare Sub untag()
 	
-	Declare Function getParent() As Actor Ptr
+	Declare Function getParent() As act.Actor Ptr
+	Declare Sub setParent(parent As act.Actor Ptr)
  Protected:
-  Declare Constructor(parent As Actor Ptr)
- 	Declare Constructor() 'nop
+ 	Declare Constructor()
  
- 	As Actor Ptr parent_ = Any 'const
+ 	As act.Actor Ptr parent_ = Any 'const
  	As UInteger ref_tag_ = Any
 End Type
 
@@ -36,8 +33,11 @@ End Enum
 'A static collide-able block grid.
 Type BlockGrid Extends Collider
  Public:
-	Declare Constructor(parent As Actor Ptr, w As UInteger, h As UInteger, l As Double)
+	Declare Constructor(w As UInteger, h As UInteger, l As Double)
 	Declare Destructor() Override
+	
+ 	Declare Constructor(ByRef rhs As Const BlockGrid)
+  Declare Operator Let(ByRef rhs As Const BlockGrid)
 	
 	Declare Sub putBlock(x As UInteger, y As UInteger, t As BlockType)
   Declare Sub putBlock(index As UInteger, t As BlockType)
@@ -68,10 +68,10 @@ Type Arbiter
  	Declare Constructor() 'disallowed
  	Declare Destructor() 
  	
-	Declare Constructor(onAxis As Axis, actorRef As Actor Ptr)
+	Declare Constructor(onAxis As Axis, actorRef As act.Actor Ptr)
 	
 	As Axis onAxis = AxisComponent.NONE 'const
-	As Actor Ptr actorRef = NULL 'const
+	As act.Actor Ptr actorRef = NULL 'const
 End Type
 
 DECLARE_DARRAY(Arbiter)
@@ -79,7 +79,10 @@ DECLARE_DARRAY(Arbiter)
 'A dynamic collide-able box.
 Type DynamicAABB Extends Collider
  Public:
-	Declare Constructor(parent As Actor Ptr, ByRef box As Const AABB)
+	Declare Constructor(ByRef box As Const AABB)
+	
+ 	Declare Constructor(ByRef rhs As Const DynamicAABB)
+  Declare Operator Let(ByRef rhs As Const DynamicAABB)
 	
 	Declare Sub place(ByRef p As Const Vec2F)
 	Declare Sub setV(ByRef v As Const Vec2F)
@@ -106,8 +109,8 @@ Type Simulation
  	Declare Constructor() 'nop
  	Declare Destructor() 'nop
  	
- 	Declare Constructor(ByRef rhs As Const Actor) 'disallowed
-  Declare Operator Let(ByRef rhs As Const Actor) 'disallowed
+ 	Declare Constructor(ByRef rhs As Const Simulation) 'disallowed
+  Declare Operator Let(ByRef rhs As Const Simulation) 'disallowed
  	
  	Declare Sub setForce(ByRef f As Const Vec2F)
  	

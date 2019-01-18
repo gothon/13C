@@ -584,12 +584,12 @@ Sub QuadModel.calcZSort(q As Quad Ptr)
 	q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) * 0.25
 End Sub
 
-Constructor QuadSprite(ByRef other As Const QuadModel)
+Constructor QuadSprite(ByRef other As Const QuadSprite)
 	construct()
 	This.model_ = other.model_
 End Constructor
 
-Operator QuadSprite.Let(ByRef other As Const QuadModel)
+Operator QuadSprite.Let(ByRef other As Const QuadSprite)
 	construct()
 	This.model_ = other.model_
 End Operator

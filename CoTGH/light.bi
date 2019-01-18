@@ -2,6 +2,7 @@
 #Define LIGHT_BI
 
 #Include "vertex.bi"
+#Include "primitive.bi"
 
 Enum LightMode Explicit
 	SOLID = 0
@@ -12,6 +13,10 @@ Type Light
  Public:
  	Declare Constructor(ByRef p As Const Vec3F, ByRef c As Const Vec3F, r As Double, mode As LightMode)
  	Declare Destructor()
+ 	
+	'Declare custom copy constructor/assignment to avoid copying binding counter
+  Declare Constructor(ByRef other As Const QuadModel)
+  Declare Operator Let(ByRef other As Const QuadModel)
  	
 	Declare Const Sub add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex Ptr)
  	Declare Const Sub distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr)
@@ -48,14 +53,6 @@ Type Light
  	As LightMode mode_ = Any 'const
 End Type
 
-Type LightPtr
-	Declare Constructor() 'Nop
-	Declare Constructor(p As Light Ptr)
-	
-	Declare Destructor()
-	Declare Const Operator Cast() As Light Ptr
-	
-	As Light Ptr p = Any
-End Type
+DECLARE_PRIMITIVE_PTR(Light)
 
 #EndIf

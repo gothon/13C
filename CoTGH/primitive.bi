@@ -179,4 +179,6 @@ Const Function _TYPENAME_##Ptr.getValue() As _TYPENAME_ Ptr
 End Function
 #EndMacro 
 
+DECLARE_PRIMITIVE_PTR(ZString)
+
 #EndIf

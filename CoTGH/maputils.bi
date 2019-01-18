@@ -1,20 +1,20 @@
 #Ifndef MAPUTILS_BI
 #Define MAPUTILS_BI
 
-#Include "physics.bi"
-#Include "quadmodel.bi"
-#Include "light.bi"
+#Include "actor.bi"
+#Include "primitive.bi"
 #Include "darray.bi"
 
-DECLARE_DARRAY(QuadModelBasePtr)
-DECLARE_DARRAY(LightPtr)
+Type ActorPtr As act.ActorPtr
+
+DECLARE_DARRAY(ActorPtr)
+DECLARE_DARRAY(ZStringPtr)
 
 Namespace maputils
 	
 Type ParseResult
-	As BlockGrid Ptr blockGrid
-	As DArray_QuadModelBasePtr models
-	As DArray_LightPtr lights
+	As DArray_ZStringPtr connections
+	As DArray_ActorPtr actors
 End Type
 
 Declare Function parseMap(tmxPath As Const ZString Ptr) As ParseResult

@@ -160,8 +160,8 @@ Type QuadSprite Extends QuadModelBase
   Declare Sub project(ByRef projector As Const Projection) Override
   
   'Declare custom copy constructor/assignment to avoid copying binding counter
-  Declare Constructor(ByRef other As Const QuadModel)
-  Declare Operator Let(ByRef other As Const QuadModel)
+  Declare Constructor(ByRef other As Const QuadSprite)
+  Declare Operator Let(ByRef other As Const QuadSprite)
   
   'Create a centered billboard sprite from the given image path.
   Declare Constructor(imagePath As String)

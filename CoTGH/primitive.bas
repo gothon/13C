@@ -50,3 +50,5 @@ End Operator
 Const Function ConstZStringPtr.getValue() As Const ZString Ptr
   Return value
 End Function
+
+DEFINE_PRIMITIVE_PTR(ZString)

@@ -2,32 +2,20 @@
 
 #Include "debuglog.bi"
 #Include "util.bi"
+#Include "crt.bi"
 
 DEFINE_PRIMITIVE_PTR(BlockGrid)
 DEFINE_PRIMITIVE_PTR(DynamicAABB)
 
-Constructor Collider()
-	'nop
-End Constructor
  
-Constructor Collider(parent As Actor Ptr) 
-	This.parent_ = parent
-	If parent <> NULL Then parent->ref()
+Constructor Collider() 
+	This.parent_ = NULL
 	This.ref_tag_ = -1
 End Constructor
 
 Virtual Destructor Collider()
 	DEBUG_ASSERT(ref_tag_ = -1)
-	If parent_ <> NULL Then parent_->unref()
 End Destructor
-
-Constructor Collider(ByRef rhs As Const Collider)
-	DEBUG_ASSERT(FALSE)
-End Constructor 
-
-Operator Collider.Let(ByRef rhs As Const Collider) 
-	DEBUG_ASSERT(FALSE)
-End Operator
 
 Function Collider.getTag() As UInteger
 	DEBUG_ASSERT(ref_tag_ <> -1)
@@ -45,9 +33,13 @@ Sub Collider.untag()
 	ref_tag_ = -1
 End Sub
 
-Function Collider.getParent() As Actor Ptr
+Function Collider.getParent() As act.Actor Ptr
 	Return parent_
 End Function
+	
+Sub Collider.setParent(parent As act.Actor Ptr)
+	parent_ = parent
+End Sub
 	
 Type ClipResult
 	Declare Constructor() 'nop
@@ -65,7 +57,7 @@ Constructor ClipResult(clipAxis As Axis, clipTime As Double)
 	This.clipTime = clipTime
 End Constructor
 
-Constructor BlockGrid(parent As Actor Ptr, w As UInteger, h As UInteger, l As Double)
+Constructor BlockGrid(parent As act.Actor Ptr, w As UInteger, h As UInteger, l As Double)
 	Base.Constructor(parent)
 	DEBUG_ASSERT(w >= 1)
 	DEBUG_ASSERT(h >= 1)
@@ -75,6 +67,19 @@ Constructor BlockGrid(parent As Actor Ptr, w As UInteger, h As UInteger, l As Do
 	This.l_ = l
 	This.blocks_ = New BlockType[w * h]
 End Constructor
+
+Constructor BlockGrid(ByRef rhs As Const BlockGrid)
+	This = rhs
+End Constructor
+
+Operator BlockGrid.Let(ByRef rhs As Const BlockGrid)
+	Base.Constructor()
+	This.w_ = rhs.w_
+	This.h_ = rhs.h_
+	This.l_ = rhs.l_
+	This.blocks_ = New BlockType[This.w_ * This.h_]
+  memcpy(This.blocks_, rhs.blocks_, This.w_*This.h_*SizeOf(BlockType))
+End Operator
 
 Destructor BlockGrid()
 	Delete(This.blocks_)
@@ -120,17 +125,27 @@ Destructor Arbiter()
 	If actorRef <> NULL Then actorRef->unref()
 End Destructor
  	
-Constructor Arbiter(onAxis As Axis, actorRef As Actor Ptr)
+Constructor Arbiter(onAxis As Axis, actorRef As act.Actor Ptr)
 	This.onAxis = onAxis
 	This.actorRef = actorRef
 	If This.actorRef <> NULL Then This.actorRef->ref()
 End Constructor
 
-Constructor DynamicAABB(parent As Actor Ptr, ByRef box As Const AABB)
+Constructor DynamicAABB(parent As act.Actor Ptr, ByRef box As Const AABB)
 	Base.Constructor(parent)
 	This.box_ = box
 	This.v_ = Vec2F(0, 0)
 End Constructor
+
+Constructor DynamicAABB(ByRef rhs As Const DynamicAABB)
+	This = rhs
+End Constructor
+
+Operator DynamicAABB.Let(ByRef rhs As Const DynamicAABB)
+	Base.Constructor()
+	This.box_ = rhs.box_
+	This.v_ = rhs.v_
+End Operator
 
 Sub DynamicAABB.place(ByRef p As Const Vec2F)
 	box_.o = p
@@ -366,11 +381,11 @@ Destructor Simulation()
 	''
 End Destructor
  	
-Constructor Simulation(ByRef rhs As Const Actor)
+Constructor Simulation(ByRef rhs As Const Simulation)
 	DEBUG_ASSERT(FALSE)
 End Constructor
 
-Operator Simulation.Let(ByRef rhs As Const Actor)
+Operator Simulation.Let(ByRef rhs As Const Simulation)
 	DEBUG_ASSERT(FALSE)
 End Operator
  	

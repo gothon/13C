@@ -3,22 +3,8 @@
 #Include "util.bi"
 #Include "debuglog.bi"
 #Include "vecmath.bi"
- 	
-Constructor LightPtr() 
-	'Nop
-End Constructor
-
-Constructor LightPtr(p As Light Ptr)
-	This.p = p
-End Constructor
-	
-Destructor LightPtr()
-	'Nop
-End Destructor
-
-Const Operator LightPtr.Cast() As Light Ptr
-	Return p
-End Operator
+ 
+DEFINE_PRIMITIVE_PTR(Light)
  	
 Constructor Light(ByRef p As Const Vec3F, ByRef c As Const Vec3F, r As Double, mode As LightMode)
 	This.p_ = p
@@ -31,6 +17,20 @@ Constructor Light(ByRef p As Const Vec3F, ByRef c As Const Vec3F, r As Double, m
   This.bindings_ = 0
   updateExtent()
 End Constructor
+
+Constructor Light(ByRef other As Const Light)
+	This = other
+End Constructor
+
+Operator Light.Let(ByRef other As Const Light)
+	This.p_ = other.p_
+	This.c_ = other.c_
+	This.r_ = other.r_
+	This.mode_ = other.mode_
+	This.enabled_ = other.enabled_
+  This.bindings_ = 0
+  updateExtent()
+End Operator
 
 Destructor Light()
 	DEBUG_ASSERT(bindings_ = 0)
