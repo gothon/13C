@@ -179,6 +179,12 @@ Sub DeleteActor(x As Actor Ptr)
 			Delete(CPtr(act.DecorativeCollider Ptr, x))
  		Case act.ActorTypes.PORTAL
 			Delete(CPtr(act.Portal Ptr, x))
+ 		Case act.ActorTypes.GRAPHINTERFACE
+			Delete(CPtr(act.GraphInterface Ptr, x)) 		
+ 		Case act.ActorTypes.CAMERAINTERFACE
+ 			Delete(CPtr(act.CameraInterface Ptr, x)) 			
+ 		Case act.ActorTypes.DRAWBUFFERINTERFACE
+ 			Delete(CPtr(act.DrawBufferInterface Ptr, x)) 	 			
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select

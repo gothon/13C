@@ -8,6 +8,7 @@
 #Include "graphwrapper.bi"
 #Include "image32.bi"
 #Include "hashmap.bi"
+#Include "actordefs.bi"
 
 dsm_HashMap_define(ZString, ActorPtr)
 
@@ -29,12 +30,20 @@ Type Gamespace
 	Declare Function getDrawBuffer() As QuadDrawBuffer Ptr
 	Declare Function getSimulation() As Simulation Ptr
 	
-	''DISALLOW KEY CLASH, IGNORE IF NULL ON ADD/REMOVE, COMPLAIN IF DOESN'T EXIST
 	Declare Sub addGlobalActor(key As Const ZString Ptr, actor As act.Actor Ptr)
 	Declare Function getGlobalActor(key As Const ZString Ptr) As act.Actor Ptr
 	Declare Sub removeGlobalActor(key As Const ZString Ptr)
 	
+	Declare Sub go(key As Const ZString Ptr)
+	Declare Sub go(index As ig_Index Ptr)
+	Declare Function embed(index As ig_Index Ptr) As UInteger
+	Declare Sub unembed(ref As UInteger)
+	Declare Function clone() As ig_Index
+	
  Private:
+	Declare Sub addSystemActors()
+	As act.GraphInterface Ptr graphInterfaceActor_ = NULL
+	
   As QuadDrawBuffer drawBuffer_
   As Simulation sim_
   As dsm.HashMap(ZString, ActorPtr) globals_
