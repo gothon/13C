@@ -24,6 +24,8 @@ Declare Function trimWhitespace(in As Const String) As String
 
 Declare Sub decodeBase64(in As Const String, mem As Any Ptr)
 
+Declare Function cloneZString(in As Const ZString Ptr) As ZString Ptr
+
 End Namespace
 
 #EndIf

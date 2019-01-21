@@ -9,7 +9,9 @@
 #Include "xmlutils.bi"
 #Include "hashmap.bi"
 #Include "primitive.bi"
+#Include "physics.bi"
 #Include "light.bi"
+#Include "actordefs.bi"
 
 dsm_HashMap_define(ZString, ConstZStringPtr)
 
@@ -150,7 +152,7 @@ Function createBlockGrid( _
 		EndIf
 	Next i
 		
-	Dim As BlockGrid Ptr blocks = New BlockGrid(mapWidth, mapHeight, tileSide, NULL)
+	Dim As BlockGrid Ptr blocks = New BlockGrid(mapWidth, mapHeight, tileSide)
 	For i As UInteger = 0 To UBound(metaLayer)
 		Dim As UInteger metaIndex = metaLayer(i) 'const
 #Ifdef DEBUG
@@ -313,7 +315,7 @@ Sub addBillboard( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  z As Single, _
-	  models As DArray_QuadModelBasePtr Ptr)
+	  res As ParseResult Ptr)
 	Dim As Const ZString Ptr source = getPropOrDie(props, "source") 'const
 	Dim As String extension = UCase(Right(*source, 3)) 'const
 	Dim As Const Image32 Ptr image = Any
@@ -333,8 +335,10 @@ Sub addBillboard( _
 			{QuadModelUVIndex(Vec2F(startX, startY), Vec2F(startX + w, startY + h), 0)} 'const
 	Dim As Const Image32 Ptr tex(0 To 0) = {image}
 
-	models->push(New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex()))
-	models->back().p->translate(Vec3F(x, mapPixelHeight - y - h, z))
+	Dim As QuadModelBase Ptr model = _
+			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex())
+	model->translate(Vec3F(x, mapPixelHeight - y - h, z))
+	res->bank->add(New act.DecorativeModel(res->bank, model))
 End Sub
 
 Sub addLight( _
@@ -345,7 +349,7 @@ Sub addLight( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  z As Single, _
-	  lights As DArray_LightPtr Ptr)
+	  res As ParseResult Ptr)
 	Dim As Const ZString Ptr modeString = getPropOrNull(props, "mode") 'const
 	Dim As LightMode mode = Any
 	If (modeString = NULL) OrElse UCase(*modeString) = "SOLID" Then
@@ -355,12 +359,50 @@ Sub addLight( _
 	Else
 		DEBUG_ASSERT(FALSE)
 	EndIf
-	lights->push(New Light( _
+		
+	res->bank->add(New act.DecorativeLight(res->bank, New Light( _
 			Vec3F(x + w*0.5, mapPixelHeight - (y + h*0.5), z), _
 			Vec3F(Val(*getPropOrDie(props, "r")), Val(*getPropOrDie(props, "g")), Val(*getPropOrDie(props, "b"))), _
 			Val(*getPropOrDie(props, "radius")), _
-			mode))
+			mode)))
 End Sub
+
+Sub addPortal( _
+		ByRef relativePath As Const String, _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		x As UInteger, _
+		y As UInteger, _
+		w As UInteger, _
+		h As UInteger, _
+		res As ParseResult Ptr)
+	Dim As String toMapStr = UCase(*getPropOrDie(props, "to_map"))
+	Dim As Const ZString Ptr toMap = StrPtr(toMapStr)
+	res->connections.push(util.cloneZString(toMap))
+	
+	Dim As act.PortalEnterMode mode = Any
+	Select Case UCase(*getPropOrDie(props, "enter"))
+		Case "CENTER"
+			mode = act.PortalEnterMode.FROM_CENTER
+		Case "LEFT"
+			mode = act.PortalEnterMode.FROM_LEFT	
+		Case "RIGHT"
+			mode = act.PortalEnterMode.FROM_RIGHT
+		Case Else
+			DEBUG_ASSERT(FALSE)
+	End Select
+	
+	Dim As String toPortalStr = UCase(*getPropOrDie(props, "to_portal_id"))
+	Dim As Const ZString Ptr toPortal = StrPtr(toPortalStr)
+	
+	Dim As String portalId = UCase(*getPropOrDie(props, "portal_id"))
+	
+	res->bank->add(New act.Portal(res->bank, _
+			StrPtr(portalId), _
+			AABB(Vec2F(x, y), Vec2F(w, h)), _
+			mode, _
+			toMap, _
+			toPortal))
+End Sub 
 
 Sub processObject( _
 		objectType As Const ZString Ptr, _
@@ -375,9 +417,11 @@ Sub processObject( _
 	  res As ParseResult Ptr)
 	Select Case UCase(*objectType)
 		Case "BILLBOARD"
-			addBillboard(relativePath, props, mapPixelHeight, x, y, w, h, z, @(res->models))
+			addBillboard(relativePath, props, mapPixelHeight, x, y, w, h, z, res)
 		Case "LIGHT"
-			addLight(props, mapPixelHeight, x, y, w, h, z, @(res->lights))
+			addLight(props, mapPixelHeight, x, y, w, h, z, res)
+		Case "PORTAL"
+			addPortal(relativePath, props, x, y, w, h, res) 
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select
@@ -471,26 +515,28 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As UInteger rawMetaLayer(0 To mapWidth*mapHeight - 1) = Any
 	getRawMetaLayer(root, @(rawMetaLayer(0)))
 	
-	Dim As ParseResult res
-	res.blockGrid = createBlockGrid( _
+	Dim As Collider Ptr blocksCollision = createBlockGrid( _
 			rawMetaLayer(), _
 			tileWidth, _
 			mapWidth, _
 			mapHeight, _
 			tilesetsN, _
 			tilesets())
-			
-	res.models.push( _
-			createTileModel( _
-					rawVisLayer(), _
-		  		tileWidth, _
-		  		tileHeight, _
-		  		mapWidth, _
-		  		mapHeight,_
-		  		mapDepth, _
-		  		tilesetsN, _
-		  		tilesets()))
+	Dim As QuadModelBasePtr blocksModel = createTileModel( _
+			rawVisLayer(), _
+  		tileWidth, _
+  		tileHeight, _
+  		mapWidth, _
+  		mapHeight,_
+  		mapDepth, _
+  		tilesetsN, _
+  		tilesets())
+
+	Dim As ParseResult res
 	
+	res.bank = New ActorBank()
+	res.bank->add(New act.DecorativeCollider(res.bank, blocksModel, blocksCollision))
+
 	processObjectLayers(root, mapHeight*tileHeight, -CSng(mapDepth - 1)*tileWidth, tileWidth, relativePath, @res)
 	
 	xmlFreeDoc(document)

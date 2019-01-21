@@ -8,16 +8,15 @@ Namespace act
 	
 Type DecorativeLight Extends LightActor
  Public:
+ 	ACTOR_REQUIRED_DECL(DecorativeLight)
+ 
   'Takes ownership of light
 	Declare Constructor(parent As ActorBankFwd Ptr, light As Light Ptr)
 	
-  Declare Constructor(ByRef other As Const DecorativeLight) 'disallowed
-  Declare Operator Let(ByRef other As Const DecorativeLight) 'disallowed
-	
-	Declare Sub update(dt As Double) Override
+	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override
  	
- 	Declare Function clone() As Actor Ptr Override
+ 	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
 End Type
 	
 End Namespace

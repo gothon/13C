@@ -46,6 +46,12 @@ End Type
 
 DECLARE_DARRAY(Quad)
 
+Enum QuadModelBase_Delegate Explicit
+	UNKNOWN,
+	QUADMODEL,
+	QUADSPRITE
+End Enum
+
 'A model made entirely of quads.
 Type QuadModelBase Extends Object
  Public:
@@ -74,9 +80,13 @@ Type QuadModelBase Extends Object
   'QuadDrawBuffer
   Declare Sub bind()
   Declare Sub unbind()
+  
+  Declare Const Function getDelegate() As QuadModelBase_Delegate
  Protected:
+  As QuadModelBase_Delegate quadModelBaseDelegate_ = QuadModelBase_Delegate.UNKNOWN
+  Declare Abstract Sub setDelegate()
+ 
   Declare Abstract Sub calcZSort(q As Quad Ptr)
-
   Declare Sub construct()
  
   As UInteger bindings_ = Any
@@ -85,6 +95,9 @@ Type QuadModelBase Extends Object
   
   As DArray_Quad model_
 End Type
+
+Declare Sub deleteQuadModelBase(x As QuadModelBase Ptr)
+Declare Sub projectQuadModelBase(x As QuadModelBase Ptr, ByRef projector As Const Projection)
 
 Type QuadModelBasePtr
 	Declare Constructor() 'Nop
@@ -153,6 +166,7 @@ Type QuadModel Extends QuadModelBase
        
  Protected:
   Declare Sub calcZSort(q As Quad Ptr) Override
+  Declare Sub setDelegate() Override
 End Type
 
 Type QuadSprite Extends QuadModelBase
@@ -165,8 +179,10 @@ Type QuadSprite Extends QuadModelBase
   
   'Create a centered billboard sprite from the given image path.
   Declare Constructor(imagePath As String)
+  
  Protected:
-   Declare Sub calcZSort(q As Quad Ptr) Override
+  Declare Sub calcZSort(q As Quad Ptr) Override
+  Declare Sub setDelegate() Override
 End Type
 
 #EndIf

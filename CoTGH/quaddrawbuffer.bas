@@ -40,6 +40,7 @@ Destructor QuadDrawBuffer()
 End Destructor
 
 Sub QuadDrawBuffer.bind(model As QuadModelBase Ptr)
+	If model = NULL Then Return
   DEBUG_ASSERT(model->size() > 0)
   Dim As UInteger nextIndex = quads_.size()
   quads_.reserve(model->size())
@@ -51,6 +52,7 @@ Sub QuadDrawBuffer.bind(model As QuadModelBase Ptr)
 End Sub
 
 Sub QuadDrawBuffer.unbind(model As QuadModelBase Ptr)
+	If model = NULL Then Return
   Dim As Integer curQuadIndex = 0
   While (curQuadIndex < quads_.size())
     If quads_[curQuadIndex].parentId = model->id() Then
@@ -64,11 +66,13 @@ Sub QuadDrawBuffer.unbind(model As QuadModelBase Ptr)
 End Sub
 
 Sub QuadDrawBuffer.bind(l As Light Ptr)
+	If l = NULL Then Return
   lights_.push(l)
   l->bind()
 End Sub
 
 Sub QuadDrawBuffer.unbind(l As Light Ptr)
+	If l = NULL Then Return
   For i As UInteger = 0 To lights_.size()
     If lights_[i] = l Then
       Swap lights_.back(), lights_[i]

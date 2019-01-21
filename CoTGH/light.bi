@@ -15,8 +15,8 @@ Type Light
  	Declare Destructor()
  	
 	'Declare custom copy constructor/assignment to avoid copying binding counter
-  Declare Constructor(ByRef other As Const QuadModel)
-  Declare Operator Let(ByRef other As Const QuadModel)
+  Declare Constructor(ByRef other As Const Light)
+  Declare Operator Let(ByRef other As Const Light)
  	
 	Declare Const Sub add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex Ptr)
  	Declare Const Sub distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr)

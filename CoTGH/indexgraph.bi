@@ -6,17 +6,15 @@
 Type ig_GraphBuilder As Any Ptr
 Type ig_IndexGraph As Any Ptr
 Type ig_Index As Any Ptr
-
-Type ig_Data
-	As UInteger size
-	As Any Ptr raw
-End Type
+Type ig_Data As Any Ptr
 
 Extern "C"
 
 Declare Function ig_CreateGraphBuilder() As ig_GraphBuilder
 
 Declare Sub ig_DeleteGraphBuilder(graph_builder As ig_GraphBuilder Ptr)
+
+Declare Function ig_BuilderKeyExists(builder as Const ig_GraphBuilder, key As Const ZString Ptr) As UInteger
 
 Declare Sub ig_AddBaseToBuilder(graph_builder As ig_GraphBuilder, key As Const ZString Ptr, _
                                 ByVal sc As ig_Data, ByVal c As ig_Data)
@@ -45,6 +43,11 @@ Declare Function ig_GetContent(index As Const ig_Index) As ig_Data
 Declare Sub ig_SetContent(index As ig_Index, c As ig_Data)
 
 Declare Sub ig_Go(index As ig_Index, key As Const ZString Ptr)
+
+Declare Function ig_GetCompactedListN() As UInteger
+Declare Function ig_GetCompactedList() As ig_Data Ptr
+
+Declare Sub ig_ClearCompactedList()
 
 End Extern
 #EndIf

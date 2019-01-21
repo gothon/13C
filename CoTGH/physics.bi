@@ -7,6 +7,12 @@
 #Include "primitive.bi"
 #Include "staticlist.bi"
 
+Enum Collider_Delegate Explicit
+	UNKNOWN,
+	DYNAMICAABB,
+	BLOCKGRID
+End Enum
+
 Type Collider Extends Object
  Public:
  	Declare Virtual Destructor()
@@ -17,12 +23,23 @@ Type Collider Extends Object
 	
 	Declare Function getParent() As act.Actor Ptr
 	Declare Sub setParent(parent As act.Actor Ptr)
+
+ 	Declare Const Function getDelta() As Vec2F
+ 	Declare Sub setDelta(ByRef delta As Const Vec2F)
+		
+	Declare Const Function getDelegate() As Collider_Delegate
  Protected:
+ 	Dim As Collider_Delegate colliderDelegate_ = Collider_Delegate.UNKNOWN
+ 	Declare Abstract Sub setDelegate()
+ 
  	Declare Constructor()
+ 	
+ 	As Vec2F delta_
  
  	As act.Actor Ptr parent_ = Any 'const
  	As UInteger ref_tag_ = Any
 End Type
+Declare Sub deleteCollider(x As Collider Ptr)
 
 Enum BlockType Explicit
 	NONE = 0
@@ -47,6 +64,9 @@ Type BlockGrid Extends Collider
 	Declare Const Function getWidth() As UInteger
 	Declare Const Function getHeight() As UInteger
 	Declare Const Function getSideLength() As Double
+	
+ Protected:
+ 	Declare Sub setDelegate() Override
  Private:
  	As BlockType Ptr blocks_ = Any
  	As Double l_ = Any
@@ -91,6 +111,9 @@ Type DynamicAABB Extends Collider
 	Declare Const Function getV() ByRef As Const Vec2F
 	
  	Declare Function getArbiters() ByRef As DArray_Arbiter
+ 		
+ Protected:
+  Declare Sub setDelegate() Override
  Private:
  	As AABB box_ = Any
  	As Vec2F v_ = Any
@@ -114,9 +137,11 @@ Type Simulation
  	
  	Declare Sub setForce(ByRef f As Const Vec2F)
  	
+ 	Declare Sub add(c As Collider Ptr)
  	Declare Sub add(grid As BlockGrid Ptr)
  	Declare Sub add(box As DynamicAABB Ptr)
  	
+ 	Declare Sub remove(c As Collider Ptr)
  	Declare Sub remove(grid As BlockGrid Ptr)
  	Declare Sub remove(box As DynamicAABB Ptr)
  	

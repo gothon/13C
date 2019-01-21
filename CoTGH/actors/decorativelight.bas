@@ -1,30 +1,27 @@
 #Include "decorativelight.bi"
 
+#Include "../actortypes.bi"
+
 Namespace act
+ACTOR_REQUIRED_DEF(DecorativeLight, ActorTypes.DECORATIVE_LIGHT)
 	
 Constructor DecorativeLight(parent As ActorBankFwd Ptr, light As Light Ptr)
-	LightActor.Constructor(parent, light)
+	Base.Constructor(parent, light)
+	setType()
 End Constructor
 
-Constructor DecorativeLight(ByRef other As Const DecorativeLight)
-	DEBUG_ASSERT(FALSE)
-End Constructor
+Function DecorativeLight.update(dt As Double) As Boolean
+	light_->update(dt)
+	Return FALSE
+End Function
 
-Operator DecorativeLight.Let(ByRef other As Const DecorativeLight)
-	DEBUG_ASSERT(FALSE)	
-End Operator
-	
-Sub DecorativeLight.update(dt As Double) Override
-	light_.update(dt)
-End Sub
-
-Sub DecorativeLight.notify() Override
+Sub DecorativeLight.notify()
 	''
 End Sub
  	
-Function DecorativeLight.clone() As Actor Ptr Override
+Function DecorativeLight.clone(parent As ActorBankFwd Ptr) As Actor Ptr
 	Dim As Light Ptr newLight = New Light(*light_)
-	Return New DecorativeLight(parent_, newLight)
+	Return New DecorativeLight(parent, newLight)
 End Function
 
 End Namespace

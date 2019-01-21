@@ -4,5 +4,6 @@
 #Include "actors/decorativelight.bi"
 #Include "actors/decorativemodel.bi"
 #Include "actors/decorativecollider.bi"
+#Include "actors/portal.bi"
 
 #EndIf

@@ -109,6 +109,32 @@ Sub QuadModelBase.construct()
   This.bindings_ = 0
 End Sub
 
+Const Function QuadModelBase.getDelegate() As QuadModelBase_Delegate
+	Return quadModelBaseDelegate_
+End Function
+
+Sub deleteQuadModelBase(x As QuadModelBase Ptr)
+	Select Case As Const x->getDelegate()
+		Case QuadModelBase_Delegate.QUADMODEL:
+			Delete(CPtr(QuadModel Ptr, x))
+		Case QuadModelBase_Delegate.QUADSPRITE:
+			Delete(CPtr(QuadSprite Ptr, x))
+		Case Else
+			DEBUG_ASSERT(FALSE)
+	End Select
+End Sub
+
+Sub projectQuadModelBase(x As QuadModelBase Ptr, ByRef projector As Const Projection)
+	Select Case As Const x->getDelegate()
+		Case QuadModelBase_Delegate.QUADMODEL:
+			CPtr(QuadModel Ptr, x)->project(projector)
+		Case QuadModelBase_Delegate.QUADSPRITE:
+			CPtr(QuadSprite Ptr, x)->project(projector)
+		Case Else
+			DEBUG_ASSERT(FALSE)
+	End Select
+End Sub
+
 'faces forward
 Sub populateQuadVerticesXY( _
     ByRef start As Const Vec3F, _
@@ -240,11 +266,13 @@ End Constructor
 
 Constructor QuadModel(ByRef other As Const QuadModel)
 	construct()
+  setDelegate()
 	This.model_ = other.model_
 End Constructor
 
 Operator QuadModel.Let(ByRef other As Const QuadModel)
 	construct()
+  setDelegate()
 	This.model_ = other.model_
 End Operator
 
@@ -300,6 +328,7 @@ Constructor QuadModel( _
     uvIndices() As QuadModelUVIndex, _
     tex() As Const Image32 Ptr)
   construct()
+  setDelegate()
  
   Dim As Integer yOffset = gridWidth+2 'const
   Dim As Integer zOffset = (gridWidth+2)*(gridHeight+2) 'const
@@ -462,7 +491,8 @@ Constructor QuadModel( _
     ByRef texCube As Const QuadModelTextureCube, _
     uvIndices() As QuadModelUVIndex, _
     tex() As Const Image32 Ptr)
-  construct()    
+  construct()  
+  setDelegate()  
         
   Dim As Vertex v(0 To 3)
 
@@ -584,18 +614,25 @@ Sub QuadModel.calcZSort(q As Quad Ptr)
 	q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) * 0.25
 End Sub
 
+Sub QuadModel.setDelegate()
+	quadModelBaseDelegate_ = QuadModelBase_Delegate.QUADMODEL
+End Sub
+
 Constructor QuadSprite(ByRef other As Const QuadSprite)
 	construct()
+  setDelegate()
 	This.model_ = other.model_
 End Constructor
 
 Operator QuadSprite.Let(ByRef other As Const QuadSprite)
 	construct()
+  setDelegate()
 	This.model_ = other.model_
 End Operator
 
 Constructor QuadSprite(imagePath As String)
   construct()
+  setDelegate()
 
   Dim As Image32 Ptr tex = TextureCache.get(imagePath) 'const
  
@@ -628,4 +665,8 @@ Const As Double SPRITE_ZSHIFT_EPSILON = 0.01
 
 Sub QuadSprite.calcZSort(q As Quad Ptr)
   q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z)*0.25 - SPRITE_ZSHIFT_EPSILON
+End Sub
+
+Sub QuadSprite.setDelegate()
+	quadModelBaseDelegate_ = QuadModelBase_Delegate.QUADMODEL
 End Sub

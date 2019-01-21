@@ -5,15 +5,19 @@
 #Include "../quadmodel.bi"
 #Include "../physics.bi"
 
+Namespace act
+
 Type DecorativeCollider Extends CollidingModelActor
  Public:
-  'Takes ownership of model
+ 	ACTOR_REQUIRED_DECL(DecorativeCollider)
+ 	
+  'Takes ownership of model and collider
 	Declare Constructor(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr, collider As Collider Ptr)
 	
-	Declare Constructor(ByRef other As Const DecorativeCollider) 'disallowed
-  Declare Operator Let(ByRef other As Const DecorativeCollider) 'disallowed
-	
- 	Declare Function clone() As Actor Ptr Override
+ 	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
+ 	
 End Type
+
+End Namespace
 
 #EndIf

@@ -1,6 +1,7 @@
 #Include "util.bi"
 
 #Include "debuglog.bi"
+#Include "crt.bi"
 
 Namespace util
   
@@ -120,5 +121,12 @@ Sub decodeBase64(in As Const String, mem As Any Ptr)
 	  *CPtr(UByte Ptr, mem + 2) = bytes Shr 16
   EndIf
 End Sub
+
+Function cloneZString(in As Const ZString Ptr) As ZString Ptr
+	Dim As UInteger strLen = Len(*in) 'const
+	Dim As ZString Ptr newStr = Allocate(strLen + 1)
+	memcpy(newStr, in, strLen + 1)
+	Return newStr
+End Function
 
 End Namespace

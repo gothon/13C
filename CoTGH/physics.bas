@@ -40,6 +40,29 @@ End Function
 Sub Collider.setParent(parent As act.Actor Ptr)
 	parent_ = parent
 End Sub
+
+Const Function Collider.getDelegate() As Collider_Delegate
+	Return colliderDelegate_
+End Function
+
+Const Function Collider.getDelta() As Vec2F
+	Return delta_
+End Function
+
+Sub Collider.setDelta(ByRef delta As Const Vec2F)
+	delta_ = delta
+End Sub
+
+Sub deleteCollider(x As Collider Ptr)
+	Select Case x->getDelegate()
+		Case Collider_Delegate.BLOCKGRID:
+			Delete(CPtr(BlockGrid Ptr, x))
+		Case Collider_Delegate.DYNAMICAABB:
+			Delete(CPtr(DynamicAABB Ptr, x))			
+		Case Else
+			DEBUG_ASSERT(FALSE)
+	End Select
+End Sub
 	
 Type ClipResult
 	Declare Constructor() 'nop
@@ -57,8 +80,9 @@ Constructor ClipResult(clipAxis As Axis, clipTime As Double)
 	This.clipTime = clipTime
 End Constructor
 
-Constructor BlockGrid(parent As act.Actor Ptr, w As UInteger, h As UInteger, l As Double)
-	Base.Constructor(parent)
+Constructor BlockGrid(w As UInteger, h As UInteger, l As Double)
+	Base.Constructor()
+	setDelegate()
 	DEBUG_ASSERT(w >= 1)
 	DEBUG_ASSERT(h >= 1)
 	DEBUG_ASSERT(l > 0.0)
@@ -74,6 +98,7 @@ End Constructor
 
 Operator BlockGrid.Let(ByRef rhs As Const BlockGrid)
 	Base.Constructor()
+	setDelegate()
 	This.w_ = rhs.w_
 	This.h_ = rhs.h_
 	This.l_ = rhs.l_
@@ -113,6 +138,10 @@ Const Function BlockGrid.getSideLength() As Double
 	Return l_
 End Function
 
+Sub BlockGrid.setDelegate()
+	colliderDelegate_ = Collider_Delegate.BLOCKGRID
+End Sub
+
 Function ceilFromZero(x As Single) As Single
     Return IIf((x - Int(x)) > 0, Int(x + 1), Int(x))
 End Function
@@ -122,17 +151,17 @@ Constructor Arbiter() 'disallowed
 End Constructor
 
 Destructor Arbiter() 
-	If actorRef <> NULL Then actorRef->unref()
+	''
 End Destructor
  	
 Constructor Arbiter(onAxis As Axis, actorRef As act.Actor Ptr)
 	This.onAxis = onAxis
 	This.actorRef = actorRef
-	If This.actorRef <> NULL Then This.actorRef->ref()
 End Constructor
 
-Constructor DynamicAABB(parent As act.Actor Ptr, ByRef box As Const AABB)
-	Base.Constructor(parent)
+Constructor DynamicAABB(ByRef box As Const AABB)
+	Base.Constructor()
+	setDelegate()
 	This.box_ = box
 	This.v_ = Vec2F(0, 0)
 End Constructor
@@ -143,6 +172,7 @@ End Constructor
 
 Operator DynamicAABB.Let(ByRef rhs As Const DynamicAABB)
 	Base.Constructor()
+	setDelegate()
 	This.box_ = rhs.box_
 	This.v_ = rhs.v_
 End Operator
@@ -166,6 +196,10 @@ End Function
 Function DynamicAABB.getArbiters() ByRef As DArray_Arbiter
 	Return arbiters_
 End Function
+
+Sub DynamicAABB.setDelegate()
+	colliderDelegate_ = Collider_Delegate.DYNAMICAABB
+End Sub
 
 Function clipDynamicAABBToBlockGrid( _
 		ByRef rect As Const DynamicAABB, _
@@ -392,25 +426,42 @@ End Operator
 Sub Simulation.setForce(ByRef f As Const Vec2F)
 	force_ = f
 End Sub
+
+Sub Simulation.add(c As Collider Ptr)
+	If c = NULL Then Return
+	If *c Is BlockGrid Then add(CPtr(BlockGrid Ptr, c))
+	If *c Is DynamicAABB Then add(CPtr(DynamicAABB Ptr, c))
+	DEBUG_ASSERT(FALSE)
+End Sub
  	
 Sub Simulation.add(grid As BlockGrid Ptr)
+	If grid = NULL Then Return
 	Dim As UInteger tag = Any
 	StaticList_BlockGridPtr_Emplace(grids_, tag, grid)
 	grid->tag(tag)
 End Sub
 
 Sub Simulation.add(box As DynamicAABB Ptr)
+	If box = NULL Then Return
 	Dim As UInteger tag = Any
 	StaticList_DynamicAABBPtr_Emplace(boxes_, tag, box)
 	box->tag(tag)	
 End Sub
+
+Sub Simulation.remove(c As Collider Ptr)
+	If c = NULL Then Return
+	If *c Is BlockGrid Then remove(CPtr(BlockGrid Ptr, c))
+	If *c Is DynamicAABB Then remove(CPtr(DynamicAABB Ptr, c))
+End Sub
  	
 Sub Simulation.remove(grid As BlockGrid Ptr)
+	If grid = NULL Then Return
 	grids_.remove(grid->getTag())
 	grid->untag()
 End Sub
 
 Sub Simulation.remove(box As DynamicAABB Ptr)
+	If box = NULL Then Return
 	boxes_.remove(box->getTag())
 	box->untag()
 End Sub
@@ -427,7 +478,9 @@ Sub Simulation.integrateAll(dt As Double)
 	Dim As UInteger updateIndex = -1
   While(boxes_.getNext(@updateIndex))
 		Dim As DynamicAABB Ptr box = boxes_.get(updateIndex).getValue() 'const
-		box->place(box->getAABB().o + box->getV()*dt)
+		Dim As Vec2F delta = box->getV()*dt
+		box->place(box->getAABB().o + delta)
+		box->setDelta(box->getDelta() + delta)
   Wend
 End Sub
 
@@ -439,6 +492,7 @@ Sub Simulation.update(dt As Double)
   	Dim As DynamicAABB Ptr box = boxes_.get(resetIndex).getValue()
   	box->getArbiters().clear()
   	box->setV(box->getV() + force_*dt)
+  	box->setDelta(Vec2F(0, 0))
   Wend
 	
 	While dt > 0
