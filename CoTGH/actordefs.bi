@@ -8,5 +8,11 @@
 #Include "actors/graphinterface.bi"
 #Include "actors/camerainterface.bi"
 #Include "actors/drawbufferinterface.bi"
+#Include "actors/stagemanager.bi"
+#Include "actors/transitionnotifier.bi"
+#Include "actors/player.bi"
+#Include "actors/spawn.bi"
+#Include "actors/simulationinterface.bi"
+#Include "actors/statue.bi"
 
 #EndIf

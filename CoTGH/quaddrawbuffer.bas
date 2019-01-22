@@ -73,7 +73,7 @@ End Sub
 
 Sub QuadDrawBuffer.unbind(l As Light Ptr)
 	If l = NULL Then Return
-  For i As UInteger = 0 To lights_.size()
+  For i As UInteger = 0 To lights_.size() - 1
     If lights_[i] = l Then
       Swap lights_.back(), lights_[i]
       lights_.pop()
@@ -165,7 +165,7 @@ Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
 	q->pV(3).c = col
 
 	If q->useVertexNorm Then
-		For i As UInteger = 0 To lights_.size() - 1
+		For i As Integer = 0 To lights_.size() - 1
 			Dim As Const Light Ptr light = lights_.getConst(i)
 			light->add(q->v(0).p, q->v(0).n, @q->pV(0))
 			light->add(q->v(1).p, q->v(1).n, @q->pV(1))
@@ -173,7 +173,7 @@ Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
 			light->add(q->v(3).p, q->v(3).n, @q->pV(3))
 		Next i
 	Else
-		For i As UInteger = 0 To lights_.size() - 1
+		For i As Integer = 0 To lights_.size() - 1
 			Dim As Const Light Ptr light = lights_.getConst(i)	
 			light->distanceAdd(q->v(0).p, @q->pV(0))
 			light->distanceAdd(q->v(1).p, @q->pV(1))
@@ -199,12 +199,12 @@ Sub QuadDrawBuffer.lightQuadConst(q As Quad Ptr)
 	q->pV(0).c = col
 
 	If q->useVertexNorm Then
-		For i As UInteger = 0 To lights_.size() - 1
+		For i As Integer = 0 To lights_.size() - 1
 			Dim As Const Light Ptr light = lights_.getConst(i)
 			light->add(q->v(0).p, q->v(0).n, @q->pV(0))
 		Next i
 	Else
-		For i As UInteger = 0 To lights_.size() - 1
+		For i As Integer = 0 To lights_.size() - 1
 			Dim As Const Light Ptr light = lights_.getConst(i)	
 			light->distanceAdd(q->v(0).p, @q->pV(0))
 		Next i		

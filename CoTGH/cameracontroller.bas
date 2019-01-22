@@ -1,6 +1,7 @@
 #Include "cameracontroller.bi"
 
 Const As Double LEAD_X_LENGTH = 30
+Const As Double LEAD_SPEED = 30
 
 Constructor CameraController(ByRef baseProj As Const Projection)
 	This.proj_ = baseProj
@@ -37,7 +38,7 @@ Sub CameraController.update(t As Double, ByRef targetP As Const Vec2F, facingRig
 	If Not placeAndLookOnly_ Then 
 		Dim As Double leadTarget = Any
 		leadTarget = IIf(facingRight, LEAD_X_LENGTH, -LEAD_X_LENGTH)
-		leadingX_ += Sgn(leadTarget - leadingX_)*t*1.0
+		leadingX_ += Sgn(leadTarget - leadingX_)*t*LEAD_SPEED
 		If Abs(leadingX_) > LEAD_X_LENGTH Then leadingX_ = LEAD_X_LENGTH*Sgn(leadingX_)
 		p_ = targetP + Vec2F(leadingX_, 0)
 		needsUpdate_ = TRUE

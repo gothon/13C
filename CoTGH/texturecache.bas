@@ -19,7 +19,7 @@ End Constructor
 Dim As DArray_Image32 TextureCache.images
 Static Shared As dsm.HashMap(ZString, Image32Ptr) cache
 
-Static Function TextureCache.get(texturePath As String) As Image32 Const Ptr
+Static Function TextureCache.get(texturePath As String) As Image32 Ptr
   Dim As Image32Ptr loadedImage = Image32Ptr(NULL)
   If Not cache.retrieve(texturePath, loadedImage) Then
     DArray_Image32_Emplace(images, texturePath)

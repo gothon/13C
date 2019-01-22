@@ -17,7 +17,7 @@ Type GraphInterface Extends Actor
 	Declare Sub requestClone()
 	Declare Function getClone() As ig_Index
 	Declare Sub requestGo(key As Const ZString Ptr)
-	Declare Sub requestGo(index As ig_Index)	
+	Declare Sub requestGoIndex(index As ig_Index)	
 	Declare Function embed(index As ig_Index Ptr) As UInteger
 	Declare Sub unembed(ref As UInteger)
 	'---

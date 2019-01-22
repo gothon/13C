@@ -4,6 +4,12 @@
 #Include "image32.bi"
 #Include "vec2f.bi"
 
+Enum TransType Explicit
+	SOLID = 0
+	SEMI_SOLID = 1
+	CLEAR = 2
+End Enum
+
 'A tileset. Since images are cached, no destructor is neccessary.
 Type Tileset
  Public:
@@ -23,6 +29,8 @@ Type Tileset
   'Populate the size of the tile at the given index
   Declare Const Sub getTileSize(size As Vec2F Ptr)
   
+  Declare Const Function getTransType(a As Vec2F, b As Vec2F) As TransType
+  
  Private:  
   As Const Image32 Ptr image_ = Any 'const ptr
 
@@ -30,6 +38,8 @@ Type Tileset
   As UInteger tileHeight_ = Any 'const
   
   As UInteger totalTiles_ = Any 'const
+  
+  As TransType Ptr transTypes_ = Any
 End Type
 
 #EndIf

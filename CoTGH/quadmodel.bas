@@ -276,33 +276,6 @@ Operator QuadModel.Let(ByRef other As Const QuadModel)
 	This.model_ = other.model_
 End Operator
 
-Enum TransType Explicit
-	SOLID = 0
-	SEMI_SOLID = 1
-	CLEAR = 2
-End Enum
-
-Function getTransType( _
-		img As Const Image32 Ptr, _
-		x0 As UInteger, _
-		y0 As UInteger, _
-		x1 As UInteger, _
-		y1 As UInteger) As TransType
-	Dim As Boolean seenTrans = FALSE
-	For y As UInteger = y0 To y1 - 1
-		For x As UInteger = x0 To x1 - 1
-			Dim As Pixel32 col = *(img->constPixels() + (y*img->w()) + x) 'const
-			If seenTrans AndAlso (col.value <> raster.TRANSPARENT_COLOR_INT) Then 
-				Return TransType.SEMI_SOLID
-			ElseIf (Not seenTrans) AndAlso (col.value = raster.TRANSPARENT_COLOR_INT) Then
-				If (x <> x0) OrElse (y <> y0) Then Return TransType.SEMI_SOLID
-				seenTrans = TRUE
-			EndIf
-		Next x
-	Next y
-	Return IIf(seenTrans, TransType.CLEAR, TransType.SOLID)
-End Function
-
 Function cubeIsSolid( _
 		ByRef cube As Const QuadModelTextureCube, _
 		transT() As Const TransType) As Boolean
@@ -326,7 +299,7 @@ Constructor QuadModel( _
     gridDepth As Integer, _
     sideLength As Single, _
     uvIndices() As QuadModelUVIndex, _
-    tex() As Const Image32 Ptr)
+    tilesets() As Const Tileset Ptr)
   construct()
   setDelegate()
  
@@ -336,12 +309,7 @@ Constructor QuadModel( _
   Dim As TransType uvQuadTransType(0 To UBound(uvIndices)) = Any
   For i As UInteger = 0 To UBound(uvIndices)
   	Dim As QuadModelUVIndex uvIndex = uvIndices(i) 'const
-  	uvQuadTransType(i) = getTransType( _
-  			tex(uvIndex.imageIndex), _
-  			uvIndex.uvStart.x, _
-  			uvIndex.uvStart.y, _
-  			uvIndex.uvEnd.x, _
-  			uvIndex.uvEnd.y)
+  	uvQuadTransType(i) = tilesets(uvIndex.imageIndex)->getTransType(uvIndex.uvStart, uvIndex.uvEnd)
   Next i
 
   Dim As Single blockZ = 0.0f
@@ -377,7 +345,7 @@ Constructor QuadModel( _
             DArray_Quad_Emplace( _
                 model_, _
                 v(), _
-                tex(curTex->imageIndex), _
+                tilesets(curTex->imageIndex)->image(), _
                 QuadTextureMode.TEXTURED_MOD, _
                 IIf(right <> 0, TRUE, FALSE), _
                 IIf(down <> 0, TRUE, FALSE), _
@@ -400,7 +368,7 @@ Constructor QuadModel( _
             DArray_Quad_Emplace( _
             		model_, _
             		v(), _
-            		tex(curTex->imageIndex), _
+            		tilesets(curTex->imageIndex)->image(), _
             		QuadTextureMode.TEXTURED_MOD, _
             		TRUE, _
             		TRUE, _
@@ -423,7 +391,7 @@ Constructor QuadModel( _
             DArray_Quad_Emplace( _
             		model_, _
             		v(), _
-            		tex(curTex->imageIndex), _
+            		tilesets(curTex->imageIndex)->image(), _
             		QuadTextureMode.TEXTURED_MOD, _
             		TRUE, _
             		TRUE, _
@@ -446,7 +414,7 @@ Constructor QuadModel( _
             DArray_Quad_Emplace( _
             		model_, _
             	  v(), _
-            	  tex(curTex->imageIndex), _
+            	  tilesets(curTex->imageIndex)->image(), _
             	  QuadTextureMode.TEXTURED_MOD, _
             	  TRUE, _
             	  TRUE, _
@@ -469,7 +437,7 @@ Constructor QuadModel( _
             DArray_Quad_Emplace( _
             		model_, _
             		v(), _
-            		tex(curTex->imageIndex), _
+            		tilesets(curTex->imageIndex)->image(), _
             		QuadTextureMode.TEXTURED_MOD, _
             		TRUE, _
             		TRUE, _
@@ -477,7 +445,7 @@ Constructor QuadModel( _
             		TRUE, _
             		cull)
           EndIf
-        End if                  
+        End If
         blockX += sideLength
       Next x 
       blockY -= sideLength
@@ -630,14 +598,10 @@ Operator QuadSprite.Let(ByRef other As Const QuadSprite)
 	This.model_ = other.model_
 End Operator
 
-Constructor QuadSprite(imagePath As String)
+Constructor QuadSprite(tex As Const Image32 Ptr, w As Integer, h As Integer)
   construct()
   setDelegate()
-
-  Dim As Image32 Ptr tex = TextureCache.get(imagePath) 'const
  
-  Dim As Integer w = tex->w() 'const
-  Dim As Integer h = tex->h() 'const
   Dim As Integer hw = w * 0.5f 'const
   Dim As Integer hh = h * 0.5f 'const
   
@@ -668,5 +632,5 @@ Sub QuadSprite.calcZSort(q As Quad Ptr)
 End Sub
 
 Sub QuadSprite.setDelegate()
-	quadModelBaseDelegate_ = QuadModelBase_Delegate.QUADMODEL
+	quadModelBaseDelegate_ = QuadModelBase_Delegate.QUADSPRITE
 End Sub

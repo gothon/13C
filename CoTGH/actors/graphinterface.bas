@@ -53,7 +53,7 @@ Function GraphInterface.getRequestGoKeyAndClear() As String
 	Return tempKey
 End Function
 
-Sub GraphInterface.requestGo(index As ig_Index)
+Sub GraphInterface.requestGoIndex(index As ig_Index)
 	DEBUG_ASSERT(goIndex_ = NULL)
 	DEBUG_ASSERT(goKey_ = "")
 	goIndex_ = index	

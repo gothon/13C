@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="47" height="13" tilewidth="16" tileheight="16" infinite="0" nextobjectid="30">
+ <properties>
+  <property name="light_max" type="float" value="0.5"/>
+  <property name="light_min" type="float" value="0"/>
+  <property name="light_x" type="float" value="0.1"/>
+  <property name="light_y" type="float" value="0.1"/>
+  <property name="light_z" type="float" value="-1"/>
+ </properties>
  <tileset firstgid="1" source="museum_tiles_16x16.tsx"/>
  <tileset firstgid="193" source="museum_billboards_16x16.tsx"/>
  <tileset firstgid="385" source="cshapes3.tsx"/>
@@ -125,12 +132,12 @@
     <property name="type" value="portal"/>
    </properties>
   </object>
-  <object id="28" name="spawn" x="576" y="144" width="16" height="32">
+  <object id="28" name="spawn" x="576" y="152" width="16" height="24">
    <properties>
     <property name="type" value="spawn"/>
    </properties>
   </object>
-  <object id="29" name="statue" x="544" y="144" width="16" height="32">
+  <object id="29" name="statue" x="544" y="64" width="16" height="32">
    <properties>
     <property name="type" value="statue"/>
    </properties>

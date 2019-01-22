@@ -5,6 +5,7 @@
 #Include "indexgraph.bi"
 #Include "maputils.bi"
 #Include "actordefs.bi"
+#Include "debuglog.bi"
  	
 DECLARE_DARRAY(ZStringPtr)
  	
@@ -58,6 +59,7 @@ Sub GraphWrapper.compact()
 End Sub
 
 Destructor GraphWrapper()
+	DEBUG_LOG("Graph reports " + Str(ig_GetCompactedListN()) + " dead node(s).")
 	ig_DeleteGraph(@indexGraph_)
 	compact()
 End Destructor
@@ -72,7 +74,7 @@ End Sub
 
 Function actorIsShared(actor As act.Actor Ptr) As Boolean
 	Select Case As Const actor->getType()
-		Case act.ActorTypes.DECORATIVE_LIGHT 
+		Case act.ActorTypes.STATUE 
 			Return FALSE
 		Case Else
 			Return TRUE

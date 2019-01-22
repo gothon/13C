@@ -18,8 +18,7 @@ Type Gamespace
 			camera As CameraController Ptr, _
 			graph As GraphWrapper Ptr, _
 			target As Image32 Ptr, _
-			globalBank As ActorBank Ptr, _
-			timeStep As Double)
+			globalBank As ActorBank Ptr)
 	Declare Destructor()
 	
 	Declare Sub init(stage As Const ZString Ptr)
@@ -43,7 +42,10 @@ Type Gamespace
  Private:
 	Declare Sub addSystemActors()
 	As act.GraphInterface Ptr graphInterfaceActor_ = NULL
+	As act.CameraInterface Ptr cameraInterfaceActor_ = NULL
 	
+	As Boolean transitionOccured_
+		
   As QuadDrawBuffer drawBuffer_
   As Simulation sim_
   As dsm.HashMap(ZString, ActorPtr) globals_

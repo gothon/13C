@@ -10,27 +10,27 @@ DEFINE_PRIMITIVE_PTR(DynamicAABB)
  
 Constructor Collider() 
 	This.parent_ = NULL
-	This.ref_tag_ = -1
+	This.refTag_ = -1
 End Constructor
 
 Virtual Destructor Collider()
-	DEBUG_ASSERT(ref_tag_ = -1)
+	DEBUG_ASSERT(refTag_ = -1)
 End Destructor
 
 Function Collider.getTag() As UInteger
-	DEBUG_ASSERT(ref_tag_ <> -1)
-	Return ref_tag_
+	DEBUG_ASSERT(refTag_ <> -1)
+	Return refTag_
 End Function
   
 Sub Collider.tag(tagz As UInteger)
-	DEBUG_ASSERT(ref_tag_ = -1)
+	DEBUG_ASSERT(refTag_ = -1)
 	DEBUG_ASSERT(tagz <> -1)
-	ref_tag_ = tagz
+	refTag_ = tagz
 End Sub
 
 Sub Collider.untag()
-	DEBUG_ASSERT(ref_tag_ <> -1)
-	ref_tag_ = -1
+	DEBUG_ASSERT(refTag_ <> -1)
+	refTag_ = -1
 End Sub
 
 Function Collider.getParent() As act.Actor Ptr
@@ -366,13 +366,13 @@ Function clipDynamicAABBToDynamicAABB( _
 				IIf(rectB.getV().y <> rectA.getV().y, (boundAY - boundBY) / (rectB.getV().y - rectA.getV().y), dt) 'const
 	End If 
 	
-	If Abs(timeToX) < 0.00001 Then 
+	If (timeToX > -0.001) AndAlso (timeToX < 0) Then 
 		timeToX = 0 
 	Elseif timeToX < 0 Then
 		timeToX = dt
 	EndIf
 	
-	If Abs(timeToY) < 0.00001 Then 
+	If (timeToY > -0.001) AndAlso (timeToY < 0) Then 
 		timeToY = 0 
 	ElseIf timeToY < 0 Then
 		timeToY = dt
@@ -429,9 +429,14 @@ End Sub
 
 Sub Simulation.add(c As Collider Ptr)
 	If c = NULL Then Return
-	If *c Is BlockGrid Then add(CPtr(BlockGrid Ptr, c))
-	If *c Is DynamicAABB Then add(CPtr(DynamicAABB Ptr, c))
-	DEBUG_ASSERT(FALSE)
+	Select Case As Const c->getDelegate()
+		Case Collider_Delegate.BLOCKGRID:
+			add(CPtr(BlockGrid Ptr, c))
+		Case Collider_Delegate.DYNAMICAABB:
+			add(CPtr(DynamicAABB Ptr, c))
+		Case Else
+			DEBUG_ASSERT(FALSE)	
+	End Select
 End Sub
  	
 Sub Simulation.add(grid As BlockGrid Ptr)
@@ -450,12 +455,18 @@ End Sub
 
 Sub Simulation.remove(c As Collider Ptr)
 	If c = NULL Then Return
-	If *c Is BlockGrid Then remove(CPtr(BlockGrid Ptr, c))
-	If *c Is DynamicAABB Then remove(CPtr(DynamicAABB Ptr, c))
+	Select Case As Const c->getDelegate()
+		Case Collider_Delegate.BLOCKGRID:
+			remove(CPtr(BlockGrid Ptr, c))
+		Case Collider_Delegate.DYNAMICAABB:
+			remove(CPtr(DynamicAABB Ptr, c))
+		Case Else
+			DEBUG_ASSERT(FALSE)	
+	End Select
 End Sub
  	
 Sub Simulation.remove(grid As BlockGrid Ptr)
-	If grid = NULL Then Return
+ 	If grid = NULL Then Return
 	grids_.remove(grid->getTag())
 	grid->untag()
 End Sub
@@ -516,7 +527,7 @@ Sub Simulation.update(dt As Double)
   		Wend
   		indexB = -1
   		While(grids_.getNext(@indexB))
-  			Dim As BlockGrid Ptr gridB = grids_.get(indexB).getValue() 'const
+  			Dim As BlockGrid Ptr gridB = grids_.get(indexB).getValue() 'const 			
   			Dim As ClipResult res = clipDynamicAABBToBlockGrid(*boxA, *gridB, dt) 'const
   			If (res.clipAxis = AxisComponent.NONE) OrElse (res.clipTime >= event.t) Then Continue While
   			

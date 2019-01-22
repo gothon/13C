@@ -75,6 +75,34 @@ Type DynamicActor Extends Actor
  	Declare Abstract Sub notify()
 End Type
 
+Type DynamicModelActor Extends DynamicActor
+ Public:
+ 	Declare Constructor() 'No-op required
+ 	
+ 	'Takes ownership of model
+	Declare Constructor(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr)
+	Declare Virtual Destructor()
+	
+	Declare Function getModel() As QuadModelBase Ptr
+ 
+ Protected:
+ 	As QuadModelBase Ptr model_
+End Type
+
+Type DynamicCollidingModelActor Extends DynamicModelActor
+ Public:
+	Declare Constructor() 'No-op required
+  	
+ 	'Takes ownership of model and collider
+	Declare Constructor(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr, colliderPtr As ColliderFwd Ptr)
+	Declare Virtual Destructor()
+ 	
+	Declare Function getCollider() As ColliderFwd Ptr
+	
+ Protected:
+ 	As ColliderFwd Ptr collider_
+End Type
+
 Type ModelActor Extends Actor
  Public:
  	Declare Constructor() 'No-op required
@@ -123,6 +151,7 @@ Declare Function getLightOrNull(actorPtr As Actor Ptr) As Light Ptr
 Declare Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
 Declare Function getColliderOrNull(actorPtr As Actor Ptr) As ColliderFwd Ptr
 Declare Sub deleteActor(x As Actor Ptr)
+Declare Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
 
 End Namespace
 

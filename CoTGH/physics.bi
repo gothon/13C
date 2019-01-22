@@ -37,7 +37,7 @@ Type Collider Extends Object
  	As Vec2F delta_
  
  	As act.Actor Ptr parent_ = Any 'const
- 	As UInteger ref_tag_ = Any
+ 	As UInteger refTag_ = Any
 End Type
 Declare Sub deleteCollider(x As Collider Ptr)
 

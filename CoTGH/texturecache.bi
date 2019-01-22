@@ -20,7 +20,7 @@ End Type
 Type TextureCache
  Public:
   'Paths should be in all upper-case to prevent the need to UCase on every get.
-  Declare Static Function get(texturePath As String) As Image32 Const Ptr
+  Declare Static Function get(texturePath As String) As Image32 Ptr
 
  Private:
   Static As DArray_Image32 images

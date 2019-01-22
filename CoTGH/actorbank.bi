@@ -15,6 +15,8 @@ DECLARE_PRIMITIVE_PTR(Actor)
 DECLARE_DARRAY(ActorPtr)
 DECLARE_STATICLIST(ActorPtr)
 
+#Define GET_GLOBAL(_KEY_, _ACTORTYPE_) (*CPtr(_ACTORTYPE_ Ptr, CPtr(ActorBank Ptr, parent_)->getGlobalActor(_KEY_)))
+
 Type GamespaceFwd As Any
 
 Type ActorBank

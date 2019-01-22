@@ -1,7 +1,9 @@
 #Include "portal.bi"
 
 #Include "../util.bi"
+#Include "../actordefs.bi"
 #Include "../actortypes.bi"
+#Include "../actorbank.bi"
 
 Namespace act
 ACTOR_REQUIRED_DEF(Portal, ActorTypes.PORTAL)
@@ -25,6 +27,7 @@ Constructor Portal(	_
 	This.toMap_ = util.cloneZString(toMap)
 	DEBUG_ASSERT(toPortal <> NULL)
 	This.toPortal_ = util.cloneZString(toPortal)
+	This.waitingForNoIntersect_ = FALSE
 End Constructor
 
 Destructor Portal()
@@ -34,7 +37,22 @@ Destructor Portal()
 	DeAllocate(toPortal_)
 End Destructor
 	
+Sub Portal.waitForNoIntersect()
+	waitingForNoIntersect_ = TRUE
+End Sub
+	
 Function Portal.update(dt As Double) As Boolean
+	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
+	If Not player_->getBounds().intersects(region_) Then 
+		waitingForNoIntersect_ = FALSE
+		Return FALSE
+	EndIf
+	If waitingForNoIntersect_ Then Return FALSE
+	If (mode_ = PortalEnterMode.FROM_CENTER) AndAlso (Not player_->pressedDown()) Then Return FALSE
+	
+	player_->setDestinationPortal(*toPortal_)
+	GET_GLOBAL("GRAPH INTERFACE", GraphInterface).requestGo(toMap_)
+
 	Return FALSE
 End Function
 

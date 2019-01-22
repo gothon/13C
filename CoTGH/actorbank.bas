@@ -33,7 +33,7 @@ Function ActorBank.clone() As ActorBank Ptr
 	Dim As ActorBank Ptr newBank = New ActorBank()
 	Dim As UInteger index = -1
 	While(actors_.getNext(@index))
-		newBank->add(actors_.get(index).getValue()->clone(newBank))
+		newBank->add(act.cloneActor(actors_.get(index), newBank))
 	Wend
 	Return newBank
 End Function

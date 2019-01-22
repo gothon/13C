@@ -50,18 +50,10 @@ Type DebugLog
  Private:
   Static As DebugLogInitializationObject initializationObject
   Static As Boolean isSilent
-  Static As ZString Ptr textBuffer(0 To 1) 
-  Static As UInteger textBufferN(0 To 1)
-  Static As Integer activeBuffer
-  Static As Any Ptr writerMutex
-  Static As Any Ptr writerCond
-  Static As Any Ptr writerThread
-  Static As Boolean shouldQuit
   Static As UInteger fileHandle
       
   Declare Static Sub crash(err_text As String)
-  Declare Static Sub debugOutputWorker(param As Any Ptr)
-      
+
   As Integer _placeholder_
 End Type
 #EndIf

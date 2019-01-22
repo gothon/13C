@@ -12,10 +12,12 @@ End Constructor
 	
 Function DecorativeModel.clone(parent As ActorBankFwd Ptr) As Actor Ptr
 	Dim As QuadModelBase Ptr newModel = Any
-	If *model_ Is QuadModel Then
+	If model_->getDelegate() = QuadModelBase_Delegate.QUADMODEL Then
 		newModel = New QuadModel(*CPtr(QuadModel Ptr, model_))		
-	Else
+	ElseIf model_->getDelegate() = QuadModelBase_Delegate.QUADSPRITE Then
 		newModel = New QuadSprite(*CPtr(QuadSprite Ptr, model_))
+	Else
+		DEBUG_ASSERT(FALSE)
 	EndIf
 	Return New DecorativeModel(parent, newModel)
 End Function

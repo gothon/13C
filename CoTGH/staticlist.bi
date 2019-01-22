@@ -115,6 +115,8 @@ Function StaticList_##_TYPENAME_.addBytes() As UInteger
     
     newElementIndex = 0
     size_ = 1
+  ElseIf usedSize = 0 Then
+    newElementIndex = lastValidIndex
   ElseIf elements[lastValidIndex].nextIndex = size_ Then
     If size_ >= capacity Then
       capacity *= 2
@@ -127,8 +129,6 @@ Function StaticList_##_TYPENAME_.addBytes() As UInteger
     newElementIndex = size_
     lastValidIndex = newElementIndex
     size_ += 1
-  ElseIf usedSize = 0 Then
-    newElementIndex = lastValidIndex
   Else
     newElementIndex = elements[lastValidIndex].nextIndex
     lastValidIndex = newElementIndex
@@ -200,7 +200,7 @@ Sub StaticList_##_TYPENAME_.remove(index As UInteger)
       elements[elements[index].nextIndex].prevIndex = elements[index].prevIndex
     EndIf
   EndIf
-    
+  
   usedSize -= 1
   If usedSize = 0 Then Return
   

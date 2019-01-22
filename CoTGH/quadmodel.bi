@@ -6,6 +6,7 @@
 #Include "vec3f.bi"
 #Include "vertex.bi"
 #Include "image32.bi"
+#Include "tileset.bi"
 
 'These map to raster.drawPlanarQuad_X methods
 Enum QuadTextureMode Explicit
@@ -154,7 +155,7 @@ Type QuadModel Extends QuadModelBase
       gridDepth As Integer, _
       sideLength As Single, _
       uvIndices() As QuadModelUVIndex, _
-      tex() As Const Image32 Ptr)
+      tilesets() As Const Tileset Ptr)
   
   'Create a 3D volume of the specified size with it's lower left front corner at the origin. The back face is
   'omitted.
@@ -177,8 +178,8 @@ Type QuadSprite Extends QuadModelBase
   Declare Constructor(ByRef other As Const QuadSprite)
   Declare Operator Let(ByRef other As Const QuadSprite)
   
-  'Create a centered billboard sprite from the given image path.
-  Declare Constructor(imagePath As String)
+  'Create a centered billboard sprite from the given image.
+  Declare Constructor(tex As Const Image32 Ptr, w As Integer, h As Integer)
   
  Protected:
   Declare Sub calcZSort(q As Quad Ptr) Override

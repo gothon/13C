@@ -11,8 +11,7 @@ Constructor Gamespace( _
 		camera As CameraController Ptr, _
 		graph As GraphWrapper Ptr, _
 		target As Image32 Ptr, _
-		globalBank As ActorBank Ptr, _
-		timeStep As Double)
+		globalBank As ActorBank Ptr)
 	DEBUG_ASSERT(camera <> NULL)
 	This.camera_ = camera
 	DEBUG_ASSERT(graph <> NULL)
@@ -22,11 +21,12 @@ Constructor Gamespace( _
 	This.globalBank_ = globalBank
 	DEBUG_ASSERT(This.globalBank_ <> NULL)
 	addSystemActors()
-	This.globalBank_->bindInto(@This)
-	This.timeStep_ = timeStep
+	This.globalBank_->bindInto(@This)	  
+	transitionOccured_ = FALSE
 End Constructor
 
 Destructor Gamespace()
+	If primaryIndex_ <> NULL Then ig_DeleteIndex(@primaryIndex_)
 	globalBank_->unbindFrom()
 	If staticBank_ <> NULL Then staticBank_->unbindFrom()
 	If activeBank_ <> NULL Then 
@@ -38,45 +38,64 @@ End Destructor
 Sub Gamespace.addSystemActors()
 	graphInterfaceActor_ = New act.GraphInterface(globalBank_, @This)
 	globalBank_->add(graphInterfaceActor_)
-	globalBank_->add(New act.CameraInterface(globalBank_, camera_))
+	cameraInterfaceActor_ = New act.CameraInterface(globalBank_, camera_)
+	globalBank_->add(cameraInterfaceActor_)
 	globalBank_->add(New act.DrawBufferInterface(globalBank_, @drawBuffer_))
+	globalBank_->add(New act.TransitionNotifier(globalBank_, @transitionOccured_))
+	globalBank_->add(New act.SimulationInterface(globalBank_, @sim_))
 End Sub
 	
 Sub Gamespace.init(stage As Const ZString Ptr)
 	DEBUG_ASSERT(graph_->getGraph() <> NULL)
 	DEBUG_ASSERT(primaryIndex_ = NULL)
 	primaryIndex_ = ig_CreateIndex(graph_->getGraph(), stage)
-	
+
 	staticBank_ = CPtr(ActorBank Ptr, ig_GetSharedContent(primaryIndex_))
 	activeBank_ = CPtr(ActorBank Ptr, ig_GetContent(primaryIndex_))->clone()
-	
+
 	staticBank_->bindInto(@This)
 	activeBank_->bindInto(@This)
+	transitionOccured_ = TRUE
 End Sub
 	
 Sub Gamespace.update(dt As Double)
 	DEBUG_ASSERT(primaryIndex_ <> NULL)
-	globalBank_->update(timeStep_)
-	staticBank_->update(timeStep_)
-	activeBank_->update(timeStep_)
-	While globalBank_->hasNotifyQueued() OrElse staticBank_->hasNotifyQueued() OrElse activeBank_->hasNotifyQueued()
-		globalBank_->notify()
-		staticBank_->notify()	
-		activeBank_->notify()
-	Wend
-	globalBank_->purge()
-	staticBank_->purge()
-	activeBank_->purge()
 	
-	If graphInterfaceActor_->cloneRequested() Then graphInterfaceActor_->setClone(clone())
-	
-	Dim As String goKey = graphInterfaceActor_->getRequestGoKeyAndClear()
-	Dim As ig_Index goIndex = graphInterfaceActor_->getRequestGoIndexAndClear()
-	If goKey <> "" Then
-		go(StrPtr(goKey))
-	ElseIf goIndex <> NULL Then
-		go(@goIndex)
-	EndIf 
+	Dim As Boolean continueUpdate = Any
+	Do 
+		continueUpdate = FALSE
+		sim_.update(dt)
+		
+		globalBank_->update(dt)
+		staticBank_->update(dt)
+		activeBank_->update(dt)
+		While globalBank_->hasNotifyQueued() OrElse staticBank_->hasNotifyQueued() OrElse activeBank_->hasNotifyQueued()
+			globalBank_->notify()
+			staticBank_->notify()	
+			activeBank_->notify()
+		Wend
+		globalBank_->purge()
+		staticBank_->purge()
+		activeBank_->purge()
+		
+		cameraInterfaceActor_->update(dt)
+		
+		If graphInterfaceActor_->cloneRequested() Then graphInterfaceActor_->setClone(clone())
+		
+		Dim As String goKey = graphInterfaceActor_->getRequestGoKeyAndClear()
+		Dim As ig_Index goIndex = graphInterfaceActor_->getRequestGoIndexAndClear()
+		If goKey <> "" Then
+			go(StrPtr(goKey))
+			transitionOccured_ = TRUE
+			continueUpdate = TRUE
+		ElseIf goIndex <> NULL Then
+			go(@goIndex)
+			transitionOccured_ = TRUE
+			continueUpdate = TRUE
+		Else 
+			transitionOccured_ = FALSE
+		EndIf 
+	Loop While continueUpdate
 End Sub
 
 Sub Gamespace.draw() 

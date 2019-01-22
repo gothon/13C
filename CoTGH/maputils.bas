@@ -196,7 +196,7 @@ Function createTileModel( _
 	'Extra padding dimensions for model interpretation. We let these default construct to empty cubes.
 	Dim As QuadModelTextureCube modelDef(0 To cubeLayerStride*(mapDepth + 2) - 1)
 	ReDim As QuadModelUVIndex modelUv(0 To 4)	
-	ReDim As Const Image32 Ptr modelTex(0 To 0)
+	ReDim As Const Tileset Ptr modelTex(0 To 0)
 	
 	For i As UInteger = 0 To UBound(visData)
 		Dim As UInteger visIndex = visData(i) 'const
@@ -230,7 +230,7 @@ Function createTileModel( _
 		
 		If UBound(modelTex) > 0 Then 
 			For q As UInteger = 0 To UBound(modelTex) - 1
-				If modelTex(q) = tilesets(tilesetIndex).tileset->image() Then
+				If modelTex(q) = tilesets(tilesetIndex).tileset Then
 					textureFound = TRUE
 					modelTexIndex = q
 					Exit For 
@@ -238,8 +238,8 @@ Function createTileModel( _
 			Next q
 		End If 
 		If textureFound = FALSE Then
-			modelTex(modelTexIndex) = tilesets(tilesetIndex).tileset->image()
-			ReDim Preserve modelTex(0 To UBound(modelTex) + 1) As Const Image32 Ptr 
+			modelTex(modelTexIndex) = tilesets(tilesetIndex).tileset
+			ReDim Preserve modelTex(0 To UBound(modelTex) + 1) As Const Tileset Ptr 
 		EndIf
 		
 		'Add any uv/texture index pairs associated with this tile and get the first of the 5 uv-indices for
@@ -287,7 +287,11 @@ Function createTileModel( _
 		modelDef(textureCubeIndex).down = modelUvIndex + 4
 		modelDef(textureCubeIndex).left = modelUvIndex + 5
 	Next i
-	Return New QuadModel(modelDef(), mapWidth, mapHeight, mapDepth, tileWidth, modelUv(), modelTex())
+	ReDim Preserve modelUv(0 To UBound(modelUv) - 5) As QuadModelUVIndex
+	Dim As QuadModel Ptr model = _ 
+			New QuadModel(modelDef(), mapWidth, mapHeight, mapDepth, tileWidth, modelUv(), modelTex())
+	model->translate(Vec3F(0, 0, 8))
+	Return model
 End Function
 
 Function getPropOrNull( _
@@ -305,6 +309,31 @@ Function getPropOrDie( _
 	DEBUG_ASSERT(ret <> NULL)
 	Return ret
 End Function
+
+Sub addStatue( _
+		ByRef relativePath As Const String, _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	Dim As Const Image32 Ptr image = Any
+	image = TextureCache.get("res/bhust.png")
+	
+	Dim As QuadModelUVIndex uvIndex(0 To 0) = _
+			{QuadModelUVIndex(Vec2F(0, 0), Vec2F(16, 32), 0)} 'const
+	Dim As Const Image32 Ptr tex(0 To 0) = {image}
+
+	Dim As Vec2F origin = Vec2F(x, mapPixelHeight - y - h)
+
+	Dim As QuadModelBase Ptr model = _
+			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex())
+	model->translate(Vec3F(origin.x, origin.y, 1))
+	res->bank->add( _
+			New act.Statue(res->bank, model, New DynamicAABB(AABB(origin, Vec2F(16, 32)))))	
+End Sub
 
 Sub addBillboard( _
 		ByRef relativePath As Const String, _
@@ -337,7 +366,7 @@ Sub addBillboard( _
 
 	Dim As QuadModelBase Ptr model = _
 			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex())
-	model->translate(Vec3F(x, mapPixelHeight - y - h, z))
+	model->translate(Vec3F(x, mapPixelHeight - y - h, z + 8))
 	res->bank->add(New act.DecorativeModel(res->bank, model))
 End Sub
 
@@ -361,7 +390,7 @@ Sub addLight( _
 	EndIf
 		
 	res->bank->add(New act.DecorativeLight(res->bank, New Light( _
-			Vec3F(x + w*0.5, mapPixelHeight - (y + h*0.5), z), _
+			Vec3F(x + w*0.5, mapPixelHeight - (y + h*0.5), z + 8), _
 			Vec3F(Val(*getPropOrDie(props, "r")), Val(*getPropOrDie(props, "g")), Val(*getPropOrDie(props, "b"))), _
 			Val(*getPropOrDie(props, "radius")), _
 			mode)))
@@ -370,6 +399,7 @@ End Sub
 Sub addPortal( _
 		ByRef relativePath As Const String, _
 		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
 		x As UInteger, _
 		y As UInteger, _
 		w As UInteger, _
@@ -378,6 +408,9 @@ Sub addPortal( _
 	Dim As String toMapStr = UCase(*getPropOrDie(props, "to_map"))
 	Dim As Const ZString Ptr toMap = StrPtr(toMapStr)
 	res->connections.push(util.cloneZString(toMap))
+	
+	toMapStr = UCase(relativePath) + toMapStr
+	toMap = StrPtr(toMapStr) 
 	
 	Dim As act.PortalEnterMode mode = Any
 	Select Case UCase(*getPropOrDie(props, "enter"))
@@ -398,11 +431,15 @@ Sub addPortal( _
 	
 	res->bank->add(New act.Portal(res->bank, _
 			StrPtr(portalId), _
-			AABB(Vec2F(x, y), Vec2F(w, h)), _
+			AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h)), _
 			mode, _
 			toMap, _
 			toPortal))
 End Sub 
+
+Sub addSpawn(mapPixelHeight As UInteger, h As UInteger, x As UInteger, y As UInteger, res As ParseResult Ptr)
+	res->bank->add(New act.Spawn(res->bank, Vec2F(x, mapPixelHeight - y - h))) 
+End Sub
 
 Sub processObject( _
 		objectType As Const ZString Ptr, _
@@ -421,7 +458,11 @@ Sub processObject( _
 		Case "LIGHT"
 			addLight(props, mapPixelHeight, x, y, w, h, z, res)
 		Case "PORTAL"
-			addPortal(relativePath, props, x, y, w, h, res) 
+			addPortal(relativePath, props, mapPixelHeight, x, y, w, h, res) 
+		Case "SPAWN"
+			addSpawn(mapPixelHeight, h, x, y, res)
+		Case "STATUE"
+			addStatue(relativePath, props, mapPixelHeight, x, y, w, h, res)			
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select
@@ -488,6 +529,44 @@ Sub processObjectLayers( _
 	Loop Until node = NULL
 End Sub
 
+Sub processMapProps( _ 
+		node As Const xmlNode Ptr, _
+		mapPixelWidth As UInteger, _
+		mapPixelHeight As UInteger, _
+		res As ParseResult Ptr)
+	Dim As dsm.HashMap(ZString, ConstZStringPtr) props
+	node = node->children
+	While node <> NULL
+		If nodeIsElementWithName(node, "property") Then 
+			'
+			'NOTE: This is an awful hack, we're basically erasing the const'ness of the const char*	-_-. The way to fix this
+			'is to switch hashmap to use Const ZString not ZString.
+			'
+			props.insert( _
+					*CPtr(ZString Ptr, CLng(xmlutils.getPropStringOrDie(node, "name"))), _
+					xmlutils.getPropStringOrDie(node, "value"))
+		EndIf 
+		node = node->Next
+	Wend
+	Dim As Vec3F lightDir = Any
+	Dim As Const ZString Ptr lightX = getPropOrNull(@props, "light_x") 'const
+	lightDir.x = IIf(lightX = NULL, 0.1, Val(*lightX))
+	Dim As Const ZString Ptr lightY = getPropOrNull(@props, "light_y") 'const
+	lightDir.y = IIf(lightY = NULL, 0.1, Val(*lightY))
+	Dim As Const ZString Ptr lightZ = getPropOrNull(@props, "light_z") 'const
+	lightDir.z = IIf(lightZ = NULL, -1, Val(*lightZ))
+	
+	Dim As Double lightMin = Any
+	Dim As Const ZString Ptr lightMinStr = getPropOrNull(@props, "light_min") 'const
+	lightMin = IIf(lightMinStr = NULL, 0.2, Val(*lightMinStr))
+	
+	Dim As Double lightMax = Any
+	Dim As Const ZString Ptr lightMaxStr = getPropOrNull(@props, "light_max") 'const
+	lightMax = IIf(lightMaxStr = NULL, 0.7, Val(*lightMaxStr))
+	
+	res->bank->Add(New act.StageManager(res->bank, Vec2F(mapPixelWidth, mapPixelHeight), lightDir, lightMin, lightMax))
+End Sub
+
 Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As xmlDoc Ptr document = xmlutils.getDocOrDie(tmxPath)
 	
@@ -500,6 +579,10 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As UInteger tileWidth = xmlutils.getPropNumberOrDie(node, "tilewidth") 'const
 	Dim As UInteger tileHeight = xmlutils.getPropNumberOrDie(node, "tileheight") 'const
 	DEBUG_ASSERT(tileWidth = tileHeight)
+	
+	Dim As ParseResult res
+	res.bank = New ActorBank()
+	processMapProps(xmlutils.findOrDie(node, "properties"), mapWidth*tileWidth, mapHeight*tileHeight, @res)
 	
 	Dim As Const String relativePath = Left(*tmxPath, InStrRev(*tmxPath, "/")) 'const
 	
@@ -531,10 +614,7 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
   		mapDepth, _
   		tilesetsN, _
   		tilesets())
-
-	Dim As ParseResult res
 	
-	res.bank = New ActorBank()
 	res.bank->add(New act.DecorativeCollider(res.bank, blocksModel, blocksCollision))
 
 	processObjectLayers(root, mapHeight*tileHeight, -CSng(mapDepth - 1)*tileWidth, tileWidth, relativePath, @res)

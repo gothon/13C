@@ -32,12 +32,15 @@ Type Portal Extends DynamicActor
 	Declare Function getMode() As PortalEnterMode
 	Declare Function getRegion() As AABB
 	
+	Declare Sub waitForNoIntersect()
+	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
  	As PortalEnterMode mode_
  	As AABB region_
  	As ZString Ptr toMap_ = NULL
  	As ZString Ptr toPortal_ = NULL
+ 	As Boolean waitingForNoIntersect_
 End Type
 
 End Namespace

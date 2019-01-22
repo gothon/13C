@@ -65,6 +65,24 @@ Virtual Destructor DynamicActor()
 	'' 
 End Destructor 
 
+Constructor DynamicModelActor()
+	DEBUG_ASSERT(parent_ = NULL)
+End Constructor
+
+Constructor DynamicModelActor(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr)
+	DEBUG_ASSERT(model <> NULL)
+	Base.Constructor(parent)
+	This.model_ = model
+End Constructor
+
+Virtual Destructor DynamicModelActor()
+	deleteQuadModelBase(model_)
+End Destructor
+
+Function DynamicModelActor.getModel() As QuadModelBase Ptr
+	Return model_
+End Function
+
 Constructor ModelActor()
 	DEBUG_ASSERT(parent_ = NULL)
 End Constructor
@@ -120,12 +138,40 @@ Function CollidingModelActor.getCollider() As ColliderFwd Ptr
 	Return collider_
 End Function
 
+Constructor DynamicCollidingModelActor()
+	DEBUG_ASSERT(parent_ = NULL)
+End Constructor
+
+Constructor DynamicCollidingModelActor( _
+		parent As ActorBankFwd Ptr, _
+		model As QuadModelBase Ptr, _
+		colliderPtr As ColliderFwd Ptr)
+	DEBUG_ASSERT(colliderPtr <> NULL)
+	Base.Constructor(parent, model)
+	This.collider_ = colliderPtr
+	CPtr(Collider Ptr, This.collider_)->setParent(@This)
+End Constructor
+
+Virtual Destructor DynamicCollidingModelActor()
+	deleteCollider(CPtr(Collider Ptr, collider_))
+End Destructor
+
+Function DynamicCollidingModelActor.getCollider() As ColliderFwd Ptr
+	Return collider_
+End Function
+
 Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 	Select Case As Const actorPtr->getType()
 		Case ActorTypes.DECORATIVE_LIGHT
-			Return CPtr(act.DecorativeLight Ptr, actorPtr)->update(dt)
+			Return CPtr(DecorativeLight Ptr, actorPtr)->update(dt)
 		Case ActorTypes.PORTAL
-			Return CPtr(act.Portal Ptr, actorPtr)->update(dt)
+			Return CPtr(Portal Ptr, actorPtr)->update(dt)
+		Case ActorTypes.STAGEMANAGER
+			Return CPtr(StageManager Ptr, actorPtr)->update(dt)
+		Case ActorTypes.PLAYER
+			Return CPtr(Player Ptr, actorPtr)->update(dt)
+		Case ActorTypes.STATUE
+			Return CPtr(Statue Ptr, actorPtr)->update(dt)	
 		Case Else
 			Return FALSE
 	End Select
@@ -134,16 +180,22 @@ End Function
 Sub maybeNotify(actorPtr As Actor Ptr)
 	Select Case As Const actorPtr->getType()
 		Case ActorTypes.DECORATIVE_LIGHT
-			CPtr(act.DecorativeLight Ptr, actorPtr)->notify()
+			CPtr(DecorativeLight Ptr, actorPtr)->notify()
 		Case ActorTypes.PORTAL
-			CPtr(act.Portal Ptr, actorPtr)->notify()
+			CPtr(Portal Ptr, actorPtr)->notify()
+		Case ActorTypes.STAGEMANAGER
+			CPtr(StageManager Ptr, actorPtr)->notify()
+		Case ActorTypes.PLAYER
+			CPtr(Player Ptr, actorPtr)->notify() 		
+		Case ActorTypes.STATUE
+			CPtr(Statue Ptr, actorPtr)->notify() 			
 	End Select	
 End Sub
 
 Function getLightOrNull(actorPtr As Actor Ptr) As Light Ptr
 	Select Case As Const actorPtr->getType()
 		Case ActorTypes.DECORATIVE_LIGHT
-			Return CPtr(LightActor Ptr, actorPtr)->getLight() 
+			Return CPtr(DecorativeLight Ptr, actorPtr)->getLight() 
 		Case Else
 			Return NULL
 	End Select
@@ -152,9 +204,13 @@ End Function
 Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
 	Select Case As Const actorPtr->getType()
 		Case ActorTypes.DECORATIVE_MODEL
-			Return CPtr(ModelActor Ptr, actorPtr)->getModel() 			
+			Return CPtr(DecorativeModel Ptr, actorPtr)->getModel() 			
 		Case ActorTypes.DECORATIVE_COLLIDER
-			Return CPtr(ModelActor Ptr, actorPtr)->getModel() 
+			Return CPtr(DecorativeCollider Ptr, actorPtr)->getModel() 
+		Case ActorTypes.PLAYER
+			Return CPtr(Player Ptr, actorPtr)->getModel() 
+		Case ActorTypes.STATUE
+			Return CPtr(Statue Ptr, actorPtr)->getModel() 	
 		Case Else
 			Return NULL
 	End Select
@@ -163,7 +219,11 @@ End Function
 Function getColliderOrNull(actorPtr As Actor Ptr) As ColliderFwd Ptr
 	Select Case As Const actorPtr->getType()		
 		Case ActorTypes.DECORATIVE_COLLIDER
-			Return CPtr(CollidingModelActor Ptr, actorPtr)->getCollider() 
+			Return CPtr(DecorativeCollider Ptr, actorPtr)->getCollider() 
+		Case ActorTypes.PLAYER
+			Return CPtr(Player Ptr, actorPtr)->getCollider() 
+		Case ActorTypes.STATUE
+			Return CPtr(Statue Ptr, actorPtr)->getCollider() 	
 		Case Else
 			Return NULL
 	End Select
@@ -171,23 +231,64 @@ End Function
  
 Sub DeleteActor(x As Actor Ptr)
  	Select Case As Const x->getType()
- 		Case act.ActorTypes.DECORATIVE_LIGHT
-			Delete(CPtr(act.DecorativeLight Ptr, x)) 		
- 		Case act.ActorTypes.DECORATIVE_MODEL
-			Delete(CPtr(act.DecorativeModel Ptr, x))	
- 		Case act.ActorTypes.DECORATIVE_COLLIDER
-			Delete(CPtr(act.DecorativeCollider Ptr, x))
- 		Case act.ActorTypes.PORTAL
-			Delete(CPtr(act.Portal Ptr, x))
- 		Case act.ActorTypes.GRAPHINTERFACE
-			Delete(CPtr(act.GraphInterface Ptr, x)) 		
- 		Case act.ActorTypes.CAMERAINTERFACE
- 			Delete(CPtr(act.CameraInterface Ptr, x)) 			
- 		Case act.ActorTypes.DRAWBUFFERINTERFACE
- 			Delete(CPtr(act.DrawBufferInterface Ptr, x)) 	 			
-		Case Else
+ 		Case ActorTypes.DECORATIVE_LIGHT
+			Delete(CPtr(DecorativeLight Ptr, x)) 		
+ 		Case ActorTypes.DECORATIVE_MODEL
+			Delete(CPtr(DecorativeModel Ptr, x))	
+ 		Case ActorTypes.DECORATIVE_COLLIDER
+			Delete(CPtr(DecorativeCollider Ptr, x))
+ 		Case ActorTypes.PORTAL
+			Delete(CPtr(Portal Ptr, x))
+ 		Case ActorTypes.GRAPHINTERFACE
+			Delete(CPtr(GraphInterface Ptr, x)) 		
+ 		Case ActorTypes.CAMERAINTERFACE
+ 			Delete(CPtr(CameraInterface Ptr, x)) 			
+ 		Case ActorTypes.DRAWBUFFERINTERFACE
+ 			Delete(CPtr(DrawBufferInterface Ptr, x)) 
+ 		Case ActorTypes.STAGEMANAGER
+ 			Delete(CPtr(StageManager Ptr, x)) 			
+ 		Case ActorTypes.TRANSITIONNOTIFIER
+ 			Delete(CPtr(TransitionNotifier Ptr, x))
+ 		Case ActorTypes.PLAYER
+ 			Delete(CPtr(Player Ptr, x)) 			
+ 		Case ActorTypes.SPAWN
+ 			Delete(CPtr(Spawn Ptr, x))
+ 		Case ActorTypes.SIMULATIONINTERFACE
+			Delete(CPtr(SimulationInterface Ptr, x))
+ 		Case ActorTypes.STATUE
+ 			Delete(CPtr(Statue Ptr, x))		
+ 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
 End Sub
- 	
+
+Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
+ 	Select Case As Const x->getType()
+ 		Case ActorTypes.DECORATIVE_LIGHT
+			Return CPtr(DecorativeLight Ptr, x)->clone(bank)
+ 		Case ActorTypes.DECORATIVE_MODEL
+			Return CPtr(DecorativeModel Ptr, x)->clone(bank)
+ 		Case ActorTypes.DECORATIVE_COLLIDER
+			Return CPtr(DecorativeCollider Ptr, x)->clone(bank)
+ 		Case ActorTypes.PORTAL
+			Return CPtr(Portal Ptr, x)->clone(bank)
+ 		Case ActorTypes.GRAPHINTERFACE
+			Return CPtr(GraphInterface Ptr, x)->clone(bank)	
+ 		Case ActorTypes.CAMERAINTERFACE
+ 			Return CPtr(CameraInterface Ptr, x)->clone(bank)		
+ 		Case ActorTypes.DRAWBUFFERINTERFACE
+ 			Return CPtr(DrawBufferInterface Ptr, x)->clone(bank) 		
+ 		Case ActorTypes.PLAYER
+ 			Return CPtr(Player Ptr, x)->clone(bank)		
+ 		Case ActorTypes.SPAWN
+ 			Return CPtr(Spawn Ptr, x)->clone(bank) 		
+ 		Case ActorTypes.SIMULATIONINTERFACE
+			Return CPtr(SimulationInterface Ptr, x)->clone(bank) 
+ 		Case ActorTypes.STATUE
+ 			Return CPtr(Statue Ptr, x)->clone(bank) 						
+		Case Else
+			DEBUG_ASSERT(FALSE)
+	End Select	
+End Function
+
 End Namespace

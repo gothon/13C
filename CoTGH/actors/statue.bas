@@ -1,17 +1,32 @@
-#Include "decorativecollider.bi"
+#Include "statue.bi"
 
-#Include "../actortypes.bi"
-#Include "../debuglog.bi"
+#Include "../actorbank.bi"
+#Include "../actordefs.bi"
+#Include "../quadmodel.bi"
+#Include "../physics.bi"
+
+#Include "fbgfx.bi"
 
 Namespace act
-ACTOR_REQUIRED_DEF(DecorativeCollider, ActorTypes.DECORATIVE_COLLIDER)
-		
-Constructor DecorativeCollider(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr, collider As Collider Ptr)
-	Base.Constructor(parent, model, collider)
+ACTOR_REQUIRED_DEF(Statue, ActorTypes.STATUE)
+	
+#Define COL_PTR CPtr(DynamicAABB Ptr, collider_)
+	
+Constructor Statue(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr, colliderPtr As ColliderFwd Ptr)
+	Base.Constructor(parent, model, colliderPtr)
 	setType()
 End Constructor
 
-Function DecorativeCollider.clone(parent As ActorBankFwd Ptr) As Actor Ptr
+Function Statue.update(dt As Double) As Boolean
+	model_->translate(COL_PTR->getDelta())
+	Return FALSE
+End Function
+
+Sub Statue.notify()
+	''
+End Sub
+
+Function Statue.clone(parent As ActorBankFwd Ptr) As Actor Ptr
 	Dim As QuadModelBase Ptr newModel = Any
 	If model_->getDelegate() = QuadModelBase_Delegate.QUADMODEL Then
 		newModel = New QuadModel(*CPtr(QuadModel Ptr, model_))		
@@ -30,7 +45,7 @@ Function DecorativeCollider.clone(parent As ActorBankFwd Ptr) As Actor Ptr
 		DEBUG_ASSERT(FALSE)
 	EndIf
 	
-	Return New DecorativeCollider(parent, newModel, newCollider)
+	Return New Statue(parent, newModel, newCollider)
 End Function
 
 End Namespace
