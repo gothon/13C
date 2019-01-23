@@ -7,6 +7,9 @@
 #Include "aabb.bi"
 #Include "texturecache.bi"
 #Include "fbgfx.bi"
+#Include "fpslimiter.bi"
+#Include "imageops.bi"
+#Include "util.bi"
 
 Const As String STAGE_ENTRY_POINT = "RES/EXAMPLE.TMX"
 
@@ -33,20 +36,25 @@ bank->add( _
 		New act.Player( _
 				bank, _
 				New QuadSprite(playerSprite, 16, 24), _
-				New DynamicAABB(AABB(Vec2F(60, 60), Vec2F(16, 24))), _
+				New DynamicAABB(AABB(Vec2F(60, 60), Vec2F(15, 24))), _
 				playerSprite))
 
 Scope
 	Dim As Gamespace gs = Gamespace(@camera, @graph, @target, bank)
+	Dim As FpsLimiter limiter
 	gs.init(StrPtr(STAGE_ENTRY_POINT))
 	Do
 		gs.update(FRAME_TIME)
 		
 		Line target.fbImg(), (0, 0)-(PHYSICAL_SCRX - 1, PHYSICAL_SCRY - 1), 0, BF
 		gs.draw()
+				 
+		limiter.sync()
 		ScreenLock
 		Put (0, 0), target.fbImg(), PSet
 		ScreenUnLock
+	
+		Locate 1,1: Print limiter.getFps()
 	Loop Until MultiKey(fb.SC_ESCAPE)
 End Scope
 

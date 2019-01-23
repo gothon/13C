@@ -49,7 +49,7 @@ Function CameraController.proj() ByRef As Const Projection
 	If needsUpdate_ Then 
 		needsUpdate_ = FALSE
 		If Not placeAndLookOnly_ Then
-			proj_.placeAndLookAt(Vec3F(p_.x - leadingX_*0.5, p_.y + 44, 180), Vec3F(p_.x, p_.y + 24, 0))
+			proj_.placeAndLookAt(Vec3F(p_.x - leadingX_*0.5, p_.y + 34, 180), Vec3F(p_.x, p_.y + 5, 0))
 		Else 
 			proj_.placeAndLookAt(pPlace_, pLook_)
 		EndIf 

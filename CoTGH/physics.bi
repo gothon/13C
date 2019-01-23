@@ -28,6 +28,9 @@ Type Collider Extends Object
  	Declare Sub setDelta(ByRef delta As Const Vec2F)
 		
 	Declare Const Function getDelegate() As Collider_Delegate
+	Declare Sub setEnabled(enabled As Boolean)
+	Declare Const Function isEnabled() As Boolean
+	
  Protected:
  	Dim As Collider_Delegate colliderDelegate_ = Collider_Delegate.UNKNOWN
  	Declare Abstract Sub setDelegate()
@@ -38,6 +41,7 @@ Type Collider Extends Object
  
  	As act.Actor Ptr parent_ = Any 'const
  	As UInteger refTag_ = Any
+ 	As Boolean enabled_ = Any
 End Type
 Declare Sub deleteCollider(x As Collider Ptr)
 

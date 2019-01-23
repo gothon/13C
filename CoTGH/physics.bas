@@ -11,6 +11,7 @@ DEFINE_PRIMITIVE_PTR(DynamicAABB)
 Constructor Collider() 
 	This.parent_ = NULL
 	This.refTag_ = -1
+	This.enabled_ = TRUE
 End Constructor
 
 Virtual Destructor Collider()
@@ -52,6 +53,14 @@ End Function
 Sub Collider.setDelta(ByRef delta As Const Vec2F)
 	delta_ = delta
 End Sub
+
+Sub Collider.setEnabled(enabled As Boolean)
+	enabled_ = enabled
+End Sub
+
+Const Function Collider.isEnabled() As Boolean
+	Return enabled_
+End Function
 
 Sub deleteCollider(x As Collider Ptr)
 	Select Case x->getDelegate()
@@ -513,9 +522,11 @@ Sub Simulation.update(dt As Double)
 		Dim As UInteger indexA = -1
 	  While(boxes_.getNext(@indexA))
   		Dim As DynamicAABB Ptr boxA = boxes_.get(indexA).getValue()
+  		If Not boxA->isEnabled() Then Continue While
   		Dim As UInteger indexB = indexA
   		While(boxes_.getNext(@indexB))
   			Dim As DynamicAABB Ptr boxB = boxes_.get(indexB).getValue() 'const
+  			If Not boxB->isEnabled() Then Continue While
   			Dim As ClipResult res = clipDynamicAABBToDynamicAABB(*boxA, *boxB, dt) 'const
   			If (res.clipAxis = AxisComponent.NONE) OrElse (res.clipTime >= event.t) Then Continue While
   			
@@ -527,7 +538,8 @@ Sub Simulation.update(dt As Double)
   		Wend
   		indexB = -1
   		While(grids_.getNext(@indexB))
-  			Dim As BlockGrid Ptr gridB = grids_.get(indexB).getValue() 'const 			
+  			Dim As BlockGrid Ptr gridB = grids_.get(indexB).getValue() 'const 		
+				If Not gridB->isEnabled() Then Continue While
   			Dim As ClipResult res = clipDynamicAABBToBlockGrid(*boxA, *gridB, dt) 'const
   			If (res.clipAxis = AxisComponent.NONE) OrElse (res.clipTime >= event.t) Then Continue While
   			

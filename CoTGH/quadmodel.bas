@@ -268,12 +268,14 @@ Constructor QuadModel(ByRef other As Const QuadModel)
 	construct()
   setDelegate()
 	This.model_ = other.model_
+	This.zSortAdjust_ = other.zSortAdjust_
 End Constructor
 
 Operator QuadModel.Let(ByRef other As Const QuadModel)
 	construct()
   setDelegate()
-	This.model_ = other.model_
+	model_ = other.model_
+	zSortAdjust_ = other.zSortAdjust_
 End Operator
 
 Function cubeIsSolid( _
@@ -302,7 +304,8 @@ Constructor QuadModel( _
     tilesets() As Const Tileset Ptr)
   construct()
   setDelegate()
- 
+ 	This.zSortAdjust_ = 0
+  
   Dim As Integer yOffset = gridWidth+2 'const
   Dim As Integer zOffset = (gridWidth+2)*(gridHeight+2) 'const
   
@@ -462,6 +465,7 @@ Constructor QuadModel( _
   construct()  
   setDelegate()  
         
+  This.zSortAdjust_ = -0.01
   Dim As Vertex v(0 To 3)
 
   If texCube.front <> 0 Then
@@ -579,7 +583,7 @@ Sub QuadModel.project(ByRef projector As Const Projection)
 End Sub
 
 Sub QuadModel.calcZSort(q As Quad Ptr)
-	q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) * 0.25
+	q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z) * 0.25 + zSortAdjust_
 End Sub
 
 Sub QuadModel.setDelegate()

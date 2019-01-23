@@ -168,6 +168,8 @@ Type QuadModel Extends QuadModelBase
  Protected:
   Declare Sub calcZSort(q As Quad Ptr) Override
   Declare Sub setDelegate() Override
+  
+  As Double zSortAdjust_
 End Type
 
 Type QuadSprite Extends QuadModelBase

@@ -50,6 +50,7 @@ Function Portal.update(dt As Double) As Boolean
 	If waitingForNoIntersect_ Then Return FALSE
 	If (mode_ = PortalEnterMode.FROM_CENTER) AndAlso (Not player_->pressedDown()) Then Return FALSE
 	
+	player_->disableCollision()
 	player_->setDestinationPortal(*toPortal_)
 	GET_GLOBAL("GRAPH INTERFACE", GraphInterface).requestGo(toMap_)
 

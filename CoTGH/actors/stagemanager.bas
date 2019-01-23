@@ -3,6 +3,8 @@
 #Include "../actorbank.bi"
 #Include "../actordefs.bi"
 
+Const As Double GRAVITY_FORCE = 250
+
 Namespace act
 ACTOR_REQUIRED_DEF(StageManager, ActorTypes.STAGEMANAGER)
 	
@@ -34,7 +36,7 @@ Function StageManager.update(dt As Double) As Boolean
 		dbInterface->setGlobalLightMinMax(lightMin_, lightMax_)		
 		
 		Dim As SimulationInterface Ptr sInterface = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
-		sInterface->setForce(Vec2F(0, -10))
+		sInterface->setForce(Vec2F(0, -GRAVITY_FORCE))
 	EndIf
 	Return FALSE
 End Function
