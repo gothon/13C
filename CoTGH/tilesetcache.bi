@@ -20,7 +20,7 @@ End Type
 Type TilesetCache
  Public:
   'Paths should be in all upper-case to prevent the need to UCase on every get.
-  Declare Static Function get(tilesetPath As String) As Const Tileset Ptr
+  Declare Static Function get(tilesetPath As String) As Tileset Ptr
 
  Private:
   Static As DArray_Tileset tilesets

@@ -76,6 +76,8 @@ Function actorIsShared(actor As act.Actor Ptr) As Boolean
 	Select Case As Const actor->getType()
 		Case act.ActorTypes.STATUE 
 			Return FALSE
+		Case act.ActorTypes.PAINTING
+			Return FALSE
 		Case Else
 			Return TRUE
 	End Select

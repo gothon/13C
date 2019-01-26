@@ -18,8 +18,8 @@ Type Light
   Declare Constructor(ByRef other As Const Light)
   Declare Operator Let(ByRef other As Const Light)
  	
-	Declare Const Sub add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex Ptr)
- 	Declare Const Sub distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr)
+	Declare Const Function add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex Ptr) As Boolean
+ 	Declare Const Function distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr) As Boolean
 
  	Declare Sub update(t As Double)
  	

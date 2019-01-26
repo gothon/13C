@@ -77,6 +77,11 @@ Function Image32.fbImg() As Any Ptr
   Return imageData_
 End Function
 
+Const Function Image32.constFbImg() As Const Any Ptr
+  DEBUG_ASSERT(imageData_ <> NULL)
+  Return imageData_
+End Function
+
 Const Function Image32.w() As Integer
   DEBUG_ASSERT(imageData_ <> NULL)
   Return w_

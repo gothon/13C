@@ -64,13 +64,19 @@ Function GraphInterface.getRequestGoIndexAndClear() As ig_Index
 	goIndex_ = NULL
 	Return tempIndex
 End Function
-	
-Function GraphInterface.embed(index As ig_Index Ptr) As UInteger
-	Return CPtr(Gamespace Ptr, gs_)->embed(index)
+
+Sub GraphInterface.deleteIndex(index As ig_Index Ptr)
+	CPtr(Gamespace Ptr, gs_)->deleteIndex(index)	
+End Sub
+
+Function GraphInterface.unembedToIndex(ref As UInteger) As ig_Index
+	Return CPtr(Gamespace Ptr, gs_)->unembedToIndex(ref)	
 End Function
 
-Sub GraphInterface.unembed(ref As UInteger)
-	CPtr(Gamespace Ptr, gs_)->unembed(ref)
+Sub GraphInterface.embed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
+	DEBUG_ASSERT(index <> NULL)
+	DEBUG_ASSERT(indexToUpdate <> NULL)
+	CPtr(Gamespace Ptr, gs_)->requestEmbed(index, existingEmbed, indexToUpdate)	
 End Sub
 
 Function GraphInterface.clone(parent As ActorBankFwd Ptr) As Actor Ptr

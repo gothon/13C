@@ -25,6 +25,8 @@ Const As Double JUMP_BOOST_DECAY = 0.7
 Const As UInteger LANDING_JUMP_GRACE_FRAMES = 3
 Const As UInteger FALLING_JUMP_GRACE_FRAMES = 4
 
+Const As UInteger WARP_ANIM_COUNTDOWN = 60
+
 #Define CAMERA_BUFFER_TL Vec2F(150, 100)
 #Define CAMERA_BUFFER_BR Vec2F(150, 80)
 
@@ -64,10 +66,25 @@ Constructor Player( _
 	This.walkFrame_ = -1
 	This.walkFrameDelay_ = 0
 	This.idleFrame_ = -1
+	This.lastActivatePressed_ = FALSE
+ 	This.activateLHEdge_ = FALSE
+ 	This.clonedIndex_ = NULL
+ 	This.snapshot_ = NULL
+ 	This.cloneRequested_ = FALSE
+ 	This.lastSwapPressed_ = FALSE
+ 	This.isSnapshotting_ = TRUE
+ 	This.isWarped_ = FALSE
+ 	This.embedId_ = -1
+ 	This.warpCountdown_ = 0
 End Constructor
 
-Virtual Destructor Player()
+Destructor Player()
 	Delete(animImage_)
+	If snapshot_ <> NULL Then Delete(snapshot_)
+	If clonedIndex_ <> NULL Then
+		Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+		graph->deleteIndex(@clonedIndex_)
+	EndIf
 End Destructor
 
 Sub Player.updateCamera()
@@ -98,6 +115,12 @@ Sub Player.flipXUV()
 	Dim As Quad Ptr q = model_->getQuad(0)
 	Swap q->v(0).t.x, q->v(1).t.x
 	Swap q->v(2).t.x, q->v(3).t.x
+End Sub
+
+Sub Player.setWarp(p As Vec2F, v As Vec2F)
+	isWarped_ = TRUE
+	warpP_ = p
+	warpV_ = v
 End Sub
 
 Sub Player.checkArbiters()
@@ -159,11 +182,26 @@ Sub Player.processPlatformingControls()
 	If grounded_ Then airbornJumpRequestCountdown_ = 0
 	
 	downLHEdge_ = FALSE
-	If MultiKey(fb.SC_DOWN) Then 
+	If MultiKey(fb.SC_UP) Then 
 		If lastDownPressed_ = FALSE Then downLHEdge_ = TRUE
 		lastDownPressed_ = TRUE	
 	Else
 		lastDownPressed_ = FALSE
+	EndIf
+	
+	activateLHEdge_ = FALSE
+	If MultiKey(fb.SC_X) Then 
+		If lastActivatePressed_ = FALSE Then activateLHEdge_ = TRUE
+		lastActivatePressed_ = TRUE	
+	Else
+		lastActivatePressed_ = FALSE
+	EndIf
+	
+	If MultiKey(fb.SC_SPACE) Then 
+		If lastSwapPressed_ = FALSE Then isSnapshotting_ = Not isSnapshotting_
+		lastSwapPressed_ = TRUE	
+	Else
+		lastSwapPressed_ = FALSE
 	EndIf
 End Sub
 
@@ -171,15 +209,85 @@ Sub Player.disableCollision()
 	COL_PTR->setEnabled(FALSE)
 End Sub
 
+Sub Player.processInteractions()
+	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+	If Not isSnapshotting_ Then Return
+	Locate 1,1: Print "READY TO SNAPSHOT"
+	If Not cloneRequested_ Then
+		If activateLHEdge_ Then 
+			If snapshot_ <> NULL Then
+				graph->deleteIndex(@clonedIndex_)
+				Delete(snapshot_)
+				snapshot_ = NULL
+			EndIf
+			graph->requestClone()
+			cloneRequested_ = TRUE
+		EndIf
+	Else
+		cloneRequested_ = FALSE
+		clonedIndex_ = graph->getClone()
+		
+		Dim As SnapshotInterface Ptr snapInterface = @GET_GLOBAL("SNAPSHOT INTERFACE", SnapshotInterface)
+		snapshot_ = snapInterface->createSnapshot()
+		snapshotP_ = COL_PTR->getAABB().o
+		snapshotV_ = COL_PTR->getV()
+		
+		Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
+		snapshotFacingRight_ = facingRight_
+		snapshotLeadingX_ = camera_->getLeadingX()
+	EndIf 
+End Sub
+
+Const Function Player.hasSnapshot() As Boolean
+	Return snapshot_ <> NULL
+End Function
+
+Sub Player.placeSnapshot(replaceId As UInteger)
+	DEBUG_ASSERT(snapshot_ <> NULL)
+	GET_GLOBAL("GRAPH INTERFACE", GraphInterface).embed(clonedIndex_, replaceId, @embedId_)	
+	clonedIndex_ = NULL
+End Sub
+
+Const Function Player.readyToPlace() As Boolean
+	Return embedId_ <> -1
+End Function
+
+Sub Player.claimSnapshot( _
+		embedId As UInteger Ptr, _
+		snapshot As Image32 Ptr Ptr, _
+		snapshotP As Vec2F Ptr, _
+		snapshotV As Vec2F Ptr)
+	DEBUG_ASSERT(snapshot_ <> NULL)
+	*embedId = embedId_
+	embedId_ = -1
+	
+	*snapshot = snapshot_
+	snapshot_ = NULL
+	
+	*snapshotP = snapshotP_
+	*snapshotV = snapshotV_
+End Sub
+
 Function Player.update(dt As Double) As Boolean
+	Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
 	If GET_GLOBAL("TRANSITION NOTIFIER", TransitionNotifier).happened() Then
 		COL_PTR->setEnabled(TRUE)
 		Dim As Vec2F spawnP = Any
-		If destinationPortal_ = "" Then 
+		If isWarped_ Then
+			isWarped_ = FALSE	
+			spawnP = warpP_
+			COL_PTR->setV(warpV_)
+			camera_->snap(Vec2F(0, 0), snapshotLeadingX_)
+			If facingRight_ Then 
+				If Not snapshotFacingRight_ Then flipXUV()
+			Else
+				If snapshotFacingRight_ Then flipXUV()
+			EndIf
+			facingRight_ = snapshotFacingRight_
+		ElseIf destinationPortal_ = "" Then 
 			spawnP = GET_GLOBAL("SPAWN", Spawn).getP()
 		Else
 			Dim As Portal Ptr portal_ = @GET_GLOBAL(StrPtr(destinationPortal_), Portal)			
-			Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
 			If portal_->getMode() = PortalEnterMode.FROM_LEFT Then
 				camera_->snap(camera_->getP(), 99999)
 			ElseIf portal_->getMode() = PortalEnterMode.FROM_RIGHT Then
@@ -192,6 +300,7 @@ Function Player.update(dt As Double) As Boolean
 		COL_PTR->place(spawnP)
 		model_->translate(Vec3F(diff.x, diff.y, 0))
 		model_->translate(COL_PTR->getDelta())
+		warpCountdown_ = WARP_ANIM_COUNTDOWN
 	Else
 		model_->translate(COL_PTR->getDelta())
 	EndIf
@@ -200,8 +309,11 @@ Function Player.update(dt As Double) As Boolean
 	checkArbiters()
 	processPlatformingControls()
 	processAnimation()
+	processInteractions()
 	
 	If lastGroundedCountdown_ > 0 Then lastGroundedCountdown_ -= 1
+	If warpCountdown_ > 0 Then warpCountdown_ -= 1
+	
 	Return FALSE
 End Function
 
@@ -231,11 +343,11 @@ Sub Player.processAnimation()
 			walkFrameDelay_ = 0
 			If idleFrame_ = -1 Then
 				If Int(Rnd * 50) = 0 Then
-					If Int(Rnd * 10) > 1 Then
+					If Int(Rnd * 12) > 0 Then
 						idleFrame_ = 1
 						idleEndFrame_ = 2
 						idleFrameSpeed_ = 3
-					Else
+					ElseIf warpCountdown_ = 0 Then 
 						idleFrame_ = 2
 						idleEndFrame_ = 6
 						idleFrameSpeed_ = 10
@@ -266,6 +378,10 @@ End Sub
 
 Const Function Player.pressedDown() As Boolean
 	Return downLHEdge_
+End Function
+
+Const Function Player.pressedActivate() As Boolean
+	Return activateLHEdge_ AndAlso (Not isSnapshotting_)
 End Function
 
 Const Function Player.getBounds() ByRef As Const AABB

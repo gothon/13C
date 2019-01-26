@@ -17,7 +17,9 @@ Enum ActorTypes Explicit
 	PLAYER = 10,
 	SPAWN = 11,
 	SIMULATIONINTERFACE = 12,
-	STATUE = 13
+	STATUE = 13,
+	SNAPSHOTINTERFACE = 14,
+	PAINTING = 15
 End Enum
 
 End Namespace 

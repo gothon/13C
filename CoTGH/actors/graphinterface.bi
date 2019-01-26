@@ -15,11 +15,12 @@ Type GraphInterface Extends Actor
 	
 	'--- actors should use these	
 	Declare Sub requestClone()
+	Declare Sub deleteIndex(index As ig_Index Ptr)
 	Declare Function getClone() As ig_Index
+	Declare Function unembedToIndex(ref As UInteger) As ig_Index
 	Declare Sub requestGo(key As Const ZString Ptr)
 	Declare Sub requestGoIndex(index As ig_Index)	
-	Declare Function embed(index As ig_Index Ptr) As UInteger
-	Declare Sub unembed(ref As UInteger)
+	Declare Sub embed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
 	'---
 
 	Declare Sub setClone(index As ig_Index)

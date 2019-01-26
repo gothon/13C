@@ -35,14 +35,23 @@ Type Gamespace
 	
 	Declare Sub go(key As Const ZString Ptr)
 	Declare Sub go(index As ig_Index Ptr)
-	Declare Function embed(index As ig_Index Ptr) As UInteger
-	Declare Sub unembed(ref As UInteger)
+	
+	Declare Sub requestEmbed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
+	
+	Declare Function unembedToIndex(ref As UInteger) As ig_Index
 	Declare Function clone() As ig_Index
+	Declare Sub deleteIndex(index As ig_Index Ptr)
 	
  Private:
 	Declare Sub addSystemActors()
+	Declare Sub embed()
+	
 	As act.GraphInterface Ptr graphInterfaceActor_ = NULL
 	As act.CameraInterface Ptr cameraInterfaceActor_ = NULL
+	
+	As ig_Index indexToEmbed_ = Any
+	As UInteger existingEmbed_ = Any
+	As UInteger Ptr indexToUpdate_ = Any
 	
 	As Boolean transitionOccured_
 		

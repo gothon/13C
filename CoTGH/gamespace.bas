@@ -22,7 +22,11 @@ Constructor Gamespace( _
 	DEBUG_ASSERT(This.globalBank_ <> NULL)
 	addSystemActors()
 	This.globalBank_->bindInto(@This)	  
-	transitionOccured_ = FALSE
+	This.transitionOccured_ = FALSE
+	
+	This.indexToEmbed_ = NULL
+	This.existingEmbed_ = -1
+	This.indexToUpdate_ = NULL
 End Constructor
 
 Destructor Gamespace()
@@ -35,6 +39,14 @@ Destructor Gamespace()
 	EndIf
 End Destructor
 
+Sub Gamespace.requestEmbed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
+	DEBUG_ASSERT(index <> NULL)
+	DEBUG_ASSERT(indexToUpdate <> NULL)
+	indexToEmbed_ = index
+	existingEmbed_ = existingEmbed
+	indexToUpdate_ = indexToUpdate
+End Sub
+	
 Sub Gamespace.addSystemActors()
 	graphInterfaceActor_ = New act.GraphInterface(globalBank_, @This)
 	globalBank_->add(graphInterfaceActor_)
@@ -43,6 +55,7 @@ Sub Gamespace.addSystemActors()
 	globalBank_->add(New act.DrawBufferInterface(globalBank_, @drawBuffer_))
 	globalBank_->add(New act.TransitionNotifier(globalBank_, @transitionOccured_))
 	globalBank_->add(New act.SimulationInterface(globalBank_, @sim_))
+	globalBank_->add(New act.SnapshotInterface(globalBank_, target_))
 End Sub
 	
 Sub Gamespace.init(stage As Const ZString Ptr)
@@ -80,8 +93,12 @@ Sub Gamespace.update(dt As Double)
 		
 		cameraInterfaceActor_->update(dt)
 		
-		If graphInterfaceActor_->cloneRequested() Then graphInterfaceActor_->setClone(clone())
-		
+		If graphInterfaceActor_->cloneRequested() Then 
+			graphInterfaceActor_->setClone(clone())
+		ElseIf indexToEmbed_ <> NULL Then
+			embed()
+		EndIf
+
 		Dim As String goKey = graphInterfaceActor_->getRequestGoKeyAndClear()
 		Dim As ig_Index goIndex = graphInterfaceActor_->getRequestGoIndexAndClear()
 		If goKey <> "" Then
@@ -115,10 +132,10 @@ Function Gamespace.getSimulation() As Simulation Ptr
 End Function
 
 Sub Gamespace.go(key As Const ZString Ptr)
-	ig_SetContent(primaryIndex_, activeBank_)
 	activeBank_->unbindFrom()
 	staticBank_->unbindFrom()
-	
+	ig_SetContent(primaryIndex_, activeBank_)
+
 	ig_Go(primaryIndex_, key)
 	graph_->compact()
 	
@@ -132,12 +149,11 @@ End Sub
 Sub Gamespace.go(index As ig_Index Ptr)
 	activeBank_->unbindFrom()
 	staticBank_->unbindFrom()
-	
-	Delete(activeBank_)
-	
+	ig_SetContent(primaryIndex_, activeBank_)
+		
 	ig_ConsumeIndex(primaryIndex_, index)
 	graph_->compact()
-	
+
 	staticBank_ = CPtr(ActorBank Ptr, ig_GetSharedContent(primaryIndex_))
 	activeBank_ = CPtr(ActorBank Ptr, ig_GetContent(primaryIndex_))->clone()
 	
@@ -145,19 +161,38 @@ Sub Gamespace.go(index As ig_Index Ptr)
 	activeBank_->bindInto(@This)
 End Sub
 
-Function Gamespace.embed(index As ig_Index Ptr) As UInteger
-	Return ig_Embed(primaryIndex_, index)
+Function Gamespace.unembedToIndex(ref As UInteger) As ig_Index
+	Return ig_IndexFromEmbedded(primaryIndex_, ref)
 End Function
 
-Sub Gamespace.unembed(ref As UInteger)
-	ig_Unembed(primaryIndex_, ref)
+Sub Gamespace.deleteIndex(index As ig_Index Ptr)
+	ig_DeleteIndex(index)
 End Sub
 
-Function Gamespace.clone() As ig_Index
+Sub Gamespace.embed()
+	DEBUG_ASSERT(indexToEmbed_ <> NULL)
+	DEBUG_ASSERT(indexToUpdate_ <> NULL)
+	activeBank_->unbindFrom()
 	ig_SetContent(primaryIndex_, activeBank_)
 	graph_->compact()
 	activeBank_ = activeBank_->clone()
-	Return ig_CloneIndex(primaryIndex_)
+	activeBank_->bindInto(@This)
+	If existingEmbed_ <> -1 Then ig_Unembed(primaryIndex_, existingEmbed_)
+	existingEmbed_ = -1
+	*indexToUpdate_ = ig_Embed(primaryIndex_, @indexToEmbed_)
+	indexToUpdate_ = NULL
+End Sub
+
+Function Gamespace.clone() As ig_Index
+	activeBank_->unbindFrom()
+	ig_SetContent(primaryIndex_, activeBank_)
+	graph_->compact()
+	
+	Dim As ig_Index cloned = ig_CloneIndex(primaryIndex_)
+	
+	activeBank_ = activeBank_->clone()
+	activeBank_->bindInto(@This)
+	Return cloned
 End Function
 
 Sub Gamespace.addGlobalActor(key As Const ZString Ptr, actor As act.Actor Ptr)

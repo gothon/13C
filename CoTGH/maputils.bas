@@ -50,7 +50,7 @@ Function getVisLayerCount(root As Const xmlNode Ptr) As UInteger
 End Function
 
 Type TilesetInfo
-	As Const Tileset Ptr tileset = Any
+	As Tileset Ptr tileset = Any
 	As UInteger gid = Any
 End Type
 
@@ -142,7 +142,7 @@ Function createBlockGrid( _
 		mapWidth As UInteger, _
 		mapHeight As UInteger, _
 		tilesetsN As UInteger, _
-		tilesets() As Const TilesetInfo) As BlockGrid Ptr
+		tilesets() As TilesetInfo) As BlockGrid Ptr
 		
 	Dim As UInteger metaGid = 0
 	For i As UInteger = 0 To tilesetsN - 1
@@ -196,7 +196,7 @@ Function createTileModel( _
 	'Extra padding dimensions for model interpretation. We let these default construct to empty cubes.
 	Dim As QuadModelTextureCube modelDef(0 To cubeLayerStride*(mapDepth + 2) - 1)
 	ReDim As QuadModelUVIndex modelUv(0 To 4)	
-	ReDim As Const Tileset Ptr modelTex(0 To 0)
+	ReDim As Tileset Ptr modelTex(0 To 0)
 	
 	For i As UInteger = 0 To UBound(visData)
 		Dim As UInteger visIndex = visData(i) 'const
@@ -311,7 +311,6 @@ Function getPropOrDie( _
 End Function
 
 Sub addStatue( _
-		ByRef relativePath As Const String, _
 		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
 		mapPixelHeight As UInteger, _
 		x As UInteger, _
@@ -319,17 +318,17 @@ Sub addStatue( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	Dim As Const Image32 Ptr image = Any
+	Dim As Image32 Ptr image = Any
 	image = TextureCache.get("res/bhust.png")
 	
 	Dim As QuadModelUVIndex uvIndex(0 To 0) = _
 			{QuadModelUVIndex(Vec2F(0, 0), Vec2F(16, 32), 0)} 'const
-	Dim As Const Image32 Ptr tex(0 To 0) = {image}
+	Dim As Image32 Ptr tex(0 To 0) = {image}
 
 	Dim As Vec2F origin = Vec2F(x, mapPixelHeight - y - h)
 
 	Dim As QuadModelBase Ptr model = _
-			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex())
+			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), FALSE)
 	model->translate(Vec3F(origin.x, origin.y, 1))
 	res->bank->add( _
 			New act.Statue(res->bank, model, New DynamicAABB(AABB(origin, Vec2F(16, 32)))))	
@@ -347,7 +346,7 @@ Sub addBillboard( _
 	  res As ParseResult Ptr)
 	Dim As Const ZString Ptr source = getPropOrDie(props, "source") 'const
 	Dim As String extension = UCase(Right(*source, 3)) 'const
-	Dim As Const Image32 Ptr image = Any
+	Dim As Image32 Ptr image = Any
 	If extension = "TSX" Then
 		image = TilesetCache.get(relativePath & *source)->image()
 	Else
@@ -362,10 +361,10 @@ Sub addBillboard( _
 	
 	Dim As QuadModelUVIndex uvIndex(0 To 0) = _
 			{QuadModelUVIndex(Vec2F(startX, startY), Vec2F(startX + w, startY + h), 0)} 'const
-	Dim As Const Image32 Ptr tex(0 To 0) = {image}
+	Dim As Image32 Ptr tex(0 To 0) = {image}
 
 	Dim As QuadModelBase Ptr model = _
-			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex())
+			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), FALSE)
 	model->translate(Vec3F(x, mapPixelHeight - y - h, z + 8))
 	res->bank->add(New act.DecorativeModel(res->bank, model))
 End Sub
@@ -441,6 +440,17 @@ Sub addSpawn(mapPixelHeight As UInteger, h As UInteger, x As UInteger, y As UInt
 	res->bank->add(New act.Spawn(res->bank, Vec2F(x, mapPixelHeight - y - h))) 
 End Sub
 
+Sub addPainting( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	res->bank->Add(New act.Painting(res->bank, Vec3F(x, mapPixelHeight - y - h, z + 2)))
+End Sub
+
 Sub processObject( _
 		objectType As Const ZString Ptr, _
 		ByRef relativePath As Const String, _
@@ -462,7 +472,9 @@ Sub processObject( _
 		Case "SPAWN"
 			addSpawn(mapPixelHeight, h, x, y, res)
 		Case "STATUE"
-			addStatue(relativePath, props, mapPixelHeight, x, y, w, h, res)			
+			addStatue(props, mapPixelHeight, x, y, w, h, res)		
+		Case "PAINTING"	
+			addPainting(props, mapPixelHeight, x, y, z, h, res)	
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select
@@ -579,7 +591,7 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As UInteger tileWidth = xmlutils.getPropNumberOrDie(node, "tilewidth") 'const
 	Dim As UInteger tileHeight = xmlutils.getPropNumberOrDie(node, "tileheight") 'const
 	DEBUG_ASSERT(tileWidth = tileHeight)
-	
+
 	Dim As ParseResult res
 	res.bank = New ActorBank()
 	processMapProps(xmlutils.findOrDie(node, "properties"), mapWidth*tileWidth, mapHeight*tileHeight, @res)

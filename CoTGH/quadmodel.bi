@@ -155,7 +155,7 @@ Type QuadModel Extends QuadModelBase
       gridDepth As Integer, _
       sideLength As Single, _
       uvIndices() As QuadModelUVIndex, _
-      tilesets() As Const Tileset Ptr)
+      tilesets() As Tileset Ptr)
   
   'Create a 3D volume of the specified size with it's lower left front corner at the origin. The back face is
   'omitted.
@@ -163,7 +163,8 @@ Type QuadModel Extends QuadModelBase
       ByRef volumeDims As Const Vec3F, _
       ByRef texCube As Const QuadModelTextureCube, _
       uvIndices() As QuadModelUVIndex, _
-      tex() As Const Image32 Ptr)
+      tex() As Image32 Ptr, _
+      useVertexNorm As Boolean = TRUE)
        
  Protected:
   Declare Sub calcZSort(q As Quad Ptr) Override

@@ -14,5 +14,7 @@
 #Include "actors/spawn.bi"
 #Include "actors/simulationinterface.bi"
 #Include "actors/statue.bi"
+#Include "actors/painting.bi"
+#Include "actors/snapshotinterface.bi"
 
 #EndIf

@@ -19,7 +19,7 @@ End Constructor
 Dim As DArray_Tileset TilesetCache.tilesets
 Static Shared As dsm.HashMap(ZString, TilesetPtr) cache
 
-Static Function TilesetCache.get(tilesetPath As String) As Const Tileset Ptr
+Static Function TilesetCache.get(tilesetPath As String) As Tileset Ptr
   Dim As TilesetPtr loadedTileset = TilesetPtr(NULL)
   If Not cache.retrieve(tilesetPath, loadedTileset) Then
     DArray_Tileset_Emplace(tilesets, tilesetPath)

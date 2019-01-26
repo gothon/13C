@@ -281,11 +281,11 @@ End Operator
 Function cubeIsSolid( _
 		ByRef cube As Const QuadModelTextureCube, _
 		transT() As Const TransType) As Boolean
-	Return (transT(cube.front - 1) Or _
+	Return ((transT(cube.front - 1) Or _
 			transT(cube.up - 1) Or _
 			transT(cube.right - 1) Or _
 			transT(cube.down - 1) Or _
-			transT(cube.left - 1)) = TransType.SOLID	
+			transT(cube.left - 1)) And (TransType.SOLID Or TransType.WHITEOUT)) <> 0
 End Function
 
 Function adjacentCubeIsSolid( _
@@ -301,7 +301,7 @@ Constructor QuadModel( _
     gridDepth As Integer, _
     sideLength As Single, _
     uvIndices() As QuadModelUVIndex, _
-    tilesets() As Const Tileset Ptr)
+    tilesets() As Tileset Ptr)
   construct()
   setDelegate()
  	This.zSortAdjust_ = 0
@@ -323,7 +323,7 @@ Constructor QuadModel( _
       For x As Integer = 1 To gridWidth
         Dim As Integer centerOffset = z*zOffset + y*yOffset + x 'const
         Dim As QuadModelTextureCube texCube = grid(centerOffset) 'const
-        If texCube.v() <> 0 Then
+        If (texCube.v() <> 0) AndAlso (uvQuadTransType(texCube.front - 1) <> TransType.WHITEOUT) Then
           Dim As Boolean up = adjacentCubeIsSolid(grid(centerOffset - yOffset), uvQuadTransType()) 'const
           Dim As Boolean right = adjacentCubeIsSolid(grid(centerOffset + 1), uvQuadTransType()) 'const
           Dim As Boolean down = adjacentCubeIsSolid(grid(centerOffset + yOffset), uvQuadTransType()) 'const
@@ -461,7 +461,8 @@ Constructor QuadModel( _
     ByRef volumeDims As Const Vec3F, _
     ByRef texCube As Const QuadModelTextureCube, _
     uvIndices() As QuadModelUVIndex, _
-    tex() As Const Image32 Ptr)
+    tex() As Image32 Ptr, _
+    useVertexNorm As Boolean)
   construct()  
   setDelegate()  
         
@@ -484,10 +485,7 @@ Constructor QuadModel( _
     		FALSE, _
     		FALSE, _
     		Vec3F(0, 0, 1), _
-    		IIf((texCube.up <> 0) OrElse _
-    				(texCube.right <> 0) OrElse _
-    				(texCube.down <> 0) OrElse _
-    				(texCube.left <> 0), TRUE, FALSE))
+    		useVertexNorm)
   End If
   
   If texCube.up <> 0 Then

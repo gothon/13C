@@ -5,9 +5,10 @@
 #Include "vec2f.bi"
 
 Enum TransType Explicit
-	SOLID = 0
-	SEMI_SOLID = 1
-	CLEAR = 2
+	SOLID = 1
+	SEMI_SOLID = 2
+	CLEAR = 4
+	WHITEOUT = 8
 End Enum
 
 'A tileset. Since images are cached, no destructor is neccessary.
@@ -21,7 +22,7 @@ Type Tileset
   Declare Constructor(path As Const ZString Ptr)
      
   'Returns a pointer to the image data
-  Declare Const Function image() As Const Image32 Ptr
+  Declare Function image() As Image32 Ptr
   
   'Populate the start coords of the tile at the given index
   Declare Const Sub getTileStart(index As UInteger, start As Vec2F Ptr)
@@ -32,7 +33,7 @@ Type Tileset
   Declare Const Function getTransType(a As Vec2F, b As Vec2F) As TransType
   
  Private:  
-  As Const Image32 Ptr image_ = Any 'const ptr
+  As Image32 Ptr image_ = Any 'const ptr
 
   As UInteger tileWidth_ = Any 'const  
   As UInteger tileHeight_ = Any 'const

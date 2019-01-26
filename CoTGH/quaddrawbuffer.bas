@@ -127,8 +127,18 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
             q->trimY, _ 
             dst)
     	Case QuadTextureMode.TEXTURED_MOD:
-    		lightQuad(q)
-        raster.drawPlanarQuad_TexturedModulated( _
+    		If Not lightQuad(q) Then
+	        raster.drawPlanarQuad_TexturedModulated( _
+	            *q->texture, _ 
+	            @q->pV(0), _ 
+	            @q->pV(1), _ 
+	            @q->pV(2), _ 
+	            @q->pV(3), _ 
+	            q->trimX, _ 
+	            q->trimY, _ 
+	            dst)
+    		Else 
+          raster.drawPlanarQuad_TexturedConstant( _
             *q->texture, _ 
             @q->pV(0), _ 
             @q->pV(1), _ 
@@ -136,7 +146,8 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
             @q->pV(3), _ 
             q->trimX, _ 
             q->trimY, _ 
-            dst)
+            dst) 
+	      End If
     	Case QuadTextureMode.TEXTURED_CONST:
     		lightQuadConst(q)
         raster.drawPlanarQuad_TexturedConstant( _
@@ -152,7 +163,7 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
   Next i 
 End Sub
 
-Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
+Function QuadDrawBuffer.lightQuad(q As Quad Ptr) As Boolean
 	Dim As Double l = (1 - vecmath.dot(q->fixedNorm, globalLightDirection_))*0.5
 	l *= globalLightMax_ - globalLightMin_
 	l += globalLightMin_
@@ -164,29 +175,35 @@ Sub QuadDrawBuffer.lightQuad(q As Quad Ptr)
 	q->pV(2).c = col
 	q->pV(3).c = col
 
+	Dim As Boolean simplifyLight = TRUE
 	If q->useVertexNorm Then
 		For i As Integer = 0 To lights_.size() - 1
 			Dim As Const Light Ptr light = lights_.getConst(i)
-			light->add(q->v(0).p, q->v(0).n, @q->pV(0))
-			light->add(q->v(1).p, q->v(1).n, @q->pV(1))
-			light->add(q->v(2).p, q->v(2).n, @q->pV(2))
-			light->add(q->v(3).p, q->v(3).n, @q->pV(3))
+			If light->add(q->v(0).p, q->v(0).n, @q->pV(0)) _
+					Or light->add(q->v(1).p, q->v(1).n, @q->pV(1)) _
+					Or light->add(q->v(2).p, q->v(2).n, @q->pV(2)) _
+					Or light->add(q->v(3).p, q->v(3).n, @q->pV(3)) Then
+				simplifyLight = FALSE
+			End If
 		Next i
 	Else
 		For i As Integer = 0 To lights_.size() - 1
 			Dim As Const Light Ptr light = lights_.getConst(i)	
-			light->distanceAdd(q->v(0).p, @q->pV(0))
-			light->distanceAdd(q->v(1).p, @q->pV(1))
-			light->distanceAdd(q->v(2).p, @q->pV(2))
-			light->distanceAdd(q->v(3).p, @q->pV(3))
-		Next i		
+			If light->distanceAdd(q->v(0).p, @q->pV(0)) _
+					Or light->distanceAdd(q->v(1).p, @q->pV(1)) _
+					Or light->distanceAdd(q->v(2).p, @q->pV(2)) _
+					Or light->distanceAdd(q->v(3).p, @q->pV(3)) Then
+				simplifyLight = FALSE
+			End If
+		Next i
 	EndIf 
 
 	vecmath.maxsat(@(q->pV(0).c))
 	vecmath.maxsat(@(q->pV(1).c))
 	vecmath.maxsat(@(q->pV(2).c))
 	vecmath.maxsat(@(q->pV(3).c))
-End Sub
+	Return simplifyLight
+End Function
 
 
 Sub QuadDrawBuffer.lightQuadConst(q As Quad Ptr)

@@ -22,9 +22,13 @@ Function calcTransType( _
 		x1 As UInteger, _
 		y1 As UInteger) As TransType
 	Dim As Boolean seenTrans = FALSE
+	Dim As Boolean solidColor = TRUE
+	Dim As Pixel32 col
 	For y As UInteger = y0 To y1 - 1
 		For x As UInteger = x0 To x1 - 1
-			Dim As Pixel32 col = *(img->constPixels() + (y*img->w()) + x) 'const
+			Dim As Pixel32 newCol = *(img->constPixels() + (y*img->w()) + x) 'const
+			If (newCol.value <> col.value) AndAlso ((x <> x0) OrElse (y <> y0)) Then solidColor = FALSE
+			col = newCol
 			If seenTrans AndAlso (col.value <> raster.TRANSPARENT_COLOR_INT) Then 
 				Return TransType.SEMI_SOLID
 			ElseIf (Not seenTrans) AndAlso (col.value = raster.TRANSPARENT_COLOR_INT) Then
@@ -33,6 +37,7 @@ Function calcTransType( _
 			EndIf
 		Next x
 	Next y
+	If solidColor AndAlso (col.r = 255) AndAlso (col.g = 255) AndAlso (col.b = 255) Then Return TransType.WHITEOUT
 	Return IIf(seenTrans, TransType.CLEAR, TransType.SOLID)
 End Function
  
@@ -62,7 +67,7 @@ Constructor Tileset(path As Const ZString Ptr)
 	xmlFreeDoc(doc)
 End Constructor
      
-Const Function Tileset.image() As Const Image32 Ptr
+Function Tileset.image() As Image32 Ptr
 	DEBUG_ASSERT(image_ <> NULL)
 	Return image_
 End Function

@@ -45,35 +45,37 @@ Sub Light.unbind()
   bindings_ -= 1
 End Sub  
 
-Const Sub Light.add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex Ptr)
-	If Not inRange(p) Then Return 
+Const Function Light.add(ByRef p As Const Vec3F, ByRef n As Const Vec3F, v As Vertex Ptr) As Boolean
+	If Not inRange(p) Then Return FALSE
 	
 	Dim As Vec3F lightNorm = p_ - p
 	Dim As Double m = lightNorm.m() 'const
 	lightNorm /= m
 	
 	Dim As Double s = (r_ - m)/r_
-	If s < 0 Then s = 0
+	If s < 0 Then Return FALSE
 	s *= s
 
 	Dim As Double l = Sqr(vecmath.dot(lightNorm, n))
-	If l < 0 Then l = 0
+	If l < 0 Then Return FALSE
 	
 	v->c += c_*l*s
-End Sub
+	Return TRUE
+End Function
 
-Const Sub Light.distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr)
-	If Not inRange(p) Then Return 
+Const Function Light.distanceAdd(ByRef p As Const Vec3F, v As Vertex Ptr) As Boolean
+	If Not inRange(p) Then Return FALSE
 	
 	Dim As Vec3F lightNorm = p_ - p 'const
 	Dim As Double m = lightNorm.m() 'const
 
 	Dim As Double s = (r_ - m)/r_
-	If s < 0 Then s = 0
+	If s < 0 Then Return FALSE
 	s *= s
 
 	v->c += c_*s
-End Sub
+	Return TRUE
+End Function
  	
  	
 Const Function Light.inRange(ByRef p As Const Vec3F) As Boolean

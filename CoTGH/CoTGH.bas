@@ -21,7 +21,6 @@ Const As UInteger LOGICAL_SCRY = 240
 
 Dim As Double FRAME_TIME = 1.0 / 30.0
 
-
 ScreenRes PHYSICAL_SCRX, PHYSICAL_SCRY, 32
 Print "Lode..."
 
@@ -29,8 +28,8 @@ Dim As CameraController camera = CameraController( _
 		Projection(PHYSICAL_SCRX, PHYSICAL_SCRY, LOGICAL_SCRX, LOGICAL_SCRY, 256))
 Dim As GraphWrapper graph = GraphWrapper(STAGE_ENTRY_POINT)
 Dim As Image32 target = Image32(PHYSICAL_SCRX, PHYSICAL_SCRY)
-Dim As ActorBank Ptr bank = New ActorBank()
 
+Dim As ActorBank Ptr bank = New ActorBank()
 Dim As Image32 Ptr playerSprite = New Image32()
 bank->add( _
 		New act.Player( _
@@ -58,6 +57,4 @@ Scope
 	Loop Until MultiKey(fb.SC_ESCAPE)
 End Scope
 
-
 Delete(bank)
-

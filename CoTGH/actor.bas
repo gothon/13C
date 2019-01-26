@@ -172,6 +172,8 @@ Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 			Return CPtr(Player Ptr, actorPtr)->update(dt)
 		Case ActorTypes.STATUE
 			Return CPtr(Statue Ptr, actorPtr)->update(dt)	
+		Case ActorTypes.PAINTING
+			Return CPtr(Painting Ptr, actorPtr)->update(dt)		
 		Case Else
 			Return FALSE
 	End Select
@@ -188,7 +190,9 @@ Sub maybeNotify(actorPtr As Actor Ptr)
 		Case ActorTypes.PLAYER
 			CPtr(Player Ptr, actorPtr)->notify() 		
 		Case ActorTypes.STATUE
-			CPtr(Statue Ptr, actorPtr)->notify() 			
+			CPtr(Statue Ptr, actorPtr)->notify() 		
+		Case ActorTypes.PAINTING
+			CPtr(Painting Ptr, actorPtr)->notify() 				
 	End Select	
 End Sub
 
@@ -211,6 +215,8 @@ Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
 			Return CPtr(Player Ptr, actorPtr)->getModel() 
 		Case ActorTypes.STATUE
 			Return CPtr(Statue Ptr, actorPtr)->getModel() 	
+		Case ActorTypes.PAINTING
+			Return CPtr(Painting Ptr, actorPtr)->getModel() 			
 		Case Else
 			Return NULL
 	End Select
@@ -257,6 +263,10 @@ Sub DeleteActor(x As Actor Ptr)
 			Delete(CPtr(SimulationInterface Ptr, x))
  		Case ActorTypes.STATUE
  			Delete(CPtr(Statue Ptr, x))		
+ 		Case ActorTypes.SNAPSHOTINTERFACE
+ 			Delete(CPtr(SnapshotInterface Ptr, x))		
+ 		Case ActorTypes.PAINTING
+ 			Delete(CPtr(Painting Ptr, x))		
  		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
@@ -285,7 +295,11 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.SIMULATIONINTERFACE
 			Return CPtr(SimulationInterface Ptr, x)->clone(bank) 
  		Case ActorTypes.STATUE
- 			Return CPtr(Statue Ptr, x)->clone(bank) 						
+ 			Return CPtr(Statue Ptr, x)->clone(bank) 		
+ 		Case ActorTypes.SNAPSHOTINTERFACE
+ 			Return CPtr(SnapshotInterface Ptr, x)->clone(bank) 		
+ 		Case ActorTypes.PAINTING
+ 			Return CPtr(Painting Ptr, x)->clone(bank) 							
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	
