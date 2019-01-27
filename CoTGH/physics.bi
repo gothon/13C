@@ -29,6 +29,8 @@ Type Collider Extends Object
 		
 	Declare Const Function getDelegate() As Collider_Delegate
 	Declare Sub setEnabled(enabled As Boolean)
+	Declare Sub ignore(parent As act.Actor Ptr)
+	Declare Const Function getIgnore() As act.Actor Ptr
 	Declare Const Function isEnabled() As Boolean
 	
  Protected:
@@ -42,6 +44,7 @@ Type Collider Extends Object
  	As act.Actor Ptr parent_ = Any 'const
  	As UInteger refTag_ = Any
  	As Boolean enabled_ = Any
+ 	As act.Actor Ptr ignore_ = Any
 End Type
 Declare Sub deleteCollider(x As Collider Ptr)
 

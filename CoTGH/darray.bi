@@ -18,8 +18,8 @@ Type DArray_##_TYPENAME_
   Const As UInteger DARRAY_INIT_CAPACITY = 16  
   Declare Constructor(initCapacity As UInteger = DARRAY_INIT_CAPACITY)
   
-  Declare Constructor(ByRef rhs As DArray_##_TYPENAME_)
-  Declare Operator Let(ByRef rhs As DArray_##_TYPENAME_)    
+  Declare Constructor(ByRef rhs As Const DArray_##_TYPENAME_)
+  Declare Operator Let(ByRef rhs As Const DArray_##_TYPENAME_)    
   
   Declare Destructor()
 
@@ -65,7 +65,7 @@ Constructor DArray_##_TYPENAME_(initCapacity As UInteger)
   This.capacity = initCapacity
 End Constructor
 
-Constructor DArray_##_TYPENAME_(ByRef rhs As DArray_##_TYPENAME_)
+Constructor DArray_##_TYPENAME_(ByRef rhs As Const DArray_##_TYPENAME_)
   This.elements = Allocate(rhs.capacity*SizeOf(_TYPENAME_))
   DEBUG_ASSERT(This.elements <> NULL)
   This.size_ = rhs.size_
@@ -73,7 +73,7 @@ Constructor DArray_##_TYPENAME_(ByRef rhs As DArray_##_TYPENAME_)
   memcpy(This.elements, rhs.elements, rhs.size_*SizeOf(_TYPENAME_))
 End Constructor
 
-Operator DArray_##_TYPENAME_.Let(ByRef rhs As DArray_##_TYPENAME_)
+Operator DArray_##_TYPENAME_.Let(ByRef rhs As Const DArray_##_TYPENAME_)
   If rhs.capacity > capacity AndAlso elements <> NULL Then
     elements = ReAllocate(elements, rhs.capacity*SizeOf(_TYPENAME_))
     DEBUG_ASSERT(This.elements <> NULL)

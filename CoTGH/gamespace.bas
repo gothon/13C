@@ -28,7 +28,7 @@ Constructor Gamespace( _
 	This.existingEmbed_ = -1
 	This.indexToUpdate_ = NULL
 End Constructor
-
+ 
 Destructor Gamespace()
 	If primaryIndex_ <> NULL Then ig_DeleteIndex(@primaryIndex_)
 	globalBank_->unbindFrom()

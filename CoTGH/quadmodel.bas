@@ -265,6 +265,7 @@ Constructor QuadModelUVIndex(ByRef uvStart As Const Vec2F, ByRef uvEnd As Const 
 End Constructor
 
 Constructor QuadModel(ByRef other As Const QuadModel)
+	DEBUG_ASSERT(other.bindings_ = 0)
 	construct()
   setDelegate()
 	This.model_ = other.model_
@@ -272,6 +273,8 @@ Constructor QuadModel(ByRef other As Const QuadModel)
 End Constructor
 
 Operator QuadModel.Let(ByRef other As Const QuadModel)
+	DEBUG_ASSERT(bindings_ = 0)
+	DEBUG_ASSERT(other.bindings_ = 0)
 	construct()
   setDelegate()
 	model_ = other.model_

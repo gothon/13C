@@ -12,11 +12,16 @@ Constructor Collider()
 	This.parent_ = NULL
 	This.refTag_ = -1
 	This.enabled_ = TRUE
+	This.ignore_ = NULL
 End Constructor
 
 Virtual Destructor Collider()
 	DEBUG_ASSERT(refTag_ = -1)
 End Destructor
+
+Sub Collider.ignore(parent As act.Actor Ptr)
+	ignore_ = parent
+End Sub
 
 Function Collider.getTag() As UInteger
 	DEBUG_ASSERT(refTag_ <> -1)
@@ -36,6 +41,10 @@ End Sub
 
 Function Collider.getParent() As act.Actor Ptr
 	Return parent_
+End Function
+
+Const Function Collider.getIgnore() As act.Actor Ptr
+	Return ignore_
 End Function
 	
 Sub Collider.setParent(parent As act.Actor Ptr)
@@ -524,22 +533,25 @@ Sub Simulation.update(dt As Double)
   		Dim As DynamicAABB Ptr boxA = boxes_.get(indexA).getValue()
   		If Not boxA->isEnabled() Then Continue While
   		Dim As UInteger indexB = indexA
-  		While(boxes_.getNext(@indexB))
-  			Dim As DynamicAABB Ptr boxB = boxes_.get(indexB).getValue() 'const
-  			If Not boxB->isEnabled() Then Continue While
-  			Dim As ClipResult res = clipDynamicAABBToDynamicAABB(*boxA, *boxB, dt) 'const
-  			If (res.clipAxis = AxisComponent.NONE) OrElse (res.clipTime >= event.t) Then Continue While
-  			
-  			event.t = res.clipTime
-  			event.onAxis = res.clipAxis
-  			event.a = boxA
-  			event.b = boxB
-  			event.isBoxToBox = TRUE
-  		Wend
+  		If (boxA->getIgnore() = NULL) Then 
+	  		While(boxes_.getNext(@indexB))
+	  			Dim As DynamicAABB Ptr boxB = boxes_.get(indexB).getValue() 'const
+	  			If (Not boxB->isEnabled()) OrElse (boxB->getIgnore() <> NULL) Then Continue While
+	  			Dim As ClipResult res = clipDynamicAABBToDynamicAABB(*boxA, *boxB, dt) 'const
+	  			If (res.clipAxis = AxisComponent.NONE) OrElse (res.clipTime >= event.t) Then Continue While
+	  			
+	  			event.t = res.clipTime
+	  			event.onAxis = res.clipAxis
+	  			event.a = boxA
+	  			event.b = boxB
+	  			event.isBoxToBox = TRUE
+	  		Wend
+  		End If
   		indexB = -1
   		While(grids_.getNext(@indexB))
   			Dim As BlockGrid Ptr gridB = grids_.get(indexB).getValue() 'const 		
-				If Not gridB->isEnabled() Then Continue While
+				If (Not gridB->isEnabled()) _
+						OrElse ((gridB->getParent() = boxA->getIgnore()) AndAlso (boxA->getIgnore() <> NULL)) Then Continue While
   			Dim As ClipResult res = clipDynamicAABBToBlockGrid(*boxA, *gridB, dt) 'const
   			If (res.clipAxis = AxisComponent.NONE) OrElse (res.clipTime >= event.t) Then Continue While
   			

@@ -16,7 +16,8 @@ ACTOR_REQUIRED_DEF(Painting, ActorTypes.PAINTING)
 Const As UInteger PAINTING_W = 64
 Const As UInteger PAINTING_H = 48
 
-Const As UInteger INTERSECT_BUFFER = 4
+Const As UInteger INTERSECT_BUFFER_X = 4
+Const As UInteger INTERSECT_BUFFER_Y = 0
 
 Function createModel(srcImage As Image32 Ptr) As QuadModelBase Ptr
 	Dim As QuadModelUVIndex uvIndex(0 To 0) = {QuadModelUVIndex(Vec2F(0, 0), Vec2F(PAINTING_W, PAINTING_H), 0)} 'const
@@ -50,8 +51,8 @@ Function Painting.updateInternal(dt As Double) As Boolean
 	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
 	
 	Dim As AABB bounds = box_
-	bounds.o += Vec2F(INTERSECT_BUFFER, INTERSECT_BUFFER)
-	bounds.s -= 2*Vec2F(INTERSECT_BUFFER, INTERSECT_BUFFER)
+	bounds.o += Vec2F(INTERSECT_BUFFER_X, INTERSECT_BUFFER_Y)
+	bounds.s -= 2*Vec2F(INTERSECT_BUFFER_X, INTERSECT_BUFFER_Y)
 	
 	If Not player_->getBounds().intersects(bounds) Then Return FALSE
 	
@@ -89,7 +90,9 @@ End Function
 
 Function Painting.update(dt As Double) As Boolean
 	Dim As boolean retValue = updateInternal(dt)
-
+	
+	Put updatedImage_->fbImg(), (0, 0), paintingImage_->constFbImg(), PSET	
+	
 	If hasSnapshot_ Then 
 		Dim As Pixel32 Ptr pixels = updatedImage_->pixels()
 		For y As UInteger = 8 To updatedImage_->h() - 9

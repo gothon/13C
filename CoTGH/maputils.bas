@@ -318,20 +318,7 @@ Sub addStatue( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	Dim As Image32 Ptr image = Any
-	image = TextureCache.get("res/bhust.png")
-	
-	Dim As QuadModelUVIndex uvIndex(0 To 0) = _
-			{QuadModelUVIndex(Vec2F(0, 0), Vec2F(16, 32), 0)} 'const
-	Dim As Image32 Ptr tex(0 To 0) = {image}
-
-	Dim As Vec2F origin = Vec2F(x, mapPixelHeight - y - h)
-
-	Dim As QuadModelBase Ptr model = _
-			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), FALSE)
-	model->translate(Vec3F(origin.x, origin.y, 1))
-	res->bank->add( _
-			New act.Statue(res->bank, model, New DynamicAABB(AABB(origin, Vec2F(16, 32)))))	
+	res->bank->add(New act.Statue(res->bank, Vec3F(x, mapPixelHeight - y - h, 1)))	
 End Sub
 
 Sub addBillboard( _
