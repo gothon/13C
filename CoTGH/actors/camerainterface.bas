@@ -22,6 +22,7 @@ End Sub
 
 Sub CameraInterface.snap(ByRef targetP As Const Vec2F, leadingX As Double)
 	camera_->snap(targetP, leadingX)
+	guideP_ = targetP
 End Sub
 
 Const Function CameraInterface.getP() As Vec2F

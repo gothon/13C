@@ -20,6 +20,10 @@ Sub ActiveBankInterface.add(act As Actor Ptr)
 	(*activeBank_)->add(act)
 End Sub
   
+Function ActiveBankInterface.getParent() As ActorBankFwd Ptr
+	Return *activeBank_
+End Function
+  
 Function ActiveBankInterface.clone(parent As ActorBankFwd Ptr) As Actor Ptr
 	DEBUG_ASSERT(FALSE)
 End Function

@@ -50,7 +50,7 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
  	Declare Sub processAnimation()
- 	Declare Sub updateCamera()
+ 	Declare Sub updateCamera(snapToTarget As Boolean)
  	Declare Sub flipXUV()
  	Declare Sub checkArbiters()
  	Declare Sub processInteractions()
@@ -61,6 +61,8 @@ Type Player Extends DynamicCollidingModelActor
  	As DArray_ActorPtr carryableStatues_
  	As Boolean carryingStatue_ = Any
  	As FakeStatue Ptr fakeStatuePtr_ = Any
+ 	As Boolean firstPickUp_ = Any
+ 	As Integer statuePlaceCountdown_ = Any
  	
  	As Boolean grounded_ = Any
  	As Boolean lastGrounded_ = Any

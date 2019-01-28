@@ -646,9 +646,23 @@ Function intersectsBlockGrid(ByRef grid As Const BlockGrid, box As AABB) As Bool
 	
 	Dim As Vec2F extent = box.o + box.s
 	
-	Dim As Integer bx =	-Int(-(extent.x / grid.getSideLength()))
-	Dim As Integer by = -Int(-(extent.y / grid.getSideLength()))
-		
+	Dim As Integer bx =	-Int(-(extent.x / grid.getSideLength())) - 1
+	Dim As Integer by = -Int(-(extent.y / grid.getSideLength())) - 1
+	
+	If (bx < 0) OrElse (by < 0) OrElse (ax >= grid.getWidth()) OrElse (ay >= grid.getHeight()) Then Return FALSE
+	
+	ax = IIf(ax < 0, 0, ax)
+	ay = IIf(ay < 0, 0, ay)
+	
+	bx = IIf(bx >= grid.getWidth(), grid.getWidth() - 1, bx)
+	by = IIf(by >= grid.getHeight(), grid.getHeight() - 1, by)
+	
+	For y As Integer = ay To by
+		For x As Integer = ax To bx
+			If grid.getBlock(x, y) = BlockType.FULL Then Return TRUE
+		Next x
+	Next y
+	Return FALSE
 End Function
 
 Const Function Simulation.getIntersects(box As AABB) As DArray_AnyPtr

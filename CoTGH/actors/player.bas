@@ -5,6 +5,8 @@
 #Include "../actordefs.bi"
 #Include "../texturecache.bi"
 #Include "../quadmodel.bi"
+#Include "../darray.bi"
+#Include "../primitive.bi"
 
 #Include "fbgfx.bi"
 
@@ -33,6 +35,8 @@ Const As Integer STATUE_ADJUST_Y = 7
 #Define CAMERA_BUFFER_TL Vec2F(150, 100)
 #Define CAMERA_BUFFER_BR Vec2F(150, 80)
 
+DECLARE_DARRAY(AnyPtr)
+
 Namespace act
 ACTOR_REQUIRED_DEF(Player, ActorTypes.PLAYER)
 	
@@ -55,7 +59,7 @@ Constructor Player( _
 	animImage->setOffset(16, 0)
 	
 	This.animImage_ = animImage
-	This.animImage_->bindIn(TextureCache.get("res/mambazo.png"))
+	This.animImage_->bindIn(TextureCache.get("res/zamaster.png"))
 	This.lastDownPressed_ = FALSE
 	This.downLHEdge_ = FALSE
 	This.destinationPortal_ = ""
@@ -81,6 +85,8 @@ Constructor Player( _
  	This.warpCountdown_ = 0
  	This.carryingStatue_ = FALSE
  	This.fakeStatuePtr_ = NULL
+ 	This.firstPickUp_ = FALSE
+ 	This.statuePlaceCountdown_ = 0
 End Constructor
 
 Destructor Player()
@@ -92,7 +98,7 @@ Destructor Player()
 	EndIf
 End Destructor
 
-Sub Player.updateCamera()
+Sub Player.updateCamera(snapToTarget As Boolean)
 	Dim As Boolean cameraRight = facingRight_
 
 	Dim As Vec2F guideTarget = COL_PTR->getAABB().o + COL_PTR->getAABB().s*0.5
@@ -113,7 +119,12 @@ Sub Player.updateCamera()
 		guideTarget.y = cameraBound.y
 	EndIf
 
-	GET_GLOBAL("CAMERA INTERFACE", CameraInterface).guide(guideTarget, cameraRight)	
+	Dim As CameraInterface Ptr interface = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
+	If snapToTarget Then 
+		interface->snap(guideTarget, interface->getLeadingX())
+	Else
+		interface->guide(guideTarget, cameraRight)
+	EndIf	
 End Sub
 
 Sub Player.flipXUV()
@@ -141,14 +152,12 @@ Sub Player.checkArbiters()
 End Sub
 
 Sub Player.processPlatformingControls()
-	Dim As Double speed = IIf(grounded_, GROUND_SPEED, AIR_SPEED)
-	Dim As Double friction = IIf(grounded_, GROUND_FRICTION, AIR_FRICTION)
+	Dim As Double speed = IIf(grounded_, GROUND_SPEED, AIR_SPEED)*IIf(carryingStatue_, 0.9, 1.0)
+	Dim As Double friction = IIf(grounded_, GROUND_FRICTION, AIR_FRICTION)*IIf(carryingStatue_, 0.95, 1.0)
 	If MultiKey(fb.SC_LEFT) Then 
 		COL_PTR->setV(COL_PTR->getV() + Vec2F(-speed, 0))
 		If facingRight_ = TRUE Then 
-			If fakeStatuePtr_ <> NULL Then 
-				fakeStatuePtr_->getModel()->translate(Vec3F(-STATUE_ADJUST_X*2, 0, 0))
-			EndIf
+			If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(-STATUE_ADJUST_X*2, 0, 0))
 			flipXUV()
 		EndIf
 		facingRight_ = FALSE
@@ -156,9 +165,7 @@ Sub Player.processPlatformingControls()
 	If MultiKey(fb.SC_RIGHT) Then 
 		COL_PTR->setV(COL_PTR->getV() + Vec2F(speed, 0))
 		If facingRight_ = FALSE Then 
-			If fakeStatuePtr_ <> NULL Then 
-				fakeStatuePtr_->getModel()->translate(Vec3F(STATUE_ADJUST_X*2, 0, 0))
-			EndIf
+			If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(STATUE_ADJUST_X*2, 0, 0))
 			flipXUV()
 		EndIf
 		facingRight_ = TRUE
@@ -177,7 +184,7 @@ Sub Player.processPlatformingControls()
 	If MultiKey(fb.SC_Z) OrElse queuedJumpRequest Then
 		If (lastJumpPressed_ = FALSE) OrElse queuedJumpRequest Then
 			If grounded_ OrElse (lastGroundedCountdown_ > 0) Then
-				COL_PTR->setV(Vec2F(COL_PTR->getV().x, JUMP_INIT_VEL))			
+				COL_PTR->setV(Vec2F(COL_PTR->getV().x, JUMP_INIT_VEL*IIf(carryingStatue_, 0.75, 1.0)))			
 				jumpBoostCounter_ = JUMP_BOOST_FRAMES
 			ElseIf Not grounded_ Then
 				airbornJumpRequestCountdown_ = LANDING_JUMP_GRACE_FRAMES
@@ -191,7 +198,8 @@ Sub Player.processPlatformingControls()
 	EndIf
 	If jumpBoostCounter_ > 0 Then
 		jumpBoostCounter_ -= 1
-		Dim As Double boostAmount = JUMP_BOOST_VEL*(JUMP_BOOST_DECAY^(JUMP_BOOST_FRAMES - jumpBoostCounter_)) 'const
+		Dim As Double boostAmount = _
+				JUMP_BOOST_VEL*(JUMP_BOOST_DECAY^(JUMP_BOOST_FRAMES - jumpBoostCounter_))*IIf(carryingStatue_, 0.75, 1.0) 'const
 		COL_PTR->setV(COL_PTR->getV() + Vec2F(0, boostAmount))	
 	EndIf	
 	If grounded_ Then airbornJumpRequestCountdown_ = 0
@@ -246,8 +254,9 @@ Sub Player.processStatues()
 			fakeStatueModel->translate(Vec2F(-FAKE_STATUE_WIDTH*0.5, 0))
 			fakeStatueModel->translate(COL_PTR->getAABB().o + Vec2F(COL_PTR->getAABB().s.x*0.5, 0))
 			
-			fakeStatueModel->translate(Vec3F(IIf(facingRight_, STATUE_ADJUST_X, -STATUE_ADJUST_X - 0.5), STATUE_ADJUST_Y, 0.0))
+			fakeStatueModel->translate(Vec3F(IIf(facingRight_, STATUE_ADJUST_X - 1, -STATUE_ADJUST_X - 0.5), STATUE_ADJUST_Y, 0.0))
 			CPtr(ActorBank Ptr, parent_)->add(fakeStatuePtr_)
+			firstPickUp_ = TRUE
 			Exit For
 		EndIf
 	Next i		
@@ -258,9 +267,6 @@ Sub Player.processInteractions()
 	carryableStatues_.clear()
 	If Not isSnapshotting_ Then Return
 	If carryingStatue_ Then Return
-	
-	Locate 1,1: Print "READY TO SNAPSHOT"
-	
 	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
 	If Not cloneRequested_ Then
 		If activateLHEdge_ Then 
@@ -319,7 +325,9 @@ End Sub
 
 Function Player.update(dt As Double) As Boolean
 	Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
+	Dim As Boolean snapCamera = FALSE
 	If GET_GLOBAL("TRANSITION NOTIFIER", TransitionNotifier).happened() Then
+		snapCamera = TRUE
 		carryableStatues_.clear() 
 		COL_PTR->setEnabled(TRUE)
 		Dim As Vec2F spawnP = Any
@@ -329,9 +337,15 @@ Function Player.update(dt As Double) As Boolean
 			COL_PTR->setV(warpV_)
 			camera_->snap(Vec2F(0, 0), snapshotLeadingX_)
 			If facingRight_ Then 
-				If Not snapshotFacingRight_ Then flipXUV()
+				If Not snapshotFacingRight_ Then 
+					If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(-STATUE_ADJUST_X*2, 0, 0))
+					flipXUV()
+				EndIf
 			Else
-				If snapshotFacingRight_ Then flipXUV()
+				If snapshotFacingRight_ Then 
+					If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(STATUE_ADJUST_X*2, 0, 0))
+					flipXUV()
+				EndIf
 			EndIf
 			facingRight_ = snapshotFacingRight_
 		ElseIf destinationPortal_ = "" Then 
@@ -356,7 +370,7 @@ Function Player.update(dt As Double) As Boolean
 		model_->translate(COL_PTR->getDelta())
 		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(COL_PTR->getDelta())
 	EndIf
-	updateCamera()
+	updateCamera(snapCamera)
 	
 	checkArbiters()
 	processPlatformingControls()
@@ -366,15 +380,90 @@ Function Player.update(dt As Double) As Boolean
 	
 	If lastGroundedCountdown_ > 0 Then lastGroundedCountdown_ -= 1
 	If warpCountdown_ > 0 Then warpCountdown_ -= 1
+	If statuePlaceCountdown_ > 0 Then statuePlaceCountdown_ -= 1
+	firstPickUp_ = FALSE
+	
+	'''
+	Print "JUMP = Z"
+	Print "SWITCH MODE = SPACE"
+	Print "SNAPSHOT/PLACE/PICK-UP/PLACE = X"
+	Print "MODE: " + IIf(isSnapshotting_, "SNAPSHOT MODE", "PLACEMENT MODE")
+	'''
 	
 	Return FALSE
 End Function
 
 Sub Player.processCarrying()
 	If Not carryingStatue_ Then Return
-
-	''
+	If Not activateLHEdge_ Then Return
+	If Not grounded_ Then Return
+	If firstPickUp_ Then Return
 	
+	Dim As AABB targetBox = _
+			AABB(COL_PTR->getAABB().o + Vec2F(IIf(facingRight_, COL_PTR->getAABB().s.x, -16)), Vec2F(16, 32))
+	
+	Dim As Double boxStartX = targetBox.o.x 'const	
+	Dim As SimulationInterface Ptr sim = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
+	
+	Dim As Double shiftDir = IIf(facingRight_, -1, 1)
+	Dim As AABB playerBox = COL_PTR->getAABB()
+	Dim As Boolean canPlace = TRUE
+	Dim As Boolean movePlayer = TRUE
+	Do
+		Dim As AABB testBox = targetBox
+		testBox.o += Vec2F(0, 1)
+		testBox.s -= Vec2F(0, 2)
+		
+		Dim As DArray_AnyPtr statueIntersects = sim->getIntersects(testBox)
+		Dim As Boolean relevantIntersects = FALSE
+		For i As Integer = 0 To statueIntersects.size() - 1
+			If statueIntersects[i].getValue() <> @This Then 
+				relevantIntersects = TRUE
+				Exit For
+			EndIf
+		Next i
+		If Not relevantIntersects Then Exit Do
+		targetBox.o.x += shiftDir
+		If (targetBox.o.x - boxStartX)*shiftDir > 16 Then 
+			canPlace = FALSE
+			Exit Do
+		EndIf
+		
+		If movePlayer Then
+			playerBox.o.x += shiftDir
+			Dim As AABB testPlayerBox = playerBox
+			testPlayerBox.o += Vec2F(0, 1)
+			testPlayerBox.s -= Vec2F(0, 2)
+			
+			Dim As DArray_AnyPtr playerIntersects = sim->getIntersects(testPlayerBox)
+			Dim As Boolean playerRelevantIntersects = FALSE
+			For i As Integer = 0 To playerIntersects.size() - 1
+				If playerIntersects[i].getValue() <> @This Then 
+					playerRelevantIntersects = TRUE
+					Exit For
+				EndIf
+			Next i
+			
+			If playerRelevantIntersects Then
+				playerBox.o.x -= shiftDir
+				movePlayer = FALSE
+			EndIf
+		End If
+	Loop
+	If Not canPlace Then Return
+
+	carryingStatue_ = FALSE	
+	Dim As Vec2F playerModelTranslate = playerBox.o - COL_PTR->getAABB().o
+	COL_PTR->place(playerBox.o)	
+	model_->translate(playerModelTranslate)	
+
+	DEBUG_ASSERT(fakeStatuePtr_ <> NULL)
+	CPtr(ActorBank Ptr, parent_)->remove(fakeStatuePtr_)
+	fakeStatuePtr_ = NULL
+	
+	Dim As ActiveBankInterface Ptr activeInterface = @GET_GLOBAL("ACTIVEBANK INTERFACE", ActiveBankInterface)
+	activeInterface->add(New Statue(activeInterface->getParent(), Vec3F(targetBox.o.x, targetBox.o.y, 1)))
+	statuePlaceCountdown_ = 2
 End Sub
 
 Const As UInteger PLAYER_FRAME_WIDTH = 16
@@ -441,7 +530,7 @@ Const Function Player.pressedDown() As Boolean
 End Function
 
 Const Function Player.pressedActivate() As Boolean
-	Return activateLHEdge_ AndAlso (Not isSnapshotting_) AndAlso (Not carryingStatue_)
+	Return activateLHEdge_ AndAlso (Not isSnapshotting_) AndAlso (Not carryingStatue_) AndAlso (statuePlaceCountdown_ = 0)
 End Function
 
 Const Function Player.getBounds() ByRef As Const AABB

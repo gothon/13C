@@ -13,6 +13,7 @@ Type ActiveBankInterface Extends Actor
 	Declare Constructor(parent As ActorBankFwd Ptr, activeBank As ActorBank Ptr Ptr)
 	
   Declare Sub add(act As Actor Ptr)
+  Declare Function getParent() As ActorBankFwd Ptr
 	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:

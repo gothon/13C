@@ -7,7 +7,7 @@ Constructor CameraController(ByRef baseProj As Const Projection)
 	This.proj_ = baseProj
 	This.p_ = Vec2F(0, 0)
 	This.needsUpdate_ = TRUE
-	This.leadingX_ = LEAD_X_LENGTH
+	This.leadingX_ = -LEAD_X_LENGTH
 End Constructor
 
 Sub CameraController.setMode(placeAndLookOnly As Boolean)
@@ -40,7 +40,13 @@ Sub CameraController.update(t As Double, ByRef targetP As Const Vec2F, facingRig
 		leadTarget = IIf(facingRight, LEAD_X_LENGTH, -LEAD_X_LENGTH)
 		leadingX_ += Sgn(leadTarget - leadingX_)*t*LEAD_SPEED
 		If Abs(leadingX_) > LEAD_X_LENGTH Then leadingX_ = LEAD_X_LENGTH*Sgn(leadingX_)
-		p_ = targetP + Vec2F(leadingX_, 0)
+		p_.y = targetP.y
+		Dim As Vec2F headingDir = targetP - p_
+		Dim As Double headingM = headingDir.m()
+		If headingM <> 0 Then 
+			If headingM > 100*t Then headingDir = (headingDir / headingM)*100*t	
+			p_ += headingDir
+		EndIf
 		needsUpdate_ = TRUE
 	EndIf 
 End Sub
@@ -49,7 +55,7 @@ Function CameraController.proj() ByRef As Const Projection
 	If needsUpdate_ Then 
 		needsUpdate_ = FALSE
 		If Not placeAndLookOnly_ Then
-			proj_.placeAndLookAt(Vec3F(p_.x - leadingX_*0.5, p_.y + 34, 180), Vec3F(p_.x, p_.y + 5, 0))
+			proj_.placeAndLookAt(Vec3F(p_.x + leadingX_*0.5, p_.y + 34, 180), Vec3F(p_.x + leadingX_, p_.y + 5, 0))
 		Else 
 			proj_.placeAndLookAt(pPlace_, pLook_)
 		EndIf 
