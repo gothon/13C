@@ -8,8 +8,11 @@ End Constructor
 Const Function AABB.intersects(ByRef other As Const AABB) As Boolean
   Dim As Vec2F extent = o + s 'Const
   Dim As Vec2F otherExtent = other.o + other.s 'Const
-  Return Not (extent.x <= other.o.x OrElse _
-      extent.y <= other.o.y OrElse _
-      otherExtent.x <= o.x OrElse _
-      otherExtent.y <= o.y)
+  
+  If extent.x <= other.o.x Then Return FALSE
+  If extent.y <= other.o.y Then Return FALSE
+  If otherExtent.x <= o.x Then Return FALSE
+  If otherExtent.y <= o.y Then Return FALSE
+  
+  Return TRUE
 End Function

@@ -42,7 +42,7 @@ Type StaticList_##_TYPENAME_
   '	   Print list.get(index)
   '	 Wend
   '
-  Declare Function getNext(index As UInteger Ptr) As Boolean
+  Declare Const Function getNext(index As UInteger Ptr) As Boolean
   
   Declare Function get(index As UInteger) ByRef As _TYPENAME_
   Declare Const Function getConst(index As UInteger) ByRef As Const _TYPENAME_
@@ -166,7 +166,7 @@ Sub StaticList_##_TYPENAME_.clear()
   lastValidIndex = curIndex
 End Sub
   
-Function StaticList_##_TYPENAME_.getNext(index As UInteger Ptr) As Boolean
+Const Function StaticList_##_TYPENAME_.getNext(index As UInteger Ptr) As Boolean
 	If usedSize = 0 Then Return FALSE
 	If *index = -1 Then 
 		*index = lastValidIndex

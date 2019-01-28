@@ -27,6 +27,9 @@ Const As UInteger FALLING_JUMP_GRACE_FRAMES = 4
 
 Const As UInteger WARP_ANIM_COUNTDOWN = 60
 
+Const As Integer STATUE_ADJUST_X = 7
+Const As Integer STATUE_ADJUST_Y = 7
+
 #Define CAMERA_BUFFER_TL Vec2F(150, 100)
 #Define CAMERA_BUFFER_BR Vec2F(150, 80)
 
@@ -76,6 +79,8 @@ Constructor Player( _
  	This.isWarped_ = FALSE
  	This.embedId_ = -1
  	This.warpCountdown_ = 0
+ 	This.carryingStatue_ = FALSE
+ 	This.fakeStatuePtr_ = NULL
 End Constructor
 
 Destructor Player()
@@ -140,12 +145,22 @@ Sub Player.processPlatformingControls()
 	Dim As Double friction = IIf(grounded_, GROUND_FRICTION, AIR_FRICTION)
 	If MultiKey(fb.SC_LEFT) Then 
 		COL_PTR->setV(COL_PTR->getV() + Vec2F(-speed, 0))
-		If facingRight_ = TRUE Then flipXUV()
+		If facingRight_ = TRUE Then 
+			If fakeStatuePtr_ <> NULL Then 
+				fakeStatuePtr_->getModel()->translate(Vec3F(-STATUE_ADJUST_X*2, 0, 0))
+			EndIf
+			flipXUV()
+		EndIf
 		facingRight_ = FALSE
 	EndIf
 	If MultiKey(fb.SC_RIGHT) Then 
 		COL_PTR->setV(COL_PTR->getV() + Vec2F(speed, 0))
-		If facingRight_ = FALSE Then flipXUV()
+		If facingRight_ = FALSE Then 
+			If fakeStatuePtr_ <> NULL Then 
+				fakeStatuePtr_->getModel()->translate(Vec3F(STATUE_ADJUST_X*2, 0, 0))
+			EndIf
+			flipXUV()
+		EndIf
 		facingRight_ = TRUE
 	EndIf
 	COL_PTR->setV(Vec2F(COL_PTR->getV().x*friction, COL_PTR->getV().y))
@@ -209,10 +224,44 @@ Sub Player.disableCollision()
 	COL_PTR->setEnabled(FALSE)
 End Sub
 
+Sub Player.claimCarryable(statue As Actor Ptr)
+	carryableStatues_.push(statue)
+End Sub
+
+Sub Player.processStatues()
+	If Not activateLHEdge_ Then Return
+	If cloneRequested_ Then Return
+	If carryingStatue_ Then Return
+	For i As Integer = 0 To carryableStatues_.size() - 1
+		Dim As Statue Ptr statue_ = CPtr(Statue Ptr, carryableStatues_[i].getValue())
+		Dim As Const AABB Ptr statueAabb = @(CPtr(DynamicAABB Ptr, statue_->getCollider)->getAABB())	
+		Dim As Boolean statueToRight = (statueAabb->o.x - COL_PTR->getAABB().o.x) > 0
+		If facingRight_ Eqv statueToRight Then
+			statue_->collect()
+			carryingStatue_ = TRUE
+			fakeStatuePtr_ = New FakeStatue(parent_)
+			
+			Dim As QuadModelBase Ptr fakeStatueModel = fakeStatuePtr_->getModel()
+			
+			fakeStatueModel->translate(Vec2F(-FAKE_STATUE_WIDTH*0.5, 0))
+			fakeStatueModel->translate(COL_PTR->getAABB().o + Vec2F(COL_PTR->getAABB().s.x*0.5, 0))
+			
+			fakeStatueModel->translate(Vec3F(IIf(facingRight_, STATUE_ADJUST_X, -STATUE_ADJUST_X - 0.5), STATUE_ADJUST_Y, 0.0))
+			CPtr(ActorBank Ptr, parent_)->add(fakeStatuePtr_)
+			Exit For
+		EndIf
+	Next i		
+End Sub
+
 Sub Player.processInteractions()
-	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+	processStatues()
+	carryableStatues_.clear()
 	If Not isSnapshotting_ Then Return
+	If carryingStatue_ Then Return
+	
 	Locate 1,1: Print "READY TO SNAPSHOT"
+	
+	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
 	If Not cloneRequested_ Then
 		If activateLHEdge_ Then 
 			If snapshot_ <> NULL Then
@@ -271,6 +320,7 @@ End Sub
 Function Player.update(dt As Double) As Boolean
 	Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
 	If GET_GLOBAL("TRANSITION NOTIFIER", TransitionNotifier).happened() Then
+		carryableStatues_.clear() 
 		COL_PTR->setEnabled(TRUE)
 		Dim As Vec2F spawnP = Any
 		If isWarped_ Then
@@ -298,11 +348,13 @@ Function Player.update(dt As Double) As Boolean
 		EndIf 
 		Dim As Vec2F diff = spawnP - COL_PTR->getAABB().o
 		COL_PTR->place(spawnP)
-		model_->translate(Vec3F(diff.x, diff.y, 0))
-		model_->translate(COL_PTR->getDelta())
+		Dim As Vec3F modelTranslate = Vec3F(diff.x, diff.y, 0) + Vec3F(COL_PTR->getDelta())
+		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(modelTranslate)
+		model_->translate(modelTranslate)
 		warpCountdown_ = WARP_ANIM_COUNTDOWN
 	Else
 		model_->translate(COL_PTR->getDelta())
+		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(COL_PTR->getDelta())
 	EndIf
 	updateCamera()
 	
@@ -310,12 +362,20 @@ Function Player.update(dt As Double) As Boolean
 	processPlatformingControls()
 	processAnimation()
 	processInteractions()
+	processCarrying()
 	
 	If lastGroundedCountdown_ > 0 Then lastGroundedCountdown_ -= 1
 	If warpCountdown_ > 0 Then warpCountdown_ -= 1
 	
 	Return FALSE
 End Function
+
+Sub Player.processCarrying()
+	If Not carryingStatue_ Then Return
+
+	''
+	
+End Sub
 
 Const As UInteger PLAYER_FRAME_WIDTH = 16
 Const As UInteger JUMP_FRAME = 6
@@ -381,7 +441,7 @@ Const Function Player.pressedDown() As Boolean
 End Function
 
 Const Function Player.pressedActivate() As Boolean
-	Return activateLHEdge_ AndAlso (Not isSnapshotting_)
+	Return activateLHEdge_ AndAlso (Not isSnapshotting_) AndAlso (Not carryingStatue_)
 End Function
 
 Const Function Player.getBounds() ByRef As Const AABB

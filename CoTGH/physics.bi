@@ -4,6 +4,7 @@
 #Include "aabb.bi"
 #Include "vec2f.bi"
 #Include "actor.bi"
+#Include "darray.bi"
 #Include "primitive.bi"
 #Include "staticlist.bi"
 
@@ -12,6 +13,8 @@ Enum Collider_Delegate Explicit
 	DYNAMICAABB,
 	BLOCKGRID
 End Enum
+
+DECLARE_DARRAY(AnyPtr)
 
 Type Collider Extends Object
  Public:
@@ -147,6 +150,8 @@ Type Simulation
  	Declare Sub add(c As Collider Ptr)
  	Declare Sub add(grid As BlockGrid Ptr)
  	Declare Sub add(box As DynamicAABB Ptr)
+ 	
+	Declare Const Function getIntersects(box As AABB) As DArray_AnyPtr
  	
  	Declare Sub remove(c As Collider Ptr)
  	Declare Sub remove(grid As BlockGrid Ptr)

@@ -180,5 +180,6 @@ End Function
 #EndMacro 
 
 DECLARE_PRIMITIVE_PTR(ZString)
+DECLARE_PRIMITIVE_PTR(Any)
 
 #EndIf

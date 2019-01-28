@@ -639,3 +639,31 @@ Sub Simulation.update(dt As Double)
 	  End If
 	Wend
 End Sub
+
+Function intersectsBlockGrid(ByRef grid As Const BlockGrid, box As AABB) As Boolean
+	Dim As Integer ax = Int(box.o.x / grid.getSideLength()) 'const
+	Dim As Integer ay = Int(box.o.y / grid.getSideLength()) 'const
+	
+	Dim As Vec2F extent = box.o + box.s
+	
+	Dim As Integer bx =	-Int(-(extent.x / grid.getSideLength()))
+	Dim As Integer by = -Int(-(extent.y / grid.getSideLength()))
+		
+End Function
+
+Const Function Simulation.getIntersects(box As AABB) As DArray_AnyPtr
+	Dim As DArray_AnyPtr parents
+	Dim As UInteger index = -1
+	While(boxes_.getNext(@index))
+		Dim As Const DynamicAABB Ptr boxB = boxes_.getConst(index).getValue() 'const
+		If (Not boxB->isEnabled()) OrElse (boxB->getIgnore() <> NULL) Then Continue While
+		If (boxB->getParent() <> NULL) AndAlso (boxB->getAABB().intersects(box)) Then parents.push(boxB->getParent())
+	Wend	
+	index = -1
+	While(grids_.getNext(@index))
+  	Dim As Const BlockGrid Ptr gridB = grids_.getConst(index).getValue() 'const 		
+		If Not gridB->isEnabled() Then Continue While
+		If (gridB->getParent() <> NULL) AndAlso intersectsBlockGrid(*gridB, box) Then parents.push(gridB->getParent())		
+	Wend	
+	Return parents
+End Function

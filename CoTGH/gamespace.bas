@@ -56,6 +56,7 @@ Sub Gamespace.addSystemActors()
 	globalBank_->add(New act.TransitionNotifier(globalBank_, @transitionOccured_))
 	globalBank_->add(New act.SimulationInterface(globalBank_, @sim_))
 	globalBank_->add(New act.SnapshotInterface(globalBank_, target_))
+	globalBank_->add(New act.ActiveBankInterface(globalBank_, @activeBank_))
 End Sub
 	
 Sub Gamespace.init(stage As Const ZString Ptr)

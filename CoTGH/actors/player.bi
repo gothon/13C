@@ -5,6 +5,11 @@
 #Include "../aabb.bi"
 #Include "../image32.bi"
 #Include "../indexgraph.bi"
+#Include "../actordefs.bi"
+#Include "../darray.bi"
+#Include "../actorbank.bi"
+
+DECLARE_DARRAY(ActorPtr)
 
 Namespace act
 	
@@ -33,6 +38,8 @@ Type Player Extends DynamicCollidingModelActor
 	Declare Sub placeSnapshot(replaceId As UInteger)
 	Declare Const Function readyToPlace() As Boolean
 	
+	Declare Sub claimCarryable(statue As Actor Ptr)
+	
 	Declare Sub claimSnapshot( _
 			embedId As UInteger Ptr, _
 			snapshot As Image32 Ptr Ptr, _
@@ -48,6 +55,12 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Sub checkArbiters()
  	Declare Sub processInteractions()
  	Declare Sub processPlatformingControls()
+ 	Declare Sub processStatues()
+ 	Declare Sub processCarrying()
+ 	
+ 	As DArray_ActorPtr carryableStatues_
+ 	As Boolean carryingStatue_ = Any
+ 	As FakeStatue Ptr fakeStatuePtr_ = Any
  	
  	As Boolean grounded_ = Any
  	As Boolean lastGrounded_ = Any

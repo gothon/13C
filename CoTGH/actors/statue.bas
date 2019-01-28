@@ -19,8 +19,13 @@ Const As UInteger BREAK_END_FRAME = 12
 
 Const As UInteger BREAK_FRAME_DELAY = 2
 
-Const As UInteger STATUE_W = 16
-Const As UInteger STATUE_H = 32
+Const As Integer STATUE_W = 16
+Const As Integer STATUE_H = 32
+	
+Const As Integer CARRY_BUFFER_X = 2
+Const As Integer CARRY_LEVEL_Y_DEC = 20
+
+Const As Integer PLAYER_OFF_COUNTDOWN = 2
 	
 #Define COL_PTR CPtr(DynamicAABB Ptr, collider_)
 
@@ -43,6 +48,9 @@ Constructor Statue(parent As ActorBankFwd Ptr, p As Vec3F)
 	This.solid_ = TRUE
 	This.lastStoodOn_ = FALSE
 	This.frameCounter_ = BREAK_FRAME_DELAY
+	This.collectRequested_ = FALSE
+	This.restedOn_ = FALSE
+	This.playerOffCountdown_ = -1
 End Constructor
 
 Destructor Statue()
@@ -50,24 +58,40 @@ Destructor Statue()
 	Delete(animImage_)
 End Destructor
 
+Sub Statue.collect()
+	collectRequested_ = TRUE
+End Sub
+
 Function Statue.update(dt As Double) As Boolean
+	If collectRequested_ Then Return TRUE
+	
 	model_->translate(COL_PTR->getDelta())
 	
+	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
 	Dim As Boolean playerIsOn = FALSE
 	If solid_ Then 	
-		Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
 		For i As Integer = 0 to COL_PTR->getArbiters().size() - 1
 			Dim As Arbiter Ptr arb = @(COL_PTR->getArbiters()[i])
-			If (arb->onAxis And AxisComponent.Y_P) AndAlso (arb->actorRef = player_) Then 
-				playerIsOn = TRUE
+			If arb->onAxis And AxisComponent.Y_P Then
+				restedOn_ = TRUE
+				If arb->actorRef = player_ Then playerIsOn = TRUE
 			EndIf
 		Next i
-		If lastStoodOn_ AndAlso (Not playerIsOn) Then
-			COL_PTR->ignore(player_)
-			solid_ = FALSE
-			currentFrame_ = BREAK_START_FRAME
+		
+		If lastStoodOn_ AndAlso (Not playerIsOn) Then 
+			playerOffCountdown_ = PLAYER_OFF_COUNTDOWN
+		ElseIf (Not lastStoodOn_) AndAlso playerIsOn Then
+			playerOffCountdown_ = -1
 		EndIf
 	End If 
+	
+	If (playerOffCountdown_ = 0) AndAlso solid_ Then
+		COL_PTR->ignore(player_)
+		solid_ = FALSE
+		currentFrame_ = BREAK_START_FRAME
+	EndIf
+			
+	If playerOffCountdown_ > 0 Then playerOffCountdown_ -= 1
 			
 	If (currentFrame_ >= BREAK_START_FRAME) AndAlso (currentFrame_ <> BREAK_END_FRAME) Then
 		frameCounter_ -= 1
@@ -79,10 +103,35 @@ Function Statue.update(dt As Double) As Boolean
 		currentFrame_ = WINCE_FRAME
 	End If
 	
+	If currentFrame_ = INIT_FRAME Then
+		processCarryable()
+	EndIf
+	
 	animImage_->setOffset(currentFrame_ * STATUE_W, 0)
 	lastStoodOn_ = playerIsOn
+	
 	Return FALSE
 End Function
+
+Sub Statue.processCarryable()
+	If restedOn_ Then Return
+	If COL_PTR->getV().m() <> 0 Then Return
+	
+	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+	If graph->cloneRequested() Then Return
+	
+	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
+	
+	Dim As AABB carryBounds = COL_PTR->getAABB()
+	carryBounds.o.x -= CARRY_BUFFER_X
+	carryBounds.s.x += 2*CARRY_BUFFER_X
+	carryBounds.s.y -= CARRY_LEVEL_Y_DEC
+	
+	Dim As AABB playerBounds = CPtr(DynamicAABB Ptr, player_->getCollider())->getAABB()
+	playerBounds.s.y -= CARRY_LEVEL_Y_DEC
+	
+	If carryBounds.intersects(playerBounds) Then player_->claimCarryable(@This)
+End Sub
 
 Sub Statue.notify()
 	''
@@ -97,6 +146,8 @@ Function Statue.clone(parent As ActorBankFwd Ptr) As Actor Ptr
 	statch->lastStoodOn_ = FALSE
 	statch->frameCounter_ = frameCounter_
 	statch->animImage_->setOffset(statch->currentFrame_ * STATUE_W, 0)
+	statch->collectRequested_ = collectRequested_
+	statch->playerOffCountdown_ = playerOffCountdown_
 	Return statch
 End Function
 

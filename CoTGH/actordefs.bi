@@ -16,5 +16,7 @@
 #Include "actors/statue.bi"
 #Include "actors/painting.bi"
 #Include "actors/snapshotinterface.bi"
+#Include "actors/fakestatue.bi"
+#Include "actors/activebankinterface.bi"
 
 #EndIf

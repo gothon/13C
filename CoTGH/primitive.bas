@@ -52,3 +52,4 @@ Const Function ConstZStringPtr.getValue() As Const ZString Ptr
 End Function
 
 DEFINE_PRIMITIVE_PTR(ZString)
+DEFINE_PRIMITIVE_PTR(Any)

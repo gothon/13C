@@ -17,7 +17,7 @@ Constructor GraphInterface(parent As ActorBankFwd Ptr, gs As GamespaceFwd Ptr)
 	This.cloneRequested_ = FALSE
 End Constructor
 
-Function GraphInterface.cloneRequested() As Boolean
+Const Function GraphInterface.cloneRequested() As Boolean
 	Return cloneRequested_
 End Function
 

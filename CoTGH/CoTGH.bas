@@ -22,6 +22,7 @@ Const As UInteger LOGICAL_SCRY = 240
 Dim As Double FRAME_TIME = 1.0 / 30.0
 
 ScreenRes PHYSICAL_SCRX, PHYSICAL_SCRY, 32
+SetMouse ,,0
 Print "Lode..."
 
 Dim As CameraController camera = CameraController( _ 
@@ -52,7 +53,6 @@ Scope
 		ScreenLock
 		Put (0, 0), target.fbImg(), PSet
 		ScreenUnLock
-	
 		Locate 1,1: Print limiter.getFps()
 	Loop Until MultiKey(fb.SC_ESCAPE)
 End Scope

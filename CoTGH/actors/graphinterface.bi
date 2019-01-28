@@ -21,10 +21,10 @@ Type GraphInterface Extends Actor
 	Declare Sub requestGo(key As Const ZString Ptr)
 	Declare Sub requestGoIndex(index As ig_Index)	
 	Declare Sub embed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
+	Declare Const Function cloneRequested() As Boolean	
 	'---
 
 	Declare Sub setClone(index As ig_Index)
-	Declare Function cloneRequested() As Boolean	
 	Declare Function getRequestGoKeyAndClear() As String
 	Declare Function getRequestGoIndexAndClear() As ig_Index
 	

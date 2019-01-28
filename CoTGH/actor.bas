@@ -216,7 +216,9 @@ Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
 		Case ActorTypes.STATUE
 			Return CPtr(Statue Ptr, actorPtr)->getModel() 	
 		Case ActorTypes.PAINTING
-			Return CPtr(Painting Ptr, actorPtr)->getModel() 			
+			Return CPtr(Painting Ptr, actorPtr)->getModel()
+		Case ActorTypes.FAKESTATUE
+			Return CPtr(FakeStatue Ptr, actorPtr)->getModel()			
 		Case Else
 			Return NULL
 	End Select
@@ -267,6 +269,10 @@ Sub DeleteActor(x As Actor Ptr)
  			Delete(CPtr(SnapshotInterface Ptr, x))		
  		Case ActorTypes.PAINTING
  			Delete(CPtr(Painting Ptr, x))		
+ 		Case ActorTypes.FAKESTATUE
+ 			Delete(CPtr(FakeStatue Ptr, x))
+ 		Case ActorTypes.ACTIVEBANKINTERFACE
+ 			Delete(CPtr(ActiveBankInterface Ptr, x)) 		
  		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
@@ -299,7 +305,11 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.SNAPSHOTINTERFACE
  			Return CPtr(SnapshotInterface Ptr, x)->clone(bank) 		
  		Case ActorTypes.PAINTING
- 			Return CPtr(Painting Ptr, x)->clone(bank) 							
+ 			Return CPtr(Painting Ptr, x)->clone(bank) 			
+ 		Case ActorTypes.FAKESTATUE
+ 			Return CPtr(FakeStatue Ptr, x)->clone(bank) 				
+ 		Case ActorTypes.ACTIVEBANKINTERFACE
+ 			Return CPtr(ActiveBankInterface Ptr, x)->clone(bank) 		 			
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	

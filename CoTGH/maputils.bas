@@ -214,6 +214,7 @@ Function createTileModel( _
 			tilesetIndex -= 1
 			DEBUG_ASSERT(tilesetIndex >= 0)
 		Wend
+		
 		'Check that this isn't a meta tileset that slipped through
 		DEBUG_ASSERT(tilesets(tilesetIndex).tileset <> NULL)
 		
@@ -228,7 +229,7 @@ Function createTileModel( _
 		Dim As UInteger modelTexIndex = UBound(modelTex)
 		Dim As Boolean textureFound = FALSE
 		
-		If UBound(modelTex) > 0 Then 
+		If UBound(modelTex) > 0 Then
 			For q As UInteger = 0 To UBound(modelTex) - 1
 				If modelTex(q) = tilesets(tilesetIndex).tileset Then
 					textureFound = TRUE
@@ -239,7 +240,7 @@ Function createTileModel( _
 		End If 
 		If textureFound = FALSE Then
 			modelTex(modelTexIndex) = tilesets(tilesetIndex).tileset
-			ReDim Preserve modelTex(0 To UBound(modelTex) + 1) As Const Tileset Ptr 
+			ReDim Preserve modelTex(0 To UBound(modelTex) + 1) As Tileset Ptr 
 		EndIf
 		
 		'Add any uv/texture index pairs associated with this tile and get the first of the 5 uv-indices for
