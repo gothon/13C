@@ -120,6 +120,9 @@ Type DynamicAABB Extends Collider
 	Declare Const Function getAABB() ByRef As Const AABB
 	Declare Const Function getV() ByRef As Const Vec2F
 	
+	Declare Sub enableGravity(x As Boolean)
+	Declare Const Function gravityEnabled() As Boolean
+	
  	Declare Function getArbiters() ByRef As DArray_Arbiter
  		
  Protected:
@@ -127,6 +130,7 @@ Type DynamicAABB Extends Collider
  Private:
  	As AABB box_ = Any
  	As Vec2F v_ = Any
+ 	As Boolean ignoreGrav_ = Any
  	
  	As DArray_Arbiter arbiters_
 End Type

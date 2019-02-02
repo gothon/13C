@@ -18,5 +18,7 @@
 #Include "actors/snapshotinterface.bi"
 #Include "actors/fakestatue.bi"
 #Include "actors/activebankinterface.bi"
+#Include "actors/chandelier.bi"
+#Include "actors/leecher.bi"
 
 #EndIf

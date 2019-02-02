@@ -353,7 +353,7 @@ Sub addBillboard( _
 
 	Dim As QuadModelBase Ptr model = _
 			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), FALSE)
-	model->translate(Vec3F(x, mapPixelHeight - y - h, z + 8))
+	model->translate(Vec3F(x, mapPixelHeight - y - h, z))
 	res->bank->add(New act.DecorativeModel(res->bank, model))
 End Sub
 
@@ -377,7 +377,7 @@ Sub addLight( _
 	EndIf
 		
 	res->bank->add(New act.DecorativeLight(res->bank, New Light( _
-			Vec3F(x + w*0.5, mapPixelHeight - (y + h*0.5), z + 8), _
+			Vec3F(x + w*0.5, mapPixelHeight - (y + h*0.5), z), _
 			Vec3F(Val(*getPropOrDie(props, "r")), Val(*getPropOrDie(props, "g")), Val(*getPropOrDie(props, "b"))), _
 			Val(*getPropOrDie(props, "radius")), _
 			mode)))
@@ -436,7 +436,30 @@ Sub addPainting( _
 	  z As Single, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	res->bank->Add(New act.Painting(res->bank, Vec3F(x, mapPixelHeight - y - h, z + 2)))
+	res->bank->Add(New act.Painting(res->bank, Vec3F(x, mapPixelHeight - y - h, z)))
+End Sub
+
+Sub addChandelier( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	res->bank->Add(New act.Chandelier(res->bank, Vec3F(x, mapPixelHeight - y - h, 1)))
+End Sub
+
+Sub addLeecher( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	res->bank->Add(New act.Leecher(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
 End Sub
 
 Sub processObject( _
@@ -463,6 +486,10 @@ Sub processObject( _
 			addStatue(props, mapPixelHeight, x, y, w, h, res)		
 		Case "PAINTING"	
 			addPainting(props, mapPixelHeight, x, y, z, h, res)	
+		Case "CHANDELIER"
+			addChandelier(props, mapPixelHeight, x, y, z, h, res)	
+		Case "LEECHER"
+			addLeecher(props, mapPixelHeight, x, y, z, w, h, res)		
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select
@@ -516,7 +543,7 @@ Sub processObjectLayers( _
 		res As ParseResult Ptr)
 	Dim As Const xmlNode Ptr node = getMapChildrenFromRootOrDie(root)
 	'Push objects in layer to center of layer block z
-	layerStartDepth -= sideLength*0.5
+	layerStartDepth -= 0
 	Do 
 		If nodeIsElementWithName(node, "objectgroup") Then
 			If node->children Then processObjects(node->children, mapPixelHeight, layerStartDepth, relativePath, res)

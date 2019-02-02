@@ -160,6 +160,28 @@ Function DynamicCollidingModelActor.getCollider() As ColliderFwd Ptr
 	Return collider_
 End Function
 
+Constructor DynamicCollidingModelLightActor()
+	DEBUG_ASSERT(parent_ = NULL)
+End Constructor
+  	
+Constructor DynamicCollidingModelLightActor( _
+		parent As ActorBankFwd Ptr, _
+	  model As QuadModelBase Ptr, _
+	  colliderPtr As ColliderFwd Ptr, _
+	  l As Light Ptr)
+	DEBUG_ASSERT(l <> NULL)	
+	Base.Constructor(parent, model, colliderPtr)
+	This.light_ = l
+End Constructor
+
+Virtual Destructor DynamicCollidingModelLightActor()
+	Delete(light_)
+End Destructor
+	
+Function DynamicCollidingModelLightActor.getLight() As Light Ptr
+	Return light_
+End Function
+
 Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 	Select Case As Const actorPtr->getType()
 		Case ActorTypes.DECORATIVE_LIGHT
@@ -174,6 +196,10 @@ Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 			Return CPtr(Statue Ptr, actorPtr)->update(dt)	
 		Case ActorTypes.PAINTING
 			Return CPtr(Painting Ptr, actorPtr)->update(dt)		
+		Case ActorTypes.CHANDELIER
+			Return CPtr(Chandelier Ptr, actorPtr)->update(dt)
+		Case ActorTypes.LEECHER
+			Return CPtr(Leecher Ptr, actorPtr)->update(dt)			
 		Case Else
 			Return FALSE
 	End Select
@@ -192,7 +218,11 @@ Sub maybeNotify(actorPtr As Actor Ptr)
 		Case ActorTypes.STATUE
 			CPtr(Statue Ptr, actorPtr)->notify() 		
 		Case ActorTypes.PAINTING
-			CPtr(Painting Ptr, actorPtr)->notify() 				
+			CPtr(Painting Ptr, actorPtr)->notify() 			
+		Case ActorTypes.CHANDELIER
+			CPtr(Chandelier Ptr, actorPtr)->notify() 
+		Case ActorTypes.LEECHER
+			CPtr(Leecher Ptr, actorPtr)->notify() 			
 	End Select	
 End Sub
 
@@ -200,6 +230,8 @@ Function getLightOrNull(actorPtr As Actor Ptr) As Light Ptr
 	Select Case As Const actorPtr->getType()
 		Case ActorTypes.DECORATIVE_LIGHT
 			Return CPtr(DecorativeLight Ptr, actorPtr)->getLight() 
+		Case ActorTypes.CHANDELIER
+ 			Return CPtr(Chandelier Ptr, actorPtr)->getLight()		
 		Case Else
 			Return NULL
 	End Select
@@ -218,7 +250,9 @@ Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
 		Case ActorTypes.PAINTING
 			Return CPtr(Painting Ptr, actorPtr)->getModel()
 		Case ActorTypes.FAKESTATUE
-			Return CPtr(FakeStatue Ptr, actorPtr)->getModel()			
+			Return CPtr(FakeStatue Ptr, actorPtr)->getModel()		
+		Case ActorTypes.CHANDELIER
+ 			Return CPtr(Chandelier Ptr, actorPtr)->getModel()	
 		Case Else
 			Return NULL
 	End Select
@@ -232,6 +266,8 @@ Function getColliderOrNull(actorPtr As Actor Ptr) As ColliderFwd Ptr
 			Return CPtr(Player Ptr, actorPtr)->getCollider() 
 		Case ActorTypes.STATUE
 			Return CPtr(Statue Ptr, actorPtr)->getCollider() 	
+		Case ActorTypes.CHANDELIER
+ 			Return CPtr(Chandelier Ptr, actorPtr)->getCollider()
 		Case Else
 			Return NULL
 	End Select
@@ -273,6 +309,10 @@ Sub DeleteActor(x As Actor Ptr)
  			Delete(CPtr(FakeStatue Ptr, x))
  		Case ActorTypes.ACTIVEBANKINTERFACE
  			Delete(CPtr(ActiveBankInterface Ptr, x)) 		
+ 		Case ActorTypes.CHANDELIER
+ 			Delete(CPtr(Chandelier Ptr, x)) 	
+ 		Case ActorTypes.LEECHER
+ 			Delete(CPtr(Leecher Ptr, x))
  		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
@@ -309,7 +349,11 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.FAKESTATUE
  			Return CPtr(FakeStatue Ptr, x)->clone(bank) 				
  		Case ActorTypes.ACTIVEBANKINTERFACE
- 			Return CPtr(ActiveBankInterface Ptr, x)->clone(bank) 		 			
+ 			Return CPtr(ActiveBankInterface Ptr, x)->clone(bank) 		 
+ 		Case ActorTypes.CHANDELIER
+ 			Return CPtr(Chandelier Ptr, x)->clone(bank) 		
+ 		Case ActorTypes.LEECHER
+ 			Return CPtr(Leecher Ptr, x)->clone(bank) 						
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	

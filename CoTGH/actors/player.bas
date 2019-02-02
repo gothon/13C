@@ -541,6 +541,15 @@ Sub Player.setDestinationPortal(dest As Const ZString Ptr)
 	destinationPortal_ = *dest
 End Sub
 
+Sub Player.leech()
+	If snapshot_ <> NULL Then
+		Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+		graph->deleteIndex(@clonedIndex_)
+		Delete(snapshot_)
+		snapshot_ = NULL
+	EndIf
+End Sub
+
 Sub Player.notify()
 	''
 End Sub

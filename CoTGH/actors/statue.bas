@@ -32,7 +32,12 @@ Const As Integer PLAYER_OFF_COUNTDOWN = 2
 Function Statue.createModel(srcImage As Image32 Ptr) As QuadModelBase Ptr
 	Dim As QuadModelUVIndex uvIndex(0 To 0) = {QuadModelUVIndex(Vec2F(0, 0), Vec2F(STATUE_W, STATUE_H), 0)} 'const
 	Dim As Image32 Ptr tex(0 To 0) = {srcImage}
-	Return New QuadModel(Vec3F(STATUE_W, STATUE_H, 0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex())
+	Return New QuadModel( _
+			Vec3F(STATUE_W, STATUE_H, 0), _
+			QuadModelTextureCube(1, 0, 0, 0, 0), _
+			uvIndex(), _
+			tex(), _
+			FALSE)
 End Function
 	
 Constructor Statue(parent As ActorBankFwd Ptr, p As Vec3F)

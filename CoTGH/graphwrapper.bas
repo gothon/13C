@@ -25,25 +25,23 @@ Constructor GraphWrapper(entryMap As Const ZString Ptr)
 		For i As Integer = 0 To res.connections.size() - 1
 			Dim As String relativeConnection = _
 					util.pathRelativeToAbsolute(entryMapUpperCase, UCase(*(res.connections[i].getValue())))
-	
+			
 			If ig_BuilderKeyExists(builder, StrPtr(relativeConnection)) = 0 Then
-				
 				Dim As Boolean duplicatedInList = FALSE
-				For q As Integer = 0 To i - 1
-					If *(res.connections[i].getValue()) = *(res.connections[q].getValue()) Then
-						duplicatedInList = TRUE
-						Exit For
-					EndIf
-				Next q
-				
-				If Not duplicatedInList Then 
-					stages.push(util.cloneZString(StrPtr(relativeConnection)))
+				If stages.size() <> 0 Then					
+					For q As Integer = 0 To stages.size() - 1
+						If relativeConnection = *(stages[q].getValue()) Then
+							duplicatedInList = TRUE
+							Exit For
+						EndIf
+					Next q
 				End If
+						
+				If Not duplicatedInList Then stages.push(util.cloneZString(StrPtr(relativeConnection)))
 			EndIf
 			
 			DeAllocate(res.connections[i])
 		Next i
-		
 	Wend
 	This.indexGraph_ = ig_Build(@builder)
 	ig_ClearCompactedList()
@@ -77,6 +75,8 @@ Function actorIsShared(actor As act.Actor Ptr) As Boolean
 		Case act.ActorTypes.STATUE 
 			Return FALSE
 		Case act.ActorTypes.PAINTING
+			Return FALSE
+		Case act.ActorTypes.CHANDELIER
 			Return FALSE
 		Case Else
 			Return TRUE

@@ -182,6 +182,7 @@ Constructor DynamicAABB(ByRef box As Const AABB)
 	setDelegate()
 	This.box_ = box
 	This.v_ = Vec2F(0, 0)
+	This.ignoreGrav_ = FALSE
 End Constructor
 
 Constructor DynamicAABB(ByRef rhs As Const DynamicAABB)
@@ -218,6 +219,14 @@ End Function
 Sub DynamicAABB.setDelegate()
 	colliderDelegate_ = Collider_Delegate.DYNAMICAABB
 End Sub
+
+Sub DynamicAABB.enableGravity(x As Boolean)
+	ignoreGrav_ = Not x
+End Sub
+
+Const Function DynamicAABB.gravityEnabled() As Boolean
+	Return Not ignoreGrav_
+End Function
 
 Function clipDynamicAABBToBlockGrid( _
 		ByRef rect As Const DynamicAABB, _
@@ -520,7 +529,7 @@ Sub Simulation.update(dt As Double)
   While(boxes_.getNext(@resetIndex))
   	Dim As DynamicAABB Ptr box = boxes_.get(resetIndex).getValue()
   	box->getArbiters().clear()
-  	box->setV(box->getV() + force_*dt)
+  	If box->gravityEnabled() Then box->setV(box->getV() + force_*dt)
   	box->setDelta(Vec2F(0, 0))
   Wend
 	

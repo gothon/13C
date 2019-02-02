@@ -11,7 +11,7 @@ End Enum
 
 Type Light
  Public:
- 	Declare Constructor(ByRef p As Const Vec3F, ByRef c As Const Vec3F, r As Double, mode As LightMode)
+ 	Declare Constructor(ByRef p As Const Vec3F, ByRef c As Const Vec3F, r As Double, mode As LightMode = LightMode.SOLID)
  	Declare Destructor()
  	
 	'Declare custom copy constructor/assignment to avoid copying binding counter
@@ -27,6 +27,7 @@ Type Light
  	
  	Declare Sub on()
  	Declare Sub off()
+ 	Declare Const Function isOn() As Boolean
  	
   'Reference count mutators to track if this Light or its data is referenced by another object i.e. a
   'QuadDrawBuffer

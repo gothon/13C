@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="10" height="14" tilewidth="16" tileheight="16" infinite="0" nextobjectid="9">
+ <tileset firstgid="1" source="cshapes3.tsx"/>
+ <tileset firstgid="85" source="museum_tiles_16x16.tsx"/>
+ <objectgroup name="actors">
+  <object id="4" name="chandelier" x="48" y="64" width="32" height="16">
+   <properties>
+    <property name="type" value="chandelier"/>
+   </properties>
+  </object>
+  <object id="5" name="chandelier" x="48" y="128" width="32" height="16">
+   <properties>
+    <property name="type" value="chandelier"/>
+   </properties>
+  </object>
+  <object id="6" name="portal" x="0" y="128" width="16" height="64">
+   <properties>
+    <property name="enter" value="right"/>
+    <property name="portal_id" value="low"/>
+    <property name="to_map" value="museum_03.tmx"/>
+    <property name="to_portal_id" value="top_right"/>
+    <property name="type" value="portal"/>
+   </properties>
+  </object>
+  <object id="7" name="portal" x="144" y="32" width="16" height="32">
+   <properties>
+    <property name="enter" value="left"/>
+    <property name="portal_id" value="top"/>
+    <property name="to_map" value="museum_01.tmx"/>
+    <property name="to_portal_id" value="low_left"/>
+    <property name="type" value="portal"/>
+   </properties>
+  </object>
+  <object id="8" name="spawn" x="112" y="40" width="16" height="24">
+   <properties>
+    <property name="type" value="spawn"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <layer name="front" width="10" height="14">
+  <data encoding="base64">
+   VQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVQAAAFUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUAAABVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVAAAAVQAAAFUAAABVAAAAVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVQAAAFUAAABVAAAAVQAAAFUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUAAABVAAAAVQAAAFUAAABVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVAAAAVQAAAFUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVQAAAFUAAABVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUAAABVAAAAVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVAAAAVQAAAFUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAABVAAAAVQAAAFUAAAA=
+  </data>
+ </layer>
+ <layer name="meta" width="10" height="14" opacity="0.6">
+  <data encoding="base64">
+   AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  </data>
+ </layer>
+</map>

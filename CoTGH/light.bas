@@ -109,3 +109,7 @@ End Sub
 Sub Light.off()
 	enabled_ = FALSE
 End Sub
+
+Const Function Light.isOn() As Boolean
+	Return enabled_
+End Function

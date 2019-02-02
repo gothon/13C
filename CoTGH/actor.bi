@@ -103,6 +103,24 @@ Type DynamicCollidingModelActor Extends DynamicModelActor
  	As ColliderFwd Ptr collider_
 End Type
 
+Type DynamicCollidingModelLightActor Extends DynamicCollidingModelActor
+ Public:
+	Declare Constructor() 'No-op required
+  	
+ 	'Takes ownership of model and collider and light
+	Declare Constructor( _
+			parent As ActorBankFwd Ptr, _
+		  model As QuadModelBase Ptr, _
+		  colliderPtr As ColliderFwd Ptr, _
+		  l As Light Ptr)
+	Declare Virtual Destructor()
+	
+	Declare Function getLight() As Light Ptr
+ 
+ Protected:
+ 	As Light Ptr light_
+End Type
+
 Type ModelActor Extends Actor
  Public:
  	Declare Constructor() 'No-op required

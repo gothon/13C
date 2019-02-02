@@ -11,7 +11,7 @@
 #Include "imageops.bi"
 #Include "util.bi"
 
-Const As String STAGE_ENTRY_POINT = "RES/PUZZLE_TEST2.TMX"
+Const As String STAGE_ENTRY_POINT = "RES/MUSEUM_01.TMX"
 
 Const As UInteger PHYSICAL_SCRX = 640
 Const As UInteger PHYSICAL_SCRY = 480

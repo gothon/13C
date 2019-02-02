@@ -34,6 +34,7 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Sub setDestinationPortal(dest As Const ZString Ptr)
  	Declare Sub disableCollision()
 	Declare Sub setWarp(p As Vec2F, v As Vec2F)
+	Declare Sub leech()
 	
 	Declare Sub placeSnapshot(replaceId As UInteger)
 	Declare Const Function readyToPlace() As Boolean

@@ -30,7 +30,7 @@ Constructor Painting(parent As ActorBankFwd Ptr, p As Vec3F)
 	This.updatedImage_ = New Image32(64, 48)
 	Base.Constructor(parent, createModel(updatedImage_))
 	setType()
-	model_->translate(p)
+	model_->translate(p + Vec3F(0, 0, -8))
 	
 	This.emptyImage_ = TextureCache.get("res/emptyframe.png")
 	This.frameImage_ = TextureCache.get("res/paintingframe.png")
