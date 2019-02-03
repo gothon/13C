@@ -3,17 +3,19 @@
 #Include "../debuglog.bi"
 #Include "../actortypes.bi"
 #Include "../cameracontroller.bi"
+#Include "../gamespace.bi"
 
 Namespace act
 ACTOR_REQUIRED_DEF(CameraInterface, ActorTypes.CAMERAINTERFACE)
 	
-Constructor CameraInterface(parent As ActorBankFwd Ptr, camera As CameraController Ptr)
+Constructor CameraInterface(parent As ActorBankFwd Ptr, camera As CameraController Ptr, gs As GamespaceFwd Ptr)
 	Base.Constructor(parent)
 	setType()
 
 	setKey("CAMERA INTERFACE")
 	
 	This.camera_ = camera	
+	This.gs_ = gs
 End Constructor
 
 Sub CameraInterface.placeAndLookAt(p As Vec3F, lookAt As Vec3F)
@@ -44,6 +46,10 @@ End Sub
 
 Sub CameraInterface.update(dt As Double)
 	camera_->update(dt, guideP_, facingRight_)
+End Sub
+
+Sub CameraInterface.setColorMul(ByRef mulmix As Const Vec3F)
+	CPtr(Gamespace Ptr, gs_)->setDrawMulmix(mulmix)
 End Sub
 
 Function CameraInterface.clone(parent As ActorBankFwd Ptr) As Actor Ptr

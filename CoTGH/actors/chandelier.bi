@@ -2,6 +2,7 @@
 #Define ACTOR_CHANDELIER_BI
 
 #Include "../actor.bi"
+#Include "../aabb.bi"
 
 Namespace act
 	

@@ -7,6 +7,8 @@
 DEFINE_PRIMITIVE_PTR(BlockGrid)
 DEFINE_PRIMITIVE_PTR(DynamicAABB)
 
+Const As Integer MAX_VX = 10
+Const As Integer MAX_VY = 10
  
 Constructor Collider() 
 	This.parent_ = NULL
@@ -139,8 +141,7 @@ Sub BlockGrid.putBlock(index As UInteger, t As BlockType)
 End Sub
   
 Const Function BlockGrid.getBlock(x As UInteger, y As UInteger) As BlockType
-	DEBUG_ASSERT(x < w_)
-	DEBUG_ASSERT(y < h_)
+	If (x >= w_) OrElse (y >= h_) Then Return BlockType.NONE
 	Return blocks_[y*w_ + x]
 End Function
 
@@ -517,6 +518,9 @@ Sub Simulation.integrateAll(dt As Double)
   While(boxes_.getNext(@updateIndex))
 		Dim As DynamicAABB Ptr box = boxes_.get(updateIndex).getValue() 'const
 		Dim As Vec2F delta = box->getV()*dt
+		If Abs(delta.x) > MAX_VX Then delta.x = Sgn(delta.x)*MAX_VX
+		If Abs(delta.y) > MAX_VY Then delta.y = Sgn(delta.y)*MAX_VY
+		
 		box->place(box->getAABB().o + delta)
 		box->setDelta(box->getDelta() + delta)
   Wend
@@ -649,7 +653,7 @@ Sub Simulation.update(dt As Double)
 	Wend
 End Sub
 
-Function intersectsBlockGrid(ByRef grid As Const BlockGrid, box As AABB) As Boolean
+Function intersectsBlockGrid(ByRef grid As Const BlockGrid, ByRef box As Const AABB) As BlockType
 	Dim As Integer ax = Int(box.o.x / grid.getSideLength()) 'const
 	Dim As Integer ay = Int(box.o.y / grid.getSideLength()) 'const
 	
@@ -666,15 +670,22 @@ Function intersectsBlockGrid(ByRef grid As Const BlockGrid, box As AABB) As Bool
 	bx = IIf(bx >= grid.getWidth(), grid.getWidth() - 1, bx)
 	by = IIf(by >= grid.getHeight(), grid.getHeight() - 1, by)
 	
+	Dim As BlockType retType = BlockType.NONE
 	For y As Integer = ay To by
 		For x As Integer = ax To bx
-			If grid.getBlock(x, y) = BlockType.FULL Then Return TRUE
+			Dim As BlockType block = grid.getBlock(x, y)	
+			If block = BlockType.SIGNAL Then retType = BlockType.SIGNAL
+			If block = BlockType.FULL Then 
+				retType = BlockType.FULL
+				GoTo earlyOut
+			EndIf
 		Next x
 	Next y
-	Return FALSE
+	earlyOut:
+	Return retType
 End Function
 
-Const Function Simulation.getIntersects(box As AABB) As DArray_AnyPtr
+Const Function Simulation.getIntersects(ByRef box As Const AABB) As DArray_AnyPtr
 	Dim As DArray_AnyPtr parents
 	Dim As UInteger index = -1
 	While(boxes_.getNext(@index))
@@ -686,7 +697,25 @@ Const Function Simulation.getIntersects(box As AABB) As DArray_AnyPtr
 	While(grids_.getNext(@index))
   	Dim As Const BlockGrid Ptr gridB = grids_.getConst(index).getValue() 'const 		
 		If Not gridB->isEnabled() Then Continue While
-		If (gridB->getParent() <> NULL) AndAlso intersectsBlockGrid(*gridB, box) Then parents.push(gridB->getParent())		
+		If (gridB->getParent() <> NULL) Then 
+			Dim As BlockType intersectType = intersectsBlockGrid(*gridB, box) 'const
+			If intersectType = BlockType.FULL Then parents.push(gridB->getParent())
+		EndIf
 	Wend	
 	Return parents
+End Function
+
+Const Function Simulation.getIntersectsBlockGrid(ByRef box As Const AABB) As BlockType
+	Dim As UInteger index = -1
+	Dim As BlockType retType = BlockType.NONE
+	While(grids_.getNext(@index))
+  	Dim As Const BlockGrid Ptr gridB = grids_.getConst(index).getValue() 'const 		
+		If Not gridB->isEnabled() Then Continue While
+		If (gridB->getParent() <> NULL) Then 
+			Dim As BlockType intersectType = intersectsBlockGrid(*gridB, box) 'const
+			If intersectType = BlockType.FULL Then Return BlockType.FULL
+			If intersectType <> BlockType.NONE Then retType = intersectType
+		EndIf
+	Wend		
+	Return retType
 End Function

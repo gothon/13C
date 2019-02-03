@@ -1,6 +1,7 @@
 #Include "imageops.bi"
 #Include "pixel32.bi"
 #Include "debuglog.bi"
+#Include "vec3f.bi"
 
 Namespace imageops
   
@@ -180,6 +181,42 @@ Sub sync4X(ByRef src As Const Image32)
   
   End Asm
   ScreenUnlock
+End Sub
+
+Sub mulmix(src As Image32 Ptr, ByRef x As Const Vec3F)
+  Dim As Integer colOffset(0 to 3)
+  Dim As Pixel32 Ptr pxls = src->pixels()
+  Dim As UInteger totalPixels = src->w()*src->h()
+  
+  Dim As Single c(0 To 3) = {x.z*256.0f, x.y*256.0f, x.x*256.0f, 256.0}
+  Dim As Single Ptr colPtr = @(c(0))
+  Asm
+  	mov eax, totalPixels
+  	mov ebx, pxls
+  	
+	  mov esi, colPtr
+    movaps xmm0, [esi]
+    cvttps2dq xmm1, xmm0
+    packssdw xmm1, xmm1
+  
+    pxor xmm2, xmm2
+
+imageops_mulmix_pixelloop:    
+    mov ecx, [ebx]
+    movd xmm0, ecx
+    punpcklbw xmm0, xmm2
+ 		
+ 		pmullw xmm0, xmm1
+    psrlw xmm0, 8
+    packuswb xmm0, xmm2
+    
+    movd ecx, xmm0
+		mov [ebx], ecx
+		
+  	add ebx, 4
+  	dec eax
+  	jnz imageops_mulmix_pixelloop  	
+  End Asm
 End Sub
   
 End Namespace

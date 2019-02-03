@@ -10,8 +10,7 @@
 #Include "fpslimiter.bi"
 #Include "imageops.bi"
 #Include "util.bi"
-
-Const As String STAGE_ENTRY_POINT = "RES/MUSEUM_01.TMX"
+#Include "config.bi"
 
 Const As UInteger PHYSICAL_SCRX = 640
 Const As UInteger PHYSICAL_SCRY = 480
@@ -25,9 +24,11 @@ ScreenRes PHYSICAL_SCRX, PHYSICAL_SCRY, 32
 SetMouse ,,0
 Print "Lode..."
 
+Dim As Config cfg 'const
+
 Dim As CameraController camera = CameraController( _ 
 		Projection(PHYSICAL_SCRX, PHYSICAL_SCRY, LOGICAL_SCRX, LOGICAL_SCRY, 256))
-Dim As GraphWrapper graph = GraphWrapper(STAGE_ENTRY_POINT)
+Dim As GraphWrapper graph = GraphWrapper(cfg.getEntryPoint())
 Dim As Image32 target = Image32(PHYSICAL_SCRX, PHYSICAL_SCRY)
 
 Dim As ActorBank Ptr bank = New ActorBank()
@@ -42,7 +43,7 @@ bank->add( _
 Scope
 	Dim As Gamespace gs = Gamespace(@camera, @graph, @target, bank)
 	Dim As FpsLimiter limiter
-	gs.init(StrPtr(STAGE_ENTRY_POINT))
+	gs.init(StrPtr(cfg.getEntryPoint()))
 	Do
 		gs.update(FRAME_TIME)
 		

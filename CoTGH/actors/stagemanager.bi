@@ -6,6 +6,7 @@
 
 Namespace act
 	
+Type GamespaceFwd As Any
 Type StageManager Extends DynamicActor
  Public:
  	ACTOR_REQUIRED_DECL(StageManager)
@@ -18,7 +19,7 @@ Type StageManager Extends DynamicActor
 			lightMax As Double)
 			
 	Declare Const Function getMapDims() ByRef As Const Vec2F
-	
+
 	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override
 	

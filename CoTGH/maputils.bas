@@ -173,6 +173,8 @@ Function createBlockGrid( _
 				bType = BlockType.FULL
 			Case 58
 				bType = BlockType.ONE_WAY_UP
+			Case 57
+				bType = BlockType.SIGNAL
 		End Select
 		
 		blocks->putBlock(i Mod mapWidth, mapHeight - Int(i / mapWidth) - 1, bType)
@@ -352,7 +354,7 @@ Sub addBillboard( _
 	Dim As Image32 Ptr tex(0 To 0) = {image}
 
 	Dim As QuadModelBase Ptr model = _
-			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), FALSE)
+			New QuadModel(Vec3F(w, h, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), TRUE)
 	model->translate(Vec3F(x, mapPixelHeight - y - h, z))
 	res->bank->add(New act.DecorativeModel(res->bank, model))
 End Sub
@@ -446,8 +448,31 @@ Sub addChandelier( _
 	  y As UInteger, _
 	  z As Single, _
 	  h As UInteger, _
+	  grid As BlockGrid Ptr, _
 	  res As ParseResult Ptr)
-	res->bank->Add(New act.Chandelier(res->bank, Vec3F(x, mapPixelHeight - y - h, 1)))
+	Dim As Double blockL = grid->getSideLength() 'const
+	Dim As Integer blockX = x / blockL 'const
+	
+	Dim As Integer yPos = mapPixelHeight - y - h 'const
+	Dim As Integer blockY = yPos / blockL 'const
+	
+	Dim As Integer repeatY = 1
+	While (blockY + repeatY) < grid->getHeight()
+		If (grid->getBlock(blockX, blockY + repeatY) = BlockType.FULL) _
+				OrElse (grid->getBlock(blockX + 1, blockY + repeatY) = BlockType.FULL) Then Exit While
+		repeatY += 1
+	Wend
+	repeatY -= 1
+	
+	If repeatY <> 0 Then 
+		Dim As Image32 Ptr tex(0 To 0) = {TextureCache.get("res/chandelier.png")}
+		Dim As QuadModelUVIndex uvIndex(0 To 0) = {QuadModelUVIndex(Vec2F(128, 0), Vec2F(144, 16), 0)} 'const
+		Dim As QuadModelBase Ptr model = _
+				New QuadModel(Vec3F(16, 16, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), TRUE, repeatY)
+		model->translate(Vec3F(x + 8, yPos + 16, 1))
+		res->bank->Add(New act.DecorativeModel(res->bank, model))	
+	End If
+	res->bank->Add(New act.Chandelier(res->bank, Vec3F(x, yPos, 1)))
 End Sub
 
 Sub addLeecher( _
@@ -472,7 +497,8 @@ Sub processObject( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  z As Single, _
-	  res As ParseResult Ptr)
+	  res As ParseResult Ptr, _
+	  grid As BlockGrid Ptr)
 	Select Case UCase(*objectType)
 		Case "BILLBOARD"
 			addBillboard(relativePath, props, mapPixelHeight, x, y, w, h, z, res)
@@ -487,7 +513,7 @@ Sub processObject( _
 		Case "PAINTING"	
 			addPainting(props, mapPixelHeight, x, y, z, h, res)	
 		Case "CHANDELIER"
-			addChandelier(props, mapPixelHeight, x, y, z, h, res)	
+			addChandelier(props, mapPixelHeight, x, y, z, h, grid, res)	
 		Case "LEECHER"
 			addLeecher(props, mapPixelHeight, x, y, z, w, h, res)		
 		Case Else
@@ -500,7 +526,8 @@ Sub processObjects( _
 		mapPixelHeight As UInteger, _
 		z As Single, _
 		ByRef relativePath As Const String, _
-	  res As ParseResult Ptr)
+	  res As ParseResult Ptr, _
+	  grid As BlockGrid Ptr)
 	Dim As dsm.HashMap(ZString, ConstZStringPtr) props	
 	Do 
 		If nodeIsElementWithName(layerNode, "object") Then
@@ -528,7 +555,7 @@ Sub processObjects( _
 			
 			Dim As Const ZString Ptr zOffset = getPropOrNull(@props, "offset_z") 'const
 			z += IIf(zOffset = NULL, 0.0, Val(*zOffset))
-			processObject(*objectTypePtr, relativePath, @props, mapPixelHeight, x, y, w, h, z, res)
+			processObject(*objectTypePtr, relativePath, @props, mapPixelHeight, x, y, w, h, z, res, grid)
 		EndIf
 		layerNode = layerNode->next
 	Loop Until layerNode = NULL
@@ -540,13 +567,16 @@ Sub processObjectLayers( _
 		layerStartDepth As Single, _
 		sideLength As Single, _
 		ByRef relativePath As Const String, _
-		res As ParseResult Ptr)
+		res As ParseResult Ptr, _
+		grid As BlockGrid Ptr)
 	Dim As Const xmlNode Ptr node = getMapChildrenFromRootOrDie(root)
 	'Push objects in layer to center of layer block z
 	layerStartDepth -= 0
 	Do 
 		If nodeIsElementWithName(node, "objectgroup") Then
-			If node->children Then processObjects(node->children, mapPixelHeight, layerStartDepth, relativePath, res)
+			If node->children Then 
+				processObjects(node->children, mapPixelHeight, layerStartDepth, relativePath, res, grid)
+			EndIf
 			layerStartDepth += sideLength
 		ElseIf nodeIsElementWithName(node, "layer") AndAlso _
 				(UCase(*xmlutils.getPropStringOrDie(node, "name")) <> META_LAYER_NAME) Then
@@ -625,7 +655,7 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 	Dim As UInteger rawMetaLayer(0 To mapWidth*mapHeight - 1) = Any
 	getRawMetaLayer(root, @(rawMetaLayer(0)))
 	
-	Dim As Collider Ptr blocksCollision = createBlockGrid( _
+	Dim As BlockGrid Ptr blocksCollision = createBlockGrid( _
 			rawMetaLayer(), _
 			tileWidth, _
 			mapWidth, _
@@ -643,8 +673,14 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
   		tilesets())
 	
 	res.bank->add(New act.DecorativeCollider(res.bank, blocksModel, blocksCollision))
-
-	processObjectLayers(root, mapHeight*tileHeight, -CSng(mapDepth - 1)*tileWidth, tileWidth, relativePath, @res)
+	processObjectLayers( _
+			root, _
+			mapHeight*tileHeight, _
+			-CSng(mapDepth - 1)*tileWidth, _
+			tileWidth, _
+			relativePath, _
+			@res, _
+			blocksCollision)
 	
 	xmlFreeDoc(document)
 	Return res

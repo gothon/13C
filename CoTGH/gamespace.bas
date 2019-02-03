@@ -6,6 +6,7 @@
 #Include "graphwrapper.bi"
 #Include "image32.bi"
 #Include "indexgraph.bi"
+#Include "imageops.bi"
 
 Constructor Gamespace( _
 		camera As CameraController Ptr, _
@@ -50,7 +51,7 @@ End Sub
 Sub Gamespace.addSystemActors()
 	graphInterfaceActor_ = New act.GraphInterface(globalBank_, @This)
 	globalBank_->add(graphInterfaceActor_)
-	cameraInterfaceActor_ = New act.CameraInterface(globalBank_, camera_)
+	cameraInterfaceActor_ = New act.CameraInterface(globalBank_, camera_, @This)
 	globalBank_->add(cameraInterfaceActor_)
 	globalBank_->add(New act.DrawBufferInterface(globalBank_, @drawBuffer_))
 	globalBank_->add(New act.TransitionNotifier(globalBank_, @transitionOccured_))
@@ -122,6 +123,8 @@ Sub Gamespace.draw()
 	staticBank_->project(camera_->proj())
 	activeBank_->project(camera_->proj())
 	drawBuffer_.draw(target_)
+	If (mulmix_.x = 1.0) AndAlso (mulmix_.y = 1.0) AndAlso (mulmix_.z = 1.0) Then Return 
+	imageops.mulmix(target_, mulmix_)
 End Sub
 	
 Function Gamespace.getDrawBuffer() As QuadDrawBuffer Ptr
@@ -195,6 +198,10 @@ Function Gamespace.clone() As ig_Index
 	activeBank_->bindInto(@This)
 	Return cloned
 End Function
+
+Sub Gamespace.setDrawMulmix(ByRef mulmix As Const Vec3F)
+	mulmix_ = mulmix
+End Sub
 
 Sub Gamespace.addGlobalActor(key As Const ZString Ptr, actor As act.Actor Ptr)
 	If key = NULL Then Return

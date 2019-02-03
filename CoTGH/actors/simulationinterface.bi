@@ -18,7 +18,8 @@ Type SimulationInterface Extends Actor
 	Declare Constructor(parent As ActorBankFwd Ptr, simulation As Simulation Ptr)
 	
 	Declare Sub setForce(ByRef f As Const Vec2F)
-	Declare Const Function getIntersects(box As AABB) As DArray_AnyPtr
+	Declare Const Function getIntersects(ByRef box As Const AABB) As DArray_AnyPtr
+	Declare Const Function getIntersectsBlockGrid(ByRef box As Const AABB) As BlockType
 	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:

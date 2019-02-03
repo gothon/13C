@@ -59,7 +59,7 @@ Constructor Player( _
 	animImage->setOffset(16, 0)
 	
 	This.animImage_ = animImage
-	This.animImage_->bindIn(TextureCache.get("res/zamaster.png"))
+	This.animImage_->bindIn(TextureCache.get("res/mambazo.png"))
 	This.lastDownPressed_ = FALSE
 	This.downLHEdge_ = FALSE
 	This.destinationPortal_ = ""

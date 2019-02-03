@@ -5,6 +5,7 @@
 #Include "../quadmodel.bi"
 #Include "../physics.bi"
 #Include "../texturecache.bi"
+#Include "../aabb.bi"
 #Include "../light.bi"
 
 #Include "fbgfx.bi"
@@ -61,6 +62,9 @@ End Destructor
 
 
 Function Chandelier.update(dt As Double) As Boolean
+	Dim As SimulationInterface Ptr sim_ = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
+	If sim_->getIntersectsBlockGrid(COL_PTR->getAABB()) = BlockType.SIGNAL Then Return TRUE
+	
 	model_->translate(COL_PTR->getDelta())
 	light_->translate(COL_PTR->getDelta())
 	

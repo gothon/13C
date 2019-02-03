@@ -164,7 +164,8 @@ Type QuadModel Extends QuadModelBase
       ByRef texCube As Const QuadModelTextureCube, _
       uvIndices() As QuadModelUVIndex, _
       tex() As Image32 Ptr, _
-      useVertexNorm As Boolean = TRUE)
+      useVertexNorm As Boolean = TRUE, _
+      tileVertical As Integer = 1)
        
  Protected:
   Declare Sub calcZSort(q As Quad Ptr) Override

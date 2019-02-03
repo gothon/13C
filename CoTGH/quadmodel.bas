@@ -465,111 +465,116 @@ Constructor QuadModel( _
     ByRef texCube As Const QuadModelTextureCube, _
     uvIndices() As QuadModelUVIndex, _
     tex() As Image32 Ptr, _
-    useVertexNorm As Boolean)
+    useVertexNorm As Boolean, _
+    tileVertical As Integer)
   construct()  
   setDelegate()  
         
   This.zSortAdjust_ = -0.01
   Dim As Vertex v(0 To 3)
+  Dim As Double offsetY = 0.0
 
-  If texCube.front <> 0 Then
-    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.front - 1)
-    populateQuadVerticesXY( _
-        Vec3F(0.0f, volumeDims.y, 0.0f), _
-        Vec3F(volumeDims.x, volumeDims.y, 0.0f), _
-        curTex->uvStart, _
-        curTex->uvEnd, _
-        v())
-    DArray_Quad_Emplace( _
-    		model_, _
-    		v(), _
-    		tex(curTex->imageIndex), _
-    		QuadTextureMode.TEXTURED_MOD, _
-    		FALSE, _
-    		FALSE, _
-    		Vec3F(0, 0, 1), _
-    		useVertexNorm)
-  End If
-  
-  If texCube.up <> 0 Then
-    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.up - 1)
-    populateQuadVerticesXZ( _
-        Vec3F(0.0f, volumeDims.y, 0.0f), _
-        Vec3F(volumeDims.x, 0.0f, volumeDims.z), _
-        curTex->uvStart, _
-        curTex->uvEnd, _
-        FALSE, _
-        v())
-    DArray_Quad_Emplace( _
-    		model_, _
-    		v(), _
-    		tex(curTex->imageIndex), _
-    		QuadTextureMode.TEXTURED_MOD, _
-    		FALSE, _
-    		FALSE, _
-    		Vec3F(0, 1, 0), _
-    		TRUE)
-  EndIf
-  
-  If texCube.right <> 0 Then
-    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.right - 1)
-    populateQuadVerticesYZ( _
-        Vec3F(volumeDims.x, volumeDims.y, 0.0f), _
-        Vec3F(0.0f, volumeDims.y, volumeDims.z), _
-        curTex->uvStart, _
-        curTex->uvEnd, _
-        FALSE, _
-        v())
-    DArray_Quad_Emplace( _
-    		model_, _
-    		v(), _
-    		tex(curTex->imageIndex), _
-    		QuadTextureMode.TEXTURED_MOD, _
-    		FALSE, _
-    		FALSE, _
-    		Vec3F(1, 0, 0), _
-    		TRUE)
-  EndIf
-  
-  If texCube.down <> 0 Then
-    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.down - 1)
-    populateQuadVerticesXZ( _
-        Vec3F(0.0f, 0.0f, 0.0f), _
-        Vec3F(volumeDims.x, 0.0f, volumeDims.z), _
-        curTex->uvStart, _
-        curTex->uvEnd, _
-        TRUE, _
-        v())
-    DArray_Quad_Emplace( _
-    		model_, _
-    		v(), _
-    		tex(curTex->imageIndex), _
-    		QuadTextureMode.TEXTURED_MOD, _
-    		FALSE, _
-    		FALSE, _
-    		Vec3F(0, -1, 0), _
-    		TRUE)
-  EndIf
-  
-  If texCube.left <> 0 Then
-    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.left - 1)
-    populateQuadVerticesYZ( _
-        Vec3F(0.0f, volumeDims.y, 0.0f), _
-        Vec3F(0.0f, volumeDims.y, volumeDims.z), _
-        curTex->uvStart, _
-        curTex->uvEnd, _
-        TRUE, _
-        v())
-    DArray_Quad_Emplace( _
-    		model_, _
-    		v(), _
-    		tex(curTex->imageIndex), _
-    		QuadTextureMode.TEXTURED_MOD, _
-    		FALSE, _
-    		FALSE, _
-    		Vec3F(-1, 0, 0), _
-    		TRUE)
-  EndIf
+	For t As Integer = 0 To tileVertical - 1
+	  If texCube.front <> 0 Then
+	    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.front - 1)
+	    populateQuadVerticesXY( _
+	        Vec3F(0.0f, volumeDims.y + offsetY, 0.0f), _
+	        Vec3F(volumeDims.x, volumeDims.y, 0.0f), _
+	        curTex->uvStart, _
+	        curTex->uvEnd, _
+	        v())
+	    DArray_Quad_Emplace( _
+	    		model_, _
+	    		v(), _
+	    		tex(curTex->imageIndex), _
+	    		QuadTextureMode.TEXTURED_MOD, _
+	    		FALSE, _
+	    		FALSE, _
+	    		Vec3F(0, 0, 1), _
+	    		useVertexNorm)
+	  End If
+	  
+	  If texCube.up <> 0 Then
+	    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.up - 1)
+	    populateQuadVerticesXZ( _
+	        Vec3F(0.0f, volumeDims.y + offsetY, 0.0f), _
+	        Vec3F(volumeDims.x, 0.0, volumeDims.z), _
+	        curTex->uvStart, _
+	        curTex->uvEnd, _
+	        FALSE, _
+	        v())
+	    DArray_Quad_Emplace( _
+	    		model_, _
+	    		v(), _
+	    		tex(curTex->imageIndex), _
+	    		QuadTextureMode.TEXTURED_MOD, _
+	    		FALSE, _
+	    		FALSE, _
+	    		Vec3F(0, 1, 0), _
+	    		TRUE)
+	  EndIf
+	  
+	  If texCube.right <> 0 Then
+	    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.right - 1)
+	    populateQuadVerticesYZ( _
+	        Vec3F(volumeDims.x, volumeDims.y + offsetY, 0.0f), _
+	        Vec3F(0.0f, volumeDims.y, volumeDims.z), _
+	        curTex->uvStart, _
+	        curTex->uvEnd, _
+	        FALSE, _
+	        v())
+	    DArray_Quad_Emplace( _
+	    		model_, _
+	    		v(), _
+	    		tex(curTex->imageIndex), _
+	    		QuadTextureMode.TEXTURED_MOD, _
+	    		FALSE, _
+	    		FALSE, _
+	    		Vec3F(1, 0, 0), _
+	    		TRUE)
+	  EndIf
+	  
+	  If texCube.down <> 0 Then
+	    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.down - 1)
+	    populateQuadVerticesXZ( _
+	        Vec3F(0.0f, offsetY, 0.0f), _
+	        Vec3F(volumeDims.x, 0.0, volumeDims.z), _
+	        curTex->uvStart, _
+	        curTex->uvEnd, _
+	        TRUE, _
+	        v())
+	    DArray_Quad_Emplace( _
+	    		model_, _
+	    		v(), _
+	    		tex(curTex->imageIndex), _
+	    		QuadTextureMode.TEXTURED_MOD, _
+	    		FALSE, _
+	    		FALSE, _
+	    		Vec3F(0, -1, 0), _
+	    		TRUE)
+	  EndIf
+	  
+	  If texCube.left <> 0 Then
+	    Dim As Const QuadModelUVIndex Ptr curTex = @uvIndices(texCube.left - 1)
+	    populateQuadVerticesYZ( _
+	        Vec3F(0.0f, volumeDims.y + offsetY, 0.0f), _
+	        Vec3F(0.0f, volumeDims.y, volumeDims.z), _
+	        curTex->uvStart, _
+	        curTex->uvEnd, _
+	        TRUE, _
+	        v())
+	    DArray_Quad_Emplace( _
+	    		model_, _
+	    		v(), _
+	    		tex(curTex->imageIndex), _
+	    		QuadTextureMode.TEXTURED_MOD, _
+	    		FALSE, _
+	    		FALSE, _
+	    		Vec3F(-1, 0, 0), _
+	    		TRUE)
+	  EndIf
+	  offsetY += volumeDims.y
+	Next t
 End Constructor
 
 Sub QuadModel.project(ByRef projector As Const Projection)

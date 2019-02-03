@@ -55,6 +55,7 @@ Enum BlockType Explicit
 	NONE = 0
 	FULL = 1
 	ONE_WAY_UP = 2
+	SIGNAL = 3
 End Enum
 
 'A static collide-able block grid.
@@ -155,7 +156,8 @@ Type Simulation
  	Declare Sub add(grid As BlockGrid Ptr)
  	Declare Sub add(box As DynamicAABB Ptr)
  	
-	Declare Const Function getIntersects(box As AABB) As DArray_AnyPtr
+	Declare Const Function getIntersects(ByRef box As Const AABB) As DArray_AnyPtr
+	Declare Const Function getIntersectsBlockGrid(ByRef box As Const AABB) As BlockType
  	
  	Declare Sub remove(c As Collider Ptr)
  	Declare Sub remove(grid As BlockGrid Ptr)

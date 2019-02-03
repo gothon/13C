@@ -70,6 +70,9 @@ End Sub
 Function Statue.update(dt As Double) As Boolean
 	If collectRequested_ Then Return TRUE
 	
+	Dim As SimulationInterface Ptr sim_ = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
+	If sim_->getIntersectsBlockGrid(COL_PTR->getAABB()) = BlockType.SIGNAL Then Return TRUE
+	
 	model_->translate(COL_PTR->getDelta())
 	
 	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)

@@ -279,7 +279,7 @@ Sub drawScanLine_TexturedModulated(_
       mov esi, modPtr
       movaps xmm0, [esi]
       cvttps2dq xmm1, xmm0
-      'Get 4 16-bit ints of the mod in the bottom 64-btis of xmm1
+      'Get 4 16-bit ints of the mod in the bottom 64-bits of xmm1
       packssdw xmm1, xmm1
       
       'Get pixel offset, v*src.w() + u in EAX
