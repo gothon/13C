@@ -13,7 +13,7 @@ Declare Sub sync2X(ByRef src As Const Image32)
 Declare Sub sync4X(ByRef src As Const Image32)
 
 'Multiply an image by a fixed color value
-Declare Sub mulmix(src As Image32 Ptr, ByRef x As Const Vec3F)
+Declare Sub mulmix(src As Image32 Ptr, ByRef x As Const Vec3F, ByRef a As Const Vec3F = Vec3F(0.0, 0.0, 0.0))
   
 End Namespace
 

@@ -23,7 +23,8 @@ Enum ActorTypes Explicit
 	FAKESTATUE = 16,
 	ACTIVEBANKINTERFACE = 17,
 	CHANDELIER = 18,
-	LEECHER = 19
+	LEECHER = 19,
+	ISLANDZONE = 20
 End Enum
 
 End Namespace 

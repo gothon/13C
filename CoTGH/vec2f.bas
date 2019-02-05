@@ -12,6 +12,10 @@ Constructor Vec2F(ByRef vec2f As Const Vec2F)
   This.y = vec2f.y
 End Constructor  
 
+Destructor Vec2F()
+	'nop
+End Destructor
+
 Const Operator Vec2F.cast() As String
   Return "(" + Str(x) + ", " + Str(y) + ")"
 End Operator

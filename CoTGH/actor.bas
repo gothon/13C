@@ -199,7 +199,9 @@ Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 		Case ActorTypes.CHANDELIER
 			Return CPtr(Chandelier Ptr, actorPtr)->update(dt)
 		Case ActorTypes.LEECHER
-			Return CPtr(Leecher Ptr, actorPtr)->update(dt)			
+			Return CPtr(Leecher Ptr, actorPtr)->update(dt)		
+		Case ActorTypes.ISLANDZONE
+			Return CPtr(IslandZone Ptr, actorPtr)->update(dt)	
 		Case Else
 			Return FALSE
 	End Select
@@ -222,7 +224,9 @@ Sub maybeNotify(actorPtr As Actor Ptr)
 		Case ActorTypes.CHANDELIER
 			CPtr(Chandelier Ptr, actorPtr)->notify() 
 		Case ActorTypes.LEECHER
-			CPtr(Leecher Ptr, actorPtr)->notify() 			
+			CPtr(Leecher Ptr, actorPtr)->notify()
+		Case ActorTypes.ISLANDZONE
+			CPtr(IslandZone Ptr, actorPtr)->notify()	
 	End Select	
 End Sub
 
@@ -313,6 +317,8 @@ Sub DeleteActor(x As Actor Ptr)
  			Delete(CPtr(Chandelier Ptr, x)) 	
  		Case ActorTypes.LEECHER
  			Delete(CPtr(Leecher Ptr, x))
+ 		Case ActorTypes.ISLANDZONE
+ 			Delete(CPtr(IslandZone Ptr, x))			
  		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
@@ -353,7 +359,9 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.CHANDELIER
  			Return CPtr(Chandelier Ptr, x)->clone(bank) 		
  		Case ActorTypes.LEECHER
- 			Return CPtr(Leecher Ptr, x)->clone(bank) 						
+ 			Return CPtr(Leecher Ptr, x)->clone(bank) 				
+		Case ActorTypes.ISLANDZONE
+ 			Return CPtr(IslandZone Ptr, x)->clone(bank) 					 					
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	

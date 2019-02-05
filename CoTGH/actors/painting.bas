@@ -60,7 +60,7 @@ Function Painting.updateInternal(dt As Double) As Boolean
 	
 	If hasSnapshot_ AndAlso player_->pressedDown() Then 
 		player_->disableCollision()
-		player_->setWarp(playerData_.p, playerData_.v)
+		player_->setWarp(playerData_.p, playerData_.v, playerData_.leadingX, playerData_.musicPos, playerData_.facingRight)
 		graph->requestGoIndex(graph->unembedToIndex(playerData_.embedId))
 		Return FALSE
 	EndIf	
@@ -77,7 +77,14 @@ Function Painting.updateInternal(dt As Double) As Boolean
 	hasSnapshot_ = TRUE
 	
 	Dim As Image32 Ptr image = Any
-	player_->claimSnapshot(@(playerData_.embedId), @image, @(playerData_.p), @(playerData_.v))
+	player_->claimSnapshot( _
+			@(playerData_.embedId), _
+			@image, _
+			@(playerData_.p), _
+		  @(playerData_.v), _
+		  @(playerData_.leadingX), _
+		  @(playerData_.musicPos), _
+		  @(playerData_.facingRight))
 	
 	Put paintingImage_->fbImg(), (0, 0), image->fbImg(), PSet
 	Put paintingImage_->fbImg(), (0, 0), frameImage_->constFbImg(), Trans	

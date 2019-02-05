@@ -3,6 +3,8 @@
 
 '2D vector
 Type Vec2F
+	Declare Destructor() 'nop
+	
   'Independantly initializes the x and y components.
   Declare Constructor(x As Single = 0.0f, y As Single = 0.0f)
   

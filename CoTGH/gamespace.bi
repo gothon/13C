@@ -42,7 +42,7 @@ Type Gamespace
 	Declare Function clone() As ig_Index
 	Declare Sub deleteIndex(index As ig_Index Ptr)
 	
-	Declare Sub setDrawMulmix(ByRef mulmix As Const Vec3F)
+	Declare Sub setDrawMulmix(ByRef mulmix As Const Vec3F, ByRef addmix As Const Vec3F)
  Private:
 	Declare Sub addSystemActors()
 	Declare Sub embed()
@@ -65,6 +65,7 @@ Type Gamespace
   
   As Image32 Ptr target_ = NULL
   As Vec3F mulmix_ = Vec3f(1.0, 1.0, 1.0)
+  As Vec3F addmix_ = Vec3f(0.0, 0.0, 0.0)
   
   As Double timeStep_ = 0.0
   

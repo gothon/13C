@@ -11,6 +11,9 @@ Namespace act
 Type PaintingPlayerData
 	As Vec2F p
 	As Vec2F v
+	As Double leadingX
+	As LongInt musicPos
+	As Boolean facingRight
 	As UInteger embedId
 End Type
 	

@@ -8,10 +8,19 @@
 #Include "../actordefs.bi"
 #Include "../darray.bi"
 #Include "../actorbank.bi"
+#Include "../vec2f.bi"
 
 DECLARE_DARRAY(ActorPtr)
+DECLARE_DARRAY(Vec2F)
 
 Namespace act
+	
+Enum LockState Explicit
+	NONE = 0
+	IDLE = 1
+	WALK_RIGHT = 2
+	WALK_LEFT = 3
+End Enum
 	
 Type Player Extends DynamicCollidingModelActor
  Public:
@@ -33,8 +42,9 @@ Type Player Extends DynamicCollidingModelActor
  	
  	Declare Sub setDestinationPortal(dest As Const ZString Ptr)
  	Declare Sub disableCollision()
-	Declare Sub setWarp(p As Vec2F, v As Vec2F)
+	Declare Sub setWarp(p As Vec2F, v As Vec2F, leadingX As Double, musicPosition As LongInt, facingRight As Boolean)
 	Declare Sub leech()
+	Declare Sub setOnIsland()
 	
 	Declare Sub placeSnapshot(replaceId As UInteger)
 	Declare Const Function readyToPlace() As Boolean
@@ -45,8 +55,13 @@ Type Player Extends DynamicCollidingModelActor
 			embedId As UInteger Ptr, _
 			snapshot As Image32 Ptr Ptr, _
 			snapshotP As Vec2F Ptr, _
-			snapshotV As Vec2F Ptr)
+			snapshotV As Vec2F Ptr, _
+			snapshotLeadingX As Double Ptr, _
+			snapshotMusicPosition As LongInt Ptr, _
+			snapshotFacingRight As Boolean Ptr)
 	Declare Const Function hasSnapshot() As Boolean
+	
+	Declare Sub setLockState(state As LockState)
 	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
@@ -58,6 +73,22 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Sub processPlatformingControls()
  	Declare Sub processStatues()
  	Declare Sub processCarrying()
+ 	
+ 	As Boolean onIsland_ = Any
+ 	As Integer freezeAfterDie_ = Any
+ 	
+ 	As DArray_Vec2F lastPositions_
+ 	As Integer positionReadIndex_ = Any
+ 	As Boolean standingOnStatic_ = Any
+ 	
+ 	As LockState lockState_ = Any
+ 	As Boolean warpLock_ = Any
+ 	As AABB intersectPortalBounds_ = Any
+ 	
+ 	As ig_Index resetIndex_ = Any
+ 	As Boolean waitingForResetIndex_ = Any
+ 	As Double resetIndexLeadingX_ = Any
+ 	As Boolean resetIndexFacingRight_ = Any
  	
  	As DArray_ActorPtr carryableStatues_
  	As Boolean carryingStatue_ = Any
@@ -90,12 +121,16 @@ Type Player Extends DynamicCollidingModelActor
  	As Vec2F snapshotV_ = Any
  	As Boolean snapshotFacingRight_ = Any
  	As Double snapshotLeadingX_ = Any 
+ 	As LongInt snapshotMusicPosition_ = Any
  	
  	As Boolean isSnapshotting_ = Any
  	
  	As Boolean isWarped_ = Any
  	As Vec2F warpP_ = Any
  	As Vec2F warpV_ = Any
+ 	As Double warpLeadingX_ = Any
+ 	As LongInt warpMusicPosition_ = Any
+ 	As Boolean warpFacingRight_ = Any
  	
  	As Boolean facingRight_ = Any
  	As Image32 Ptr animImage_ = Any

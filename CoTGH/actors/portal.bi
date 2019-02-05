@@ -24,7 +24,8 @@ Type Portal Extends DynamicActor
 			region As AABB, _
 			mode As PortalEnterMode, _
 			toMap As Const ZString Ptr, _
-			toPortal As Const ZString Ptr)
+			toPortal As Const ZString Ptr, _
+			fadeMusic As Boolean)
 	
 	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override
@@ -41,6 +42,8 @@ Type Portal Extends DynamicActor
  	As ZString Ptr toMap_ = NULL
  	As ZString Ptr toPortal_ = NULL
  	As Boolean waitingForNoIntersect_
+ 	As Integer requestGoCountdown_ = Any
+ 	As Boolean fadeMusic_ = Any
 End Type
 
 End Namespace

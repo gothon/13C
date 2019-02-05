@@ -418,12 +418,18 @@ Sub addPortal( _
 	
 	Dim As String portalId = UCase(*getPropOrDie(props, "portal_id"))
 	
+	Dim As Const ZString Ptr fadePtr = getPropOrNull(props, "fade_music")
+	If fadePtr = NULL Then fadePtr = StrPtr("FALSE")
+	
+	Dim As String fade = util.trimWhitespace(UCase((*fadePtr)))
+	
 	res->bank->add(New act.Portal(res->bank, _
 			StrPtr(portalId), _
 			AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h)), _
 			mode, _
 			toMap, _
-			toPortal))
+			toPortal, _
+			IIf(fade = "TRUE", TRUE, FALSE)))
 End Sub 
 
 Sub addSpawn(mapPixelHeight As UInteger, h As UInteger, x As UInteger, y As UInteger, res As ParseResult Ptr)
@@ -487,6 +493,18 @@ Sub addLeecher( _
 	res->bank->Add(New act.Leecher(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
 End Sub
 
+Sub addIsland( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	res->bank->Add(New act.IslandZone(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
+End Sub
+
 Sub processObject( _
 		objectType As Const ZString Ptr, _
 		ByRef relativePath As Const String, _
@@ -516,6 +534,8 @@ Sub processObject( _
 			addChandelier(props, mapPixelHeight, x, y, z, h, grid, res)	
 		Case "LEECHER"
 			addLeecher(props, mapPixelHeight, x, y, z, w, h, res)		
+		Case "ISLAND"
+			addIsland(props, mapPixelHeight, x, y, z, w, h, res)					
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select
@@ -621,7 +641,12 @@ Sub processMapProps( _
 	Dim As Const ZString Ptr lightMaxStr = getPropOrNull(@props, "light_max") 'const
 	lightMax = IIf(lightMaxStr = NULL, 0.7, Val(*lightMaxStr))
 	
-	res->bank->Add(New act.StageManager(res->bank, Vec2F(mapPixelWidth, mapPixelHeight), lightDir, lightMin, lightMax))
+	Dim As Const ZString Ptr musicStr = getPropOrNull(@props, "music") 'const
+	Dim As String ucaseMusicStr = UCase(*musicStr)
+	
+	res->bank->Add( _
+			New act.StageManager(_
+					res->bank, Vec2F(mapPixelWidth, mapPixelHeight), lightDir, lightMin, lightMax, StrPtr(ucaseMusicStr)))
 End Sub
 
 Function parseMap(tmxPath As Const ZString Ptr) As ParseResult

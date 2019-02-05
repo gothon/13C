@@ -1,6 +1,8 @@
 #ifndef HASHMAP_BI
 #define HASHMAP_BI
 
+#Include "null.bi"
+
 'from dsm\dsmstd.bi
 namespace dsm
 
@@ -9,7 +11,6 @@ namespace dsm
         true = 1
     end enum
     type char as ubyte
-    #define NULL 0
     type size_t as ulong
 
 end namespace

@@ -129,4 +129,24 @@ Function cloneZString(in As Const ZString Ptr) As ZString Ptr
 	Return newStr
 End Function
 
+Sub clamp(x As Vec3F Ptr, min_ As Single, max_ As Single)
+	If x->x > max_ Then 
+		x->x = max_
+	ElseIf x->x < min_ Then
+		x->x = min_
+	EndIf
+	
+	If x->y > max_ Then 
+		x->y = max_
+	ElseIf x->y < min_ Then
+		x->y = min_
+	EndIf
+	
+	If x->z > max_ Then 
+		x->z = max_
+	ElseIf x->z < min_ Then
+		x->z = min_
+	EndIf
+End Sub
+
 End Namespace

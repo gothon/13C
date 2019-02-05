@@ -25,6 +25,7 @@
   <object id="7" name="portal" x="144" y="32" width="16" height="32">
    <properties>
     <property name="enter" value="left"/>
+    <property name="fade_music" value="true"/>
     <property name="portal_id" value="top"/>
     <property name="to_map" value="museum_01.tmx"/>
     <property name="to_portal_id" value="low_left"/>

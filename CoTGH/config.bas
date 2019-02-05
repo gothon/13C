@@ -1,6 +1,7 @@
 #Include "config.bi"
 
 #Include "debuglog.bi"
+#Include "util.bi"
 
 Constructor Config(ByRef fileName As Const String)
 	Dim As Integer f = FreeFile
@@ -12,8 +13,8 @@ Constructor Config(ByRef fileName As Const String)
 	
 	While Not Eof(f)
 		Input #f, key, value
-		key = UCase(Trim(key))
-		value = UCase(Trim(value))
+		key = UCase(util.trimWhitespace(key))
+		value = UCase(util.trimWhitespace(value))
 		
 		If key = "ENTRYPOINT" Then entryPoint_ = value	
 	

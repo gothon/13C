@@ -11,6 +11,7 @@
 #Include "imageops.bi"
 #Include "util.bi"
 #Include "config.bi"
+#Include "audiocontroller.bi"
 
 Const As UInteger PHYSICAL_SCRX = 640
 Const As UInteger PHYSICAL_SCRY = 480
@@ -46,6 +47,7 @@ Scope
 	gs.init(StrPtr(cfg.getEntryPoint()))
 	Do
 		gs.update(FRAME_TIME)
+		AudioController.update(FRAME_TIME)
 		
 		Line target.fbImg(), (0, 0)-(PHYSICAL_SCRX - 1, PHYSICAL_SCRY - 1), 0, BF
 		gs.draw()

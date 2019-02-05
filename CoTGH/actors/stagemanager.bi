@@ -16,7 +16,8 @@ Type StageManager Extends DynamicActor
 			mapDims As Vec2F, _
 			lightDir As Vec3F, _
 			lightMin As Double, _
-			lightMax As Double)
+			lightMax As Double, _
+			audioFile As Const ZString Ptr)
 			
 	Declare Const Function getMapDims() ByRef As Const Vec2F
 
@@ -29,6 +30,7 @@ Type StageManager Extends DynamicActor
  	As Double lightMin_ = Any
  	As Double lightMax_ = Any
  	As Vec2F mapDims_ = Any
+ 	As String audioFile_
 End Type
 
 End Namespace

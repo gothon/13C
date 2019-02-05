@@ -5,8 +5,10 @@
 #Include "../actordefs.bi"
 #Include "../texturecache.bi"
 #Include "../quadmodel.bi"
+#Include "../indexgraph.bi"
 #Include "../darray.bi"
 #Include "../primitive.bi"
+#Include "../audiocontroller.bi"
 
 #Include "fbgfx.bi"
 
@@ -30,7 +32,10 @@ Const As UInteger FALLING_JUMP_GRACE_FRAMES = 4
 Const As UInteger WARP_ANIM_COUNTDOWN = 60
 
 Const As Integer STATUE_ADJUST_X = 7
-Const As Integer STATUE_ADJUST_Y = 7
+Const As Integer STATUE_ADJUST_Y = 6
+
+Const As Integer MAX_POSITION_MEMORY = 30
+Const As Integer FREEZE_DIE_FRAMES = 4
 
 #Define CAMERA_BUFFER_TL Vec2F(150, 100)
 #Define CAMERA_BUFFER_BR Vec2F(150, 80)
@@ -87,15 +92,21 @@ Constructor Player( _
  	This.fakeStatuePtr_ = NULL
  	This.firstPickUp_ = FALSE
  	This.statuePlaceCountdown_ = 0
+ 	This.lockState_ = LockState.NONE
+ 	This.warpLock_ = FALSE
+ 	This.resetIndex_ = NULL
+ 	This.waitingForResetIndex_ = FALSE
+ 	This.positionReadIndex_ = 0
+ 	This.standingOnStatic_ = FALSE
+ 	This.onIsland_ = FALSE
+ 	This.freezeAfterDie_ = 0
 End Constructor
 
 Destructor Player()
 	Delete(animImage_)
 	If snapshot_ <> NULL Then Delete(snapshot_)
-	If clonedIndex_ <> NULL Then
-		Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
-		graph->deleteIndex(@clonedIndex_)
-	EndIf
+	If clonedIndex_ <> NULL Then ig_DeleteIndex(@clonedIndex_)
+	If resetIndex_ <> NULL Then ig_DeleteIndex(@resetIndex_)
 End Destructor
 
 Sub Player.updateCamera(snapToTarget As Boolean)
@@ -133,19 +144,31 @@ Sub Player.flipXUV()
 	Swap q->v(2).t.x, q->v(3).t.x
 End Sub
 
-Sub Player.setWarp(p As Vec2F, v As Vec2F)
+Sub Player.setWarp( _
+			p As Vec2F, _
+			v As Vec2F, _
+			leadingX As Double, _
+			musicPosition As LongInt, _
+			facingRight As Boolean)
 	isWarped_ = TRUE
 	warpP_ = p
 	warpV_ = v
+	warpLeadingX_ = leadingX
+	warpMusicPosition_ = musicPosition
+	warpFacingRight_ = facingRight
 End Sub
 
 Sub Player.checkArbiters()
 	lastGrounded_ = grounded_
 	grounded_ = FALSE
 	bonk_ = FALSE
+	standingOnStatic_ = FALSE
 	For i As Integer = 0 to COL_PTR->getArbiters().size() - 1
 		Dim As Arbiter Ptr arb = @(COL_PTR->getArbiters()[i])
-		If arb->onAxis And AxisComponent.Y_N Then grounded_ = TRUE
+		If arb->onAxis And AxisComponent.Y_N Then 
+			grounded_ = TRUE
+			If arb->actorRef->getType() = ActorTypes.DECORATIVE_COLLIDER Then standingOnStatic_ = TRUE
+		EndIf
 		If arb->onAxis And AxisComponent.Y_P Then bonk_ = TRUE
 	Next i
 	If (Not grounded_) AndAlso lastGrounded_ Then lastGroundedCountdown_ = FALLING_JUMP_GRACE_FRAMES
@@ -154,7 +177,7 @@ End Sub
 Sub Player.processPlatformingControls()
 	Dim As Double speed = IIf(grounded_, GROUND_SPEED, AIR_SPEED)*IIf(carryingStatue_, 0.9, 1.0)
 	Dim As Double friction = IIf(grounded_, GROUND_FRICTION, AIR_FRICTION)*IIf(carryingStatue_, 0.95, 1.0)
-	If MultiKey(fb.SC_LEFT) Then 
+	If ((lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_LEFT)) OrElse (lockState_ = LockState.WALK_LEFT) Then 
 		COL_PTR->setV(COL_PTR->getV() + Vec2F(-speed, 0))
 		If facingRight_ = TRUE Then 
 			If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(-STATUE_ADJUST_X*2, 0, 0))
@@ -162,7 +185,7 @@ Sub Player.processPlatformingControls()
 		EndIf
 		facingRight_ = FALSE
 	EndIf
-	If MultiKey(fb.SC_RIGHT) Then 
+	If ((lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_RIGHT)) OrElse (lockState_ = LockState.WALK_RIGHT) Then
 		COL_PTR->setV(COL_PTR->getV() + Vec2F(speed, 0))
 		If facingRight_ = FALSE Then 
 			If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(STATUE_ADJUST_X*2, 0, 0))
@@ -181,7 +204,7 @@ Sub Player.processPlatformingControls()
 	If airbornJumpRequestCountdown_ > 0 Then airbornJumpRequestCountdown_ -= 1
 	Dim As Boolean queuedJumpRequest = _
 			((airbornJumpRequestCountdown_ > 0) AndAlso (grounded_ AndAlso (Not lastGrounded_))) 'const
-	If MultiKey(fb.SC_Z) OrElse queuedJumpRequest Then
+	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_Z) OrElse queuedJumpRequest Then
 		If (lastJumpPressed_ = FALSE) OrElse queuedJumpRequest Then
 			If grounded_ OrElse (lastGroundedCountdown_ > 0) Then
 				COL_PTR->setV(Vec2F(COL_PTR->getV().x, JUMP_INIT_VEL*IIf(carryingStatue_, 0.75, 1.0)))			
@@ -205,7 +228,7 @@ Sub Player.processPlatformingControls()
 	If grounded_ Then airbornJumpRequestCountdown_ = 0
 	
 	downLHEdge_ = FALSE
-	If MultiKey(fb.SC_UP) Then 
+	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_UP) Then 
 		If lastDownPressed_ = FALSE Then downLHEdge_ = TRUE
 		lastDownPressed_ = TRUE	
 	Else
@@ -213,19 +236,23 @@ Sub Player.processPlatformingControls()
 	EndIf
 	
 	activateLHEdge_ = FALSE
-	If MultiKey(fb.SC_X) Then 
+	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_X) Then 
 		If lastActivatePressed_ = FALSE Then activateLHEdge_ = TRUE
 		lastActivatePressed_ = TRUE	
 	Else
 		lastActivatePressed_ = FALSE
 	EndIf
 	
-	If MultiKey(fb.SC_SPACE) Then 
+	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_SPACE) Then 
 		If lastSwapPressed_ = FALSE Then isSnapshotting_ = Not isSnapshotting_
 		lastSwapPressed_ = TRUE	
 	Else
 		lastSwapPressed_ = FALSE
 	EndIf
+End Sub
+
+Sub Player.setLockState(state As LockState)
+	lockState_ = state
 End Sub
 
 Sub Player.disableCollision()
@@ -265,9 +292,23 @@ End Sub
 Sub Player.processInteractions()
 	processStatues()
 	carryableStatues_.clear()
+	
+	Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
+	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+	If resetIndex_ = NULL AndAlso (Not waitingForResetIndex_) Then
+		graph->requestClone()
+		resetIndexLeadingX_ = camera_->getLeadingX()
+		resetIndexFacingRight_ = facingRight_
+		waitingForResetIndex_ = TRUE
+		Return
+	ElseIf waitingForResetIndex_ Then
+		resetIndex_ = graph->getClone()
+		waitingForResetIndex_ = FALSE
+	EndIf
+	
 	If Not isSnapshotting_ Then Return
 	If carryingStatue_ Then Return
-	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+
 	If Not cloneRequested_ Then
 		If activateLHEdge_ Then 
 			If snapshot_ <> NULL Then
@@ -287,9 +328,9 @@ Sub Player.processInteractions()
 		snapshotP_ = COL_PTR->getAABB().o
 		snapshotV_ = COL_PTR->getV()
 		
-		Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
 		snapshotFacingRight_ = facingRight_
 		snapshotLeadingX_ = camera_->getLeadingX()
+		snapshotMusicPosition_ = AudioController.getPlaybackPosition()
 	EndIf 
 End Sub
 
@@ -311,7 +352,10 @@ Sub Player.claimSnapshot( _
 		embedId As UInteger Ptr, _
 		snapshot As Image32 Ptr Ptr, _
 		snapshotP As Vec2F Ptr, _
-		snapshotV As Vec2F Ptr)
+		snapshotV As Vec2F Ptr, _
+		snapshotLeadingX As Double Ptr, _
+		snapshotMusicPosition As LongInt Ptr, _
+		snapshotFacingRight As Boolean Ptr)
 	DEBUG_ASSERT(snapshot_ <> NULL)
 	*embedId = embedId_
 	embedId_ = -1
@@ -321,6 +365,11 @@ Sub Player.claimSnapshot( _
 	
 	*snapshotP = snapshotP_
 	*snapshotV = snapshotV_
+	
+	*snapshotLeadingX = snapshotLeadingX_
+	*snapshotMusicPosition = snapshotMusicPosition_
+	
+	*snapshotFacingRight = snapshotFacingRight_
 End Sub
 
 Function Player.update(dt As Double) As Boolean
@@ -335,30 +384,43 @@ Function Player.update(dt As Double) As Boolean
 			isWarped_ = FALSE	
 			spawnP = warpP_
 			COL_PTR->setV(warpV_)
-			camera_->snap(Vec2F(0, 0), snapshotLeadingX_)
+			camera_->snap(Vec2F(0, 0), warpLeadingX_)
 			If facingRight_ Then 
-				If Not snapshotFacingRight_ Then 
+				If Not warpFacingRight_ Then 
 					If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(-STATUE_ADJUST_X*2, 0, 0))
 					flipXUV()
 				EndIf
 			Else
-				If snapshotFacingRight_ Then 
+				If warpFacingRight_ Then 
 					If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(STATUE_ADJUST_X*2, 0, 0))
 					flipXUV()
 				EndIf
 			EndIf
-			facingRight_ = snapshotFacingRight_
+			facingRight_ = warpFacingRight_
+			AudioController.switchMusic(NULL, warpMusicPosition_)
 		ElseIf destinationPortal_ = "" Then 
 			spawnP = GET_GLOBAL("SPAWN", Spawn).getP()
 		Else
-			Dim As Portal Ptr portal_ = @GET_GLOBAL(StrPtr(destinationPortal_), Portal)			
-			If portal_->getMode() = PortalEnterMode.FROM_LEFT Then
-				camera_->snap(camera_->getP(), 99999)
-			ElseIf portal_->getMode() = PortalEnterMode.FROM_RIGHT Then
-				camera_->snap(camera_->getP(), -99999)					
-			EndIf
-			If portal_->getMode() <> PortalEnterMode.FROM_CENTER Then portal_->waitForNoIntersect()
-			spawnP = portal_->getRegion().o
+			Dim As Portal Ptr portal_ = @GET_GLOBAL(StrPtr(destinationPortal_), Portal)	
+			Select Case portal_->getMode()
+				Case PortalEnterMode.FROM_LEFT
+					camera_->snap(camera_->getP(), 99999)
+					spawnP = portal_->getRegion().o
+					portal_->waitForNoIntersect()
+					spawnP = portal_->getRegion().o + Vec2F(portal_->getRegion().s.x - COL_PTR->getAABB().s.x, 0)
+				Case PortalEnterMode.FROM_RIGHT
+					camera_->snap(camera_->getP(), -99999)		
+					portal_->waitForNoIntersect()	
+					spawnP = portal_->getRegion().o
+				Case PortalEnterMode.FROM_CENTER
+					spawnP = portal_->getRegion().o + Vec2F((portal_->getRegion().s.x - COL_PTR->getAABB().s.x)*0.5, 0)
+				Case Else
+					DEBUG_ASSERT(FALSE)
+			End Select	
+			Dim As CameraInterface Ptr camera = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
+			camera->fadeIn()
+			intersectPortalBounds_ = portal_->getRegion()
+			warpLock_ = TRUE
 		EndIf 
 		Dim As Vec2F diff = spawnP - COL_PTR->getAABB().o
 		COL_PTR->place(spawnP)
@@ -366,10 +428,62 @@ Function Player.update(dt As Double) As Boolean
 		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(modelTranslate)
 		model_->translate(modelTranslate)
 		warpCountdown_ = WARP_ANIM_COUNTDOWN
+		lastPositions_.clear()
+		positionReadIndex_ = 0
+		AudioController.fadeIn()
 	Else
 		model_->translate(COL_PTR->getDelta())
 		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(COL_PTR->getDelta())
+		
+		Dim As SimulationInterface Ptr sim_ = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
+		If sim_->getIntersectsBlockGrid(COL_PTR->getAABB()) = BlockType.SIGNAL Then
+			If carryingStatue_ Then 
+				carryingStatue_ = FALSE	
+				DEBUG_ASSERT(fakeStatuePtr_ <> NULL)
+				CPtr(ActorBank Ptr, parent_)->remove(fakeStatuePtr_)
+				fakeStatuePtr_ = NULL
+			End If
+			
+			DEBUG_ASSERT(lastPositions_.size() > 0)
+			Dim As Integer warpBackIndex = (positionReadIndex_ + 1) Mod lastPositions_.size() 'const
+			Dim As Vec2F warpBackPos = lastPositions_[warpBackIndex] 'const
+			lastPositions_.clear()
+			positionReadIndex_ = 0
+
+	 		freezeAfterDie_ = FREEZE_DIE_FRAMES
+	 		lockState_ = LockState.IDLE
+			Dim As Vec2F playerModelTranslate = warpBackPos - COL_PTR->getAABB().o 'const
+			COL_PTR->place(warpBackPos)	
+			model_->translate(playerModelTranslate)	
+			camera_->bleedIn()
+			COL_PTR->setV(Vec2F(0, 0))
+			If snapshot_ <> NULL Then
+				ig_DeleteIndex(@clonedIndex_)
+				Delete(snapshot_)
+				snapshot_ = NULL
+			EndIf
+			snapCamera = TRUE
+		ElseIf standingOnStatic_ AndAlso (Not onIsland_) Then
+			If lastPositions_.size() >= MAX_POSITION_MEMORY Then
+				positionReadIndex_ = (positionReadIndex_ + 1) Mod MAX_POSITION_MEMORY
+				lastPositions_[positionReadIndex_] = COL_PTR->getAABB().o
+			Else 
+				lastPositions_.push(COL_PTR->getAABB().o)
+				positionReadIndex_ = lastPositions_.size() - 1
+			EndIf 
+		End If
 	EndIf
+	If warpLock_ Then
+		If Not intersectPortalBounds_.intersects(COL_PTR->getAABB()) Then 
+			lockState_ = LockState.NONE
+			warpLock_ = FALSE
+		EndIf
+	EndIf
+	If freezeAfterDie_ > 0 Then
+		freezeAfterDie_ -= 1
+		If freezeAfterDie_ = 1 Then lockState_ = LockState.NONE
+	EndIf 
+		
 	updateCamera(snapCamera)
 	
 	checkArbiters()
@@ -382,6 +496,7 @@ Function Player.update(dt As Double) As Boolean
 	If warpCountdown_ > 0 Then warpCountdown_ -= 1
 	If statuePlaceCountdown_ > 0 Then statuePlaceCountdown_ -= 1
 	firstPickUp_ = FALSE
+	onIsland_ = FALSE
 	
 	'''
 	Print "JUMP = Z"
@@ -392,6 +507,10 @@ Function Player.update(dt As Double) As Boolean
 	
 	Return FALSE
 End Function
+
+Sub Player.setOnIsland()
+	onIsland_ = TRUE
+End Sub
 
 Sub Player.processCarrying()
 	If Not carryingStatue_ Then Return
@@ -485,7 +604,7 @@ Sub Player.processAnimation()
 				walkFrameDelay_ = 0
 				walkFrame_ = 0
 			EndIf
-			curFrame = 6 + walkFrame_
+			curFrame = IIf(carryingStatue_, 10, 6) + walkFrame_
 			idleFrame_ = -1
 		Else 
 			walkFrame_ = -1

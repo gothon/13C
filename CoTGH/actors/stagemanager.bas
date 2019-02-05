@@ -2,18 +2,21 @@
 
 #Include "../actorbank.bi"
 #Include "../actordefs.bi"
-
-Const As Double GRAVITY_FORCE = 250
+#Include "../audiocontroller.bi"
 
 Namespace act
 ACTOR_REQUIRED_DEF(StageManager, ActorTypes.STAGEMANAGER)
+
+Const As Double GRAVITY_FORCE = 250
+Dim As ZString Ptr DEFAULT_MUSIC = StrPtr("res/default.mp3")
 	
 Constructor StageManager( _
 		parent As ActorBankFwd Ptr, _
 		mapDims As Vec2F, _
 		lightDir As Vec3F, _
 		lightMin As Double, _
-		lightMax As Double)
+		lightMax As Double, _
+		audioFile As Const ZString Ptr)
 	Base.Constructor(parent)
 	setType()
 
@@ -23,6 +26,8 @@ Constructor StageManager( _
 	This.lightMin_ = lightMin
 	This.lightMax_ = lightMax	
 	This.mapDims_ = mapDims
+	This.audioFile_ = IIf(audioFile = NULL, *DEFAULT_MUSIC, *audioFile)
+	AudioController.cacheMusic(audioFile_)
 End Constructor
 
 Const Function StageManager.getMapDims() ByRef As Const Vec2F
@@ -37,6 +42,8 @@ Function StageManager.update(dt As Double) As Boolean
 		
 		Dim As SimulationInterface Ptr sInterface = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
 		sInterface->setForce(Vec2F(0, -GRAVITY_FORCE))
+		
+		AudioController.switchMusic(audioFile_)
 	EndIf
 	Return FALSE
 End Function
@@ -46,7 +53,7 @@ Sub StageManager.notify()
 End Sub
 	
 Function StageManager.clone(parent As ActorBankFwd Ptr) As Actor Ptr
-	Return New StageManager(parent, mapDims_, lightDir_, lightMin_, lightMax_)
+	Return New StageManager(parent, mapDims_, lightDir_, lightMin_, lightMax_, StrPtr(audioFile_))
 End Function
 
 End Namespace

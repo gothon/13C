@@ -19,7 +19,9 @@ Type CameraInterface Extends Actor
   Declare Const Function getP() As Vec2F
   Declare Const Function getLeadingX() As Double
   Declare Sub setMode(placeAndLookOnly As Boolean)
-  Declare Sub setColorMul(ByRef mulmix As Const Vec3F)
+  Declare Sub fadeOut()
+  Declare Sub fadeIn()
+  Declare Sub bleedIn()
 	
 	Declare Sub update(dt As Double)
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
@@ -27,6 +29,9 @@ Type CameraInterface Extends Actor
  	As CameraController Ptr camera_ = NULL
  	As GamespaceFwd Ptr gs_ = NULL
  	
+ 	As Vec3F addmix_ = Any
+ 	As Vec3F mulmix_ = Any
+ 	As Single fadeV_ = Any
  	As Vec2F guideP_
  	As Boolean facingRight_ = TRUE
 End Type

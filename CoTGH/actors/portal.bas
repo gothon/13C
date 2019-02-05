@@ -4,9 +4,12 @@
 #Include "../actordefs.bi"
 #Include "../actortypes.bi"
 #Include "../actorbank.bi"
+#Include "../audiocontroller.bi"
 
 Namespace act
 ACTOR_REQUIRED_DEF(Portal, ActorTypes.PORTAL)
+
+Const As Integer MAP_TRANSITION_COUNTDOWN = 10
 	
 Constructor Portal(	_
 		parent As ActorBankFwd Ptr, _
@@ -14,7 +17,8 @@ Constructor Portal(	_
 		region As AABB, _
 		mode As PortalEnterMode, _
 		toMap As Const ZString Ptr, _
-		toPortal As Const ZString Ptr)
+		toPortal As Const ZString Ptr, _
+		fadeMusic As Boolean)
 	Base.Constructor(parent)
 	setType()
 		
@@ -28,6 +32,8 @@ Constructor Portal(	_
 	DEBUG_ASSERT(toPortal <> NULL)
 	This.toPortal_ = util.cloneZString(toPortal)
 	This.waitingForNoIntersect_ = FALSE
+	This.requestGoCountdown_ = -1
+	This.fadeMusic_ = fadeMusic
 End Constructor
 
 Destructor Portal()
@@ -42,17 +48,37 @@ Sub Portal.waitForNoIntersect()
 End Sub
 	
 Function Portal.update(dt As Double) As Boolean
-	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
-	If Not player_->getBounds().intersects(region_) Then 
-		waitingForNoIntersect_ = FALSE
-		Return FALSE
-	EndIf
-	If waitingForNoIntersect_ Then Return FALSE
-	If (mode_ = PortalEnterMode.FROM_CENTER) AndAlso (Not player_->pressedDown()) Then Return FALSE
-	
-	player_->disableCollision()
-	player_->setDestinationPortal(*toPortal_)
-	GET_GLOBAL("GRAPH INTERFACE", GraphInterface).requestGo(toMap_)
+	If requestGoCountdown_ = -1 Then
+		Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
+		If Not player_->getBounds().intersects(region_) Then 
+			waitingForNoIntersect_ = FALSE
+			Return FALSE
+		EndIf
+		If waitingForNoIntersect_ Then Return FALSE
+		If (mode_ = PortalEnterMode.FROM_CENTER) AndAlso (Not player_->pressedDown()) Then Return FALSE
+		
+		requestGoCountdown_ = MAP_TRANSITION_COUNTDOWN
+		If fadeMusic_ Then AudioController.fadeOut()
+		Dim As CameraInterface Ptr camera = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
+		camera->fadeOut()
+		If mode_ = PortalEnterMode.FROM_LEFT Then
+			player_->setLockState(LockState.WALK_RIGHT)
+		ElseIf mode_ = PortalEnterMode.FROM_RIGHT Then
+			player_->setLockState(LockState.WALK_LEFT)
+		Else
+			player_->setLockState(LockState.IDLE)
+		EndIf
+	Else
+		If requestGoCountdown_ > 0 Then
+			requestGoCountdown_ -= 1
+		ElseIf requestGoCountdown_ = 0 Then
+			Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
+			player_->disableCollision()
+			player_->setDestinationPortal(*toPortal_)
+			GET_GLOBAL("GRAPH INTERFACE", GraphInterface).requestGo(toMap_)
+			requestGoCountdown_ = -1
+		End If
+	End If
 
 	Return FALSE
 End Function
@@ -70,7 +96,8 @@ Function Portal.getRegion() As AABB
 End Function
 	
 Function Portal.clone(parent As ActorBankFwd Ptr) As Actor Ptr
-	Return New Portal(parent, This.getKey(), region_, mode_, util.cloneZString(toMap_), util.cloneZString(toPortal_))
+	Return New Portal( _
+			parent, This.getKey(), region_, mode_, util.cloneZString(toMap_), util.cloneZString(toPortal_), fadeMusic_)
 End Function
 
 End Namespace

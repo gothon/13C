@@ -123,8 +123,10 @@ Sub Gamespace.draw()
 	staticBank_->project(camera_->proj())
 	activeBank_->project(camera_->proj())
 	drawBuffer_.draw(target_)
-	If (mulmix_.x = 1.0) AndAlso (mulmix_.y = 1.0) AndAlso (mulmix_.z = 1.0) Then Return 
-	imageops.mulmix(target_, mulmix_)
+	If (mulmix_.x <> 1.0) OrElse (mulmix_.y <> 1.0) OrElse (mulmix_.z <> 1.0) _
+			OrElse (addmix_.x <> 1.0) OrElse (addmix_.y <> 1.0) OrElse (addmix_.z <> 1.0) Then 
+		imageops.mulmix(target_, mulmix_, addmix_)	
+	EndIf
 End Sub
 	
 Function Gamespace.getDrawBuffer() As QuadDrawBuffer Ptr
@@ -199,8 +201,9 @@ Function Gamespace.clone() As ig_Index
 	Return cloned
 End Function
 
-Sub Gamespace.setDrawMulmix(ByRef mulmix As Const Vec3F)
+Sub Gamespace.setDrawMulmix(ByRef mulmix As Const Vec3F, ByRef addmix As Const Vec3F)
 	mulmix_ = mulmix
+	addmix_ = addmix
 End Sub
 
 Sub Gamespace.addGlobalActor(key As Const ZString Ptr, actor As act.Actor Ptr)

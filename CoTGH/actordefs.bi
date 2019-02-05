@@ -20,5 +20,6 @@
 #Include "actors/activebankinterface.bi"
 #Include "actors/chandelier.bi"
 #Include "actors/leecher.bi"
+#Include "actors/islandzone.bi"
 
 #EndIf

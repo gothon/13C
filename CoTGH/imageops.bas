@@ -183,13 +183,17 @@ Sub sync4X(ByRef src As Const Image32)
   ScreenUnlock
 End Sub
 
-Sub mulmix(src As Image32 Ptr, ByRef x As Const Vec3F)
+Sub mulmix(src As Image32 Ptr, ByRef x As Const Vec3F, ByRef a As Const Vec3F)
   Dim As Integer colOffset(0 to 3)
   Dim As Pixel32 Ptr pxls = src->pixels()
   Dim As UInteger totalPixels = src->w()*src->h()
   
   Dim As Single c(0 To 3) = {x.z*256.0f, x.y*256.0f, x.x*256.0f, 256.0}
   Dim As Single Ptr colPtr = @(c(0))
+  
+  Dim As Single add(0 To 3) = {a.z*256.0f, a.y*256.0f, a.x*256.0f, 256.0}
+  Dim As Single Ptr addPtr = @(add(0))
+
   Asm
   	mov eax, totalPixels
   	mov ebx, pxls
@@ -198,6 +202,11 @@ Sub mulmix(src As Image32 Ptr, ByRef x As Const Vec3F)
     movaps xmm0, [esi]
     cvttps2dq xmm1, xmm0
     packssdw xmm1, xmm1
+
+	  mov esi, addPtr
+    movaps xmm0, [esi]
+    cvttps2dq xmm3, xmm0
+    packssdw xmm3, xmm3
   
     pxor xmm2, xmm2
 
@@ -208,6 +217,7 @@ imageops_mulmix_pixelloop:
  		
  		pmullw xmm0, xmm1
     psrlw xmm0, 8
+    paddusw xmm0, xmm3
     packuswb xmm0, xmm2
     
     movd ecx, xmm0
