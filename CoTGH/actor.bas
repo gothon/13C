@@ -202,6 +202,8 @@ Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 			Return CPtr(Leecher Ptr, actorPtr)->update(dt)		
 		Case ActorTypes.ISLANDZONE
 			Return CPtr(IslandZone Ptr, actorPtr)->update(dt)	
+		Case ActorTypes.SIMULATIONINTERFACE
+			Return CPtr(SimulationInterface Ptr, actorPtr)->update(dt)			
 		Case Else
 			Return FALSE
 	End Select
@@ -227,6 +229,8 @@ Sub maybeNotify(actorPtr As Actor Ptr)
 			CPtr(Leecher Ptr, actorPtr)->notify()
 		Case ActorTypes.ISLANDZONE
 			CPtr(IslandZone Ptr, actorPtr)->notify()	
+		Case ActorTypes.SIMULATIONINTERFACE
+			CPtr(SimulationInterface Ptr, actorPtr)->notify()				
 	End Select	
 End Sub
 
@@ -257,6 +261,8 @@ Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
 			Return CPtr(FakeStatue Ptr, actorPtr)->getModel()		
 		Case ActorTypes.CHANDELIER
  			Return CPtr(Chandelier Ptr, actorPtr)->getModel()	
+ 		Case ActorTypes.LEECHER
+ 			Return CPtr(Leecher Ptr, actorPtr)->getModel()		
 		Case Else
 			Return NULL
 	End Select
@@ -361,7 +367,9 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.LEECHER
  			Return CPtr(Leecher Ptr, x)->clone(bank) 				
 		Case ActorTypes.ISLANDZONE
- 			Return CPtr(IslandZone Ptr, x)->clone(bank) 					 					
+ 			Return CPtr(IslandZone Ptr, x)->clone(bank) 	
+ 		Case ActorTypes.STAGEMANAGER
+ 			Return CPtr(StageManager Ptr, x)->clone(bank) 							 					
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	

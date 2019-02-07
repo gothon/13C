@@ -11,7 +11,6 @@
 #Include "../vec2f.bi"
 
 DECLARE_DARRAY(ActorPtr)
-DECLARE_DARRAY(Vec2F)
 
 Namespace act
 	
@@ -77,8 +76,6 @@ Type Player Extends DynamicCollidingModelActor
  	As Boolean onIsland_ = Any
  	As Integer freezeAfterDie_ = Any
  	
- 	As DArray_Vec2F lastPositions_
- 	As Integer positionReadIndex_ = Any
  	As Boolean standingOnStatic_ = Any
  	
  	As LockState lockState_ = Any
@@ -113,6 +110,7 @@ Type Player Extends DynamicCollidingModelActor
  	As Boolean lastActivatePressed_ = Any
  	As boolean activateLHEdge_ = Any
  	
+ 	As Integer warpParalyzeCountdown_ = Any
  	As UInteger embedId_ = Any
  	As ig_Index clonedIndex_ = Any
  	As Image32 Ptr snapshot_ = Any

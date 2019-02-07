@@ -39,6 +39,7 @@ Type Painting Extends DynamicModelActor
  	As Image32 Ptr updatedImage_ = Any
  	As Const Image32 Ptr frameImage_ = Any
  	As Const Image32 Ptr emptyImage_ = Any
+ 	As Integer warpCountdown_ = Any
 End Type
 
 End Namespace

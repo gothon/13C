@@ -88,6 +88,11 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
   For i As Integer = quads_.size() - 1 To 0 Step -1
     Dim As Quad Ptr q = quads_[i].q
     If (Not q->enabled) OrElse (q->cull AndAlso backfaceTest(*q)) Then Continue For
+    If ((q->pV(0).p.z > 0) OrElse _
+    		(q->pV(1).p.z > 0) OrElse _
+    		(q->pV(2).p.z > 0) OrElse _
+    		(q->pV(3).p.z > 0)) Then Continue For
+    
     If ((q->pV(0).p.x < 0) AndAlso _
     		(q->pV(1).p.x < 0) AndAlso _
     		(q->pV(2).p.x < 0) AndAlso _

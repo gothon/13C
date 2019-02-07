@@ -11,7 +11,7 @@ DECLARE_DARRAY(AnyPtr)
 
 Namespace act
 	
-Type SimulationInterface Extends Actor
+Type SimulationInterface Extends DynamicActor
  Public:
  	ACTOR_REQUIRED_DECL(SimulationInterface)
  
@@ -21,9 +21,17 @@ Type SimulationInterface Extends Actor
 	Declare Const Function getIntersects(ByRef box As Const AABB) As DArray_AnyPtr
 	Declare Const Function getIntersectsBlockGrid(ByRef box As Const AABB) As BlockType
 	
+	Declare Function update(dt As Double) As Boolean Override
+ 	Declare Sub notify() Override
+	
+	Declare Sub doSlowdown()
+	Declare Sub endSlowdown()
+	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
- 	As Simulation Ptr sim_
+ 	As Simulation Ptr sim_ = Any
+ 	As Single timeSlowMul_ = Any
+ 	As Boolean slowdownMode_ = Any
 End Type
 
 End Namespace

@@ -7,6 +7,7 @@
 #Include "image32.bi"
 #Include "indexgraph.bi"
 #Include "imageops.bi"
+#Include "audiocontroller.bi"
 
 Constructor Gamespace( _
 		camera As CameraController Ptr, _
@@ -56,7 +57,8 @@ Sub Gamespace.addSystemActors()
 	globalBank_->add(New act.DrawBufferInterface(globalBank_, @drawBuffer_))
 	globalBank_->add(New act.TransitionNotifier(globalBank_, @transitionOccured_))
 	globalBank_->add(New act.SimulationInterface(globalBank_, @sim_))
-	globalBank_->add(New act.SnapshotInterface(globalBank_, target_))
+	snapshotInterfaceActor_ = New act.SnapshotInterface(globalBank_, target_)
+	globalBank_->add(snapshotInterfaceActor_)
 	globalBank_->add(New act.ActiveBankInterface(globalBank_, @activeBank_))
 End Sub
 	
@@ -97,6 +99,7 @@ Sub Gamespace.update(dt As Double)
 		
 		If graphInterfaceActor_->cloneRequested() Then 
 			graphInterfaceActor_->setClone(clone())
+			takeSnapshot_ = TRUE
 		ElseIf indexToEmbed_ <> NULL Then
 			embed()
 		EndIf
@@ -123,6 +126,10 @@ Sub Gamespace.draw()
 	staticBank_->project(camera_->proj())
 	activeBank_->project(camera_->proj())
 	drawBuffer_.draw(target_)
+	If takeSnapshot_ Then
+		snapshotInterfaceActor_->capture()
+		takeSnapshot_ = FALSE
+	EndIf
 	If (mulmix_.x <> 1.0) OrElse (mulmix_.y <> 1.0) OrElse (mulmix_.z <> 1.0) _
 			OrElse (addmix_.x <> 1.0) OrElse (addmix_.y <> 1.0) OrElse (addmix_.z <> 1.0) Then 
 		imageops.mulmix(target_, mulmix_, addmix_)	
@@ -150,6 +157,10 @@ Sub Gamespace.go(key As Const ZString Ptr)
 	
 	staticBank_->bindInto(@This)
 	activeBank_->bindInto(@This)
+	
+	sim_.setTimeMultiplier(1.0)
+	AudioController.setFrequencyMul(1.0)
+	camera_->setMode(FALSE)
 End Sub
 
 Sub Gamespace.go(index As ig_Index Ptr)
@@ -165,6 +176,10 @@ Sub Gamespace.go(index As ig_Index Ptr)
 	
 	staticBank_->bindInto(@This)
 	activeBank_->bindInto(@This)
+	
+	sim_.setTimeMultiplier(1.0)
+	AudioController.setFrequencyMul(1.0)
+	camera_->setMode(FALSE)
 End Sub
 
 Function Gamespace.unembedToIndex(ref As UInteger) As ig_Index

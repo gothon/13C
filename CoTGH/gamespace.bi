@@ -49,6 +49,8 @@ Type Gamespace
 	
 	As act.GraphInterface Ptr graphInterfaceActor_ = NULL
 	As act.CameraInterface Ptr cameraInterfaceActor_ = NULL
+	As act.SnapshotInterface Ptr snapshotInterfaceActor_ = NULL
+	As Boolean takeSnapshot_ = FALSE
 	
 	As ig_Index indexToEmbed_ = Any
 	As UInteger existingEmbed_ = Any

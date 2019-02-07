@@ -517,13 +517,17 @@ Sub Simulation.integrateAll(dt As Double)
 	Dim As UInteger updateIndex = -1
   While(boxes_.getNext(@updateIndex))
 		Dim As DynamicAABB Ptr box = boxes_.get(updateIndex).getValue() 'const
-		Dim As Vec2F delta = box->getV()*dt
+		Dim As Vec2F delta = box->getV()*dt*timeMultiplier_
 		If Abs(delta.x) > MAX_VX Then delta.x = Sgn(delta.x)*MAX_VX
 		If Abs(delta.y) > MAX_VY Then delta.y = Sgn(delta.y)*MAX_VY
 		
 		box->place(box->getAABB().o + delta)
 		box->setDelta(box->getDelta() + delta)
   Wend
+End Sub
+
+Sub Simulation.setTimeMultiplier(m As Single)
+	timeMultiplier_ = m
 End Sub
 
 Const As Double IMPACT_SOFTEN = 0.99
@@ -533,7 +537,7 @@ Sub Simulation.update(dt As Double)
   While(boxes_.getNext(@resetIndex))
   	Dim As DynamicAABB Ptr box = boxes_.get(resetIndex).getValue()
   	box->getArbiters().clear()
-  	If box->gravityEnabled() Then box->setV(box->getV() + force_*dt)
+  	If box->gravityEnabled() Then box->setV(box->getV() + force_*dt*timeMultiplier_)
   	box->setDelta(Vec2F(0, 0))
   Wend
 	

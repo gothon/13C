@@ -40,6 +40,8 @@ bank->add( _
 				New QuadSprite(playerSprite, 16, 24), _
 				New DynamicAABB(AABB(Vec2F(60, 60), Vec2F(15, 24))), _
 				playerSprite))
+				
+AudioController.setMusicVol(0.25)
 
 Scope
 	Dim As Gamespace gs = Gamespace(@camera, @graph, @target, bank)

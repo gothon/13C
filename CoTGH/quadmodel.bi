@@ -73,6 +73,8 @@ Type QuadModelBase Extends Object
   'Retrieve a pointer to a projected quad.
   Declare Function getQuad(i As Integer) As Quad Ptr
   
+  Declare Sub setDrawMode(mode As QuadTextureMode)
+  
   'Hide/show this model. Will not be drawn by bound QuadDrawBuffers.
   Declare Sub hide()
   Declare Sub show()
@@ -165,7 +167,8 @@ Type QuadModel Extends QuadModelBase
       uvIndices() As QuadModelUVIndex, _
       tex() As Image32 Ptr, _
       useVertexNorm As Boolean = TRUE, _
-      tileVertical As Integer = 1)
+      tileVertical As Integer = 1, _
+      tileHorizontal As Integer = 1)
        
  Protected:
   Declare Sub calcZSort(q As Quad Ptr) Override

@@ -9,6 +9,7 @@
 #Include "../quadmodel.bi"
 #Include "../texturecache.bi"
 #Include "../actorbank.bi"
+#Include "../audiocontroller.bi"
 
 Namespace act
 ACTOR_REQUIRED_DEF(Painting, ActorTypes.PAINTING)
@@ -18,6 +19,8 @@ Const As UInteger PAINTING_H = 48
 
 Const As UInteger INTERSECT_BUFFER_X = 4
 Const As UInteger INTERSECT_BUFFER_Y = 0
+
+Const As Integer WARP_COUNTDOWN_FRAMES = 20
 
 Function createModel(srcImage As Image32 Ptr) As QuadModelBase Ptr
 	Dim As QuadModelUVIndex uvIndex(0 To 0) = {QuadModelUVIndex(Vec2F(0, 0), Vec2F(PAINTING_W, PAINTING_H), 0)} 'const
@@ -32,13 +35,15 @@ Constructor Painting(parent As ActorBankFwd Ptr, p As Vec3F)
 	setType()
 	model_->translate(p + Vec3F(0, 0, -8))
 	
+	AudioController.cacheSample("res/warp.wav")
+	
 	This.emptyImage_ = TextureCache.get("res/emptyframe.png")
 	This.frameImage_ = TextureCache.get("res/paintingframe.png")
 	This.z_ = p.z
 	This.box_ = AABB(Vec2F(p.x, p.y), Vec2F(PAINTING_W, PAINTING_H))
 	This.hasSnapshot_ = FALSE
 	This.playerData_.embedId = -1
-
+	This.warpCountdown_ = -1
 	Put This.paintingImage_->fbImg(), (0, 0), This.emptyImage_->constFbImg(), PSET
 End Constructor
 
@@ -49,6 +54,18 @@ End Destructor
 
 Function Painting.updateInternal(dt As Double) As Boolean
 	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
+	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
+	
+	If warpCountdown_ > 0 Then
+		warpCountdown_ -= 1
+		Return FALSE
+	ElseIf warpCountdown_ = 0 Then
+		warpCountdown_ = -1
+		player_->disableCollision()
+		player_->setWarp(playerData_.p, playerData_.v, playerData_.leadingX, playerData_.musicPos, playerData_.facingRight)
+		graph->requestGoIndex(graph->unembedToIndex(playerData_.embedId))	
+		Return FALSE
+	EndIf
 	
 	Dim As AABB bounds = box_
 	bounds.o += Vec2F(INTERSECT_BUFFER_X, INTERSECT_BUFFER_Y)
@@ -56,12 +73,15 @@ Function Painting.updateInternal(dt As Double) As Boolean
 	
 	If Not player_->getBounds().intersects(bounds) Then Return FALSE
 	
-	Dim As GraphInterface Ptr graph = @GET_GLOBAL("GRAPH INTERFACE", GraphInterface)
-	
 	If hasSnapshot_ AndAlso player_->pressedDown() Then 
-		player_->disableCollision()
-		player_->setWarp(playerData_.p, playerData_.v, playerData_.leadingX, playerData_.musicPos, playerData_.facingRight)
-		graph->requestGoIndex(graph->unembedToIndex(playerData_.embedId))
+		AudioController.playSample("res/warp.wav")
+		warpCountdown_ = WARP_COUNTDOWN_FRAMES
+		player_->setLockState(LockState.IDLE)
+		Dim As SimulationInterface Ptr sim_ = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
+		Dim As CameraInterface Ptr camera = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
+		camera->zoomToTarget(Vec3F(box_.o.x + box_.s.x*0.5, box_.o.y + box_.s.y*0.5 - 6, z_))
+		camera->setAddMixV(0.05)
+		sim_->doSlowdown()
 		Return FALSE
 	EndIf	
 	
@@ -107,12 +127,12 @@ Function Painting.update(dt As Double) As Boolean
 				Dim As Pixel32 Ptr col = @(pixels[y*updatedImage_->w() + x]) 'const
 				
 				Dim As Integer r = col->r
-				Dim As Integer g = col->g
-				Dim As Integer b = col->b + Int(Rnd * 50) - 25
-				If b < 0 Then 
-					b = 0
-				ElseIf b > 255 Then
-					b = 255
+				Dim As Integer g = col->g + Int(Rnd * 50) - 25
+				Dim As Integer b = col->b
+				If g < 0 Then 
+					g = 0
+				ElseIf g > 255 Then
+					g = 255
 				EndIf
 			
 				*col = Pixel32(r, g, b)

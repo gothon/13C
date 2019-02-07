@@ -34,6 +34,14 @@ Const Function CameraController.getLeadingX() As Double
 	Return leadingX_
 End Function
 
+Const Function CameraController.getAdjustedP() As Vec3F
+	Return Vec3F(p_.x + leadingX_*0.5, p_.y + 34, 180)
+End Function
+
+Const Function CameraController.getAdjustedTarget() As Vec3F
+	Return Vec3F(p_.x + leadingX_, p_.y + 5, 0)
+End Function
+
 Sub CameraController.update(t As Double, ByRef targetP As Const Vec2F, facingRight As Boolean)
 	If Not placeAndLookOnly_ Then 
 		Dim As Double leadTarget = Any
@@ -55,7 +63,7 @@ Function CameraController.proj() ByRef As Const Projection
 	If needsUpdate_ Then 
 		needsUpdate_ = FALSE
 		If Not placeAndLookOnly_ Then
-			proj_.placeAndLookAt(Vec3F(p_.x + leadingX_*0.5, p_.y + 34, 180), Vec3F(p_.x + leadingX_, p_.y + 5, 0))
+			proj_.placeAndLookAt(getAdjustedP(), getAdjustedTarget())
 		Else 
 			proj_.placeAndLookAt(pPlace_, pLook_)
 		EndIf 

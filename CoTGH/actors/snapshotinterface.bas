@@ -14,7 +14,12 @@ Constructor SnapshotInterface(parent As ActorBankFwd Ptr, target As Const Image3
 	DEBUG_ASSERT(((target->w() = 640) AndAlso (target->h() = 480)) _
 			OrElse ((target->w() = 320) AndAlso (target->h() = 240)))
 	This.target_ = target
+	This.captured_ = NULL
 End Constructor
+
+Destructor SnapshotInterface()
+	If captured_ <> NULL Then Delete(captured_)
+End Destructor
 
 Sub blockDownscale(dst As Image32 Ptr, src As Const Image32 Ptr, blockL As UInteger)
 	Dim As Pixel32 Ptr dstPxls = dst->pixels()
@@ -63,10 +68,15 @@ Sub blockDownscale(dst As Image32 Ptr, src As Const Image32 Ptr, blockL As UInte
 	Next dstY
 End Sub
 
-Const Function SnapshotInterface.createSnapshot() As Image32 Ptr
-	Dim As Image32 Ptr retImage = New Image32(64, 48)
-	blockDownscale(retImage, target_, IIf(target_->w() = 640, 10, 5))
-	Return retImage
+Sub SnapshotInterface.capture()
+	captured_ = New Image32(64, 48)
+	blockDownscale(captured_, target_, IIf(target_->w() = 640, 10, 5))
+End Sub
+
+Function SnapshotInterface.getSnapshot() As Image32 Ptr
+	Dim As Image32 Ptr temp = captured_
+	captured_ = NULL
+	Return temp
 End Function
 
 Function SnapshotInterface.clone(parent As ActorBankFwd Ptr) As Actor Ptr

@@ -4,6 +4,8 @@
 #Include "../actor.bi"
 #Include "../vec3f.bi"
 
+DECLARE_DARRAY(Vec2F)
+
 Namespace act
 	
 Type GamespaceFwd As Any
@@ -20,6 +22,9 @@ Type StageManager Extends DynamicActor
 			audioFile As Const ZString Ptr)
 			
 	Declare Const Function getMapDims() ByRef As Const Vec2F
+	
+	Declare Sub updateDelayPosition(ByRef p As Const Vec2F)
+	Declare Const Function getDelayPosition() As Vec2F
 
 	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override
@@ -31,6 +36,8 @@ Type StageManager Extends DynamicActor
  	As Double lightMax_ = Any
  	As Vec2F mapDims_ = Any
  	As String audioFile_
+	As DArray_Vec2F lastPositions_
+ 	As Integer positionReadIndex_ = Any
 End Type
 
 End Namespace

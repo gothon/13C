@@ -14,6 +14,9 @@ Type CameraController
   Declare Const Function getLeadingX() As Double
   Declare Sub setMode(placeAndLookOnly As Boolean)
   
+  Declare Const Function getAdjustedP() As Vec3F
+  Declare Const Function getAdjustedTarget() As Vec3F  
+  
   Declare Sub update(t As Double, ByRef targetP As Const Vec2F, facingRight As Boolean)
   
 	Declare Function proj() ByRef As Const Projection

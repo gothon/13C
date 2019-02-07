@@ -34,8 +34,9 @@ Const As UInteger WARP_ANIM_COUNTDOWN = 60
 Const As Integer STATUE_ADJUST_X = 7
 Const As Integer STATUE_ADJUST_Y = 6
 
-Const As Integer MAX_POSITION_MEMORY = 30
 Const As Integer FREEZE_DIE_FRAMES = 4
+
+Const As Integer WARP_PARALYZE_DELAY = 3
 
 #Define CAMERA_BUFFER_TL Vec2F(150, 100)
 #Define CAMERA_BUFFER_BR Vec2F(150, 80)
@@ -62,6 +63,8 @@ Constructor Player( _
 	This.facingRight_ = TRUE
 
 	animImage->setOffset(16, 0)
+	AudioController.cacheSample("res/oops.wav")
+	AudioController.cacheSample("res/snap.wav")
 	
 	This.animImage_ = animImage
 	This.animImage_->bindIn(TextureCache.get("res/mambazo.png"))
@@ -96,10 +99,10 @@ Constructor Player( _
  	This.warpLock_ = FALSE
  	This.resetIndex_ = NULL
  	This.waitingForResetIndex_ = FALSE
- 	This.positionReadIndex_ = 0
  	This.standingOnStatic_ = FALSE
  	This.onIsland_ = FALSE
  	This.freezeAfterDie_ = 0
+ 	This.warpParalyzeCountdown_ = 0
 End Constructor
 
 Destructor Player()
@@ -316,15 +319,17 @@ Sub Player.processInteractions()
 				Delete(snapshot_)
 				snapshot_ = NULL
 			EndIf
+			camera_->flashIn()
 			graph->requestClone()
 			cloneRequested_ = TRUE
+			AudioController.playSample("res/snap.wav")
 		EndIf
 	Else
 		cloneRequested_ = FALSE
 		clonedIndex_ = graph->getClone()
 		
 		Dim As SnapshotInterface Ptr snapInterface = @GET_GLOBAL("SNAPSHOT INTERFACE", SnapshotInterface)
-		snapshot_ = snapInterface->createSnapshot()
+		snapshot_ = snapInterface->getSnapshot()
 		snapshotP_ = COL_PTR->getAABB().o
 		snapshotV_ = COL_PTR->getV()
 		
@@ -398,6 +403,9 @@ Function Player.update(dt As Double) As Boolean
 			EndIf
 			facingRight_ = warpFacingRight_
 			AudioController.switchMusic(NULL, warpMusicPosition_)
+			setLockState(LockState.NONE)
+			warpParalyzeCountdown_ = WARP_PARALYZE_DELAY
+			camera_->setMulMixPercent(0.75, 0.01)
 		ElseIf destinationPortal_ = "" Then 
 			spawnP = GET_GLOBAL("SPAWN", Spawn).getP()
 		Else
@@ -428,13 +436,12 @@ Function Player.update(dt As Double) As Boolean
 		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(modelTranslate)
 		model_->translate(modelTranslate)
 		warpCountdown_ = WARP_ANIM_COUNTDOWN
-		lastPositions_.clear()
-		positionReadIndex_ = 0
 		AudioController.fadeIn()
 	Else
 		model_->translate(COL_PTR->getDelta())
 		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(COL_PTR->getDelta())
 		
+		Dim As StageManager Ptr stageManager_ = @GET_GLOBAL("STAGEMANAGER", StageManager)
 		Dim As SimulationInterface Ptr sim_ = @GET_GLOBAL("SIMULATION INTERFACE", SimulationInterface)
 		If sim_->getIntersectsBlockGrid(COL_PTR->getAABB()) = BlockType.SIGNAL Then
 			If carryingStatue_ Then 
@@ -444,11 +451,8 @@ Function Player.update(dt As Double) As Boolean
 				fakeStatuePtr_ = NULL
 			End If
 			
-			DEBUG_ASSERT(lastPositions_.size() > 0)
-			Dim As Integer warpBackIndex = (positionReadIndex_ + 1) Mod lastPositions_.size() 'const
-			Dim As Vec2F warpBackPos = lastPositions_[warpBackIndex] 'const
-			lastPositions_.clear()
-			positionReadIndex_ = 0
+			AudioController.playSample("res/oops.wav")
+			Dim As Vec2F warpBackPos = stageManager_->getDelayPosition()
 
 	 		freezeAfterDie_ = FREEZE_DIE_FRAMES
 	 		lockState_ = LockState.IDLE
@@ -464,13 +468,7 @@ Function Player.update(dt As Double) As Boolean
 			EndIf
 			snapCamera = TRUE
 		ElseIf standingOnStatic_ AndAlso (Not onIsland_) Then
-			If lastPositions_.size() >= MAX_POSITION_MEMORY Then
-				positionReadIndex_ = (positionReadIndex_ + 1) Mod MAX_POSITION_MEMORY
-				lastPositions_[positionReadIndex_] = COL_PTR->getAABB().o
-			Else 
-				lastPositions_.push(COL_PTR->getAABB().o)
-				positionReadIndex_ = lastPositions_.size() - 1
-			EndIf 
+			stageManager_->updateDelayPosition(COL_PTR->getAABB().o)
 		End If
 	EndIf
 	If warpLock_ Then
@@ -495,6 +493,7 @@ Function Player.update(dt As Double) As Boolean
 	If lastGroundedCountdown_ > 0 Then lastGroundedCountdown_ -= 1
 	If warpCountdown_ > 0 Then warpCountdown_ -= 1
 	If statuePlaceCountdown_ > 0 Then statuePlaceCountdown_ -= 1
+	If warpParalyzeCountdown_ > 0 Then warpParalyzeCountdown_ -= 1
 	firstPickUp_ = FALSE
 	onIsland_ = FALSE
 	
@@ -502,6 +501,8 @@ Function Player.update(dt As Double) As Boolean
 	Print "JUMP = Z"
 	Print "SWITCH MODE = SPACE"
 	Print "SNAPSHOT/PLACE/PICK-UP/PLACE = X"
+	Print "ENTER = UP"
+	Print "HAS SNAPSHOT? " + Str(snapshot_ <> NULL)
 	Print "MODE: " + IIf(isSnapshotting_, "SNAPSHOT MODE", "PLACEMENT MODE")
 	'''
 	
@@ -645,11 +646,14 @@ Sub Player.processAnimation()
 End Sub
 
 Const Function Player.pressedDown() As Boolean
-	Return downLHEdge_
+	Return downLHEdge_ AndAlso (warpParalyzeCountdown_ = 0)
 End Function
 
 Const Function Player.pressedActivate() As Boolean
-	Return activateLHEdge_ AndAlso (Not isSnapshotting_) AndAlso (Not carryingStatue_) AndAlso (statuePlaceCountdown_ = 0)
+	Return activateLHEdge_ AndAlso (Not isSnapshotting_) _
+			AndAlso (Not carryingStatue_) _
+			AndAlso (statuePlaceCountdown_ = 0) _
+			AndAlso (warpParalyzeCountdown_ = 0)
 End Function
 
 Const Function Player.getBounds() ByRef As Const AABB

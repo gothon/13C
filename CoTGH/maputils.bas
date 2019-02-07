@@ -490,7 +490,7 @@ Sub addLeecher( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	res->bank->Add(New act.Leecher(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
+	res->bank->Add(New act.Leecher(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h)), 0, 2))
 End Sub
 
 Sub addIsland( _

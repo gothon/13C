@@ -78,6 +78,8 @@ Function actorIsShared(actor As act.Actor Ptr) As Boolean
 			Return FALSE
 		Case act.ActorTypes.CHANDELIER
 			Return FALSE
+		Case act.ActorTypes.STAGEMANAGER
+			Return FALSE
 		Case Else
 			Return TRUE
 	End Select

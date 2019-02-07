@@ -151,6 +151,7 @@ Type Simulation
   Declare Operator Let(ByRef rhs As Const Simulation) 'disallowed
  	
  	Declare Sub setForce(ByRef f As Const Vec2F)
+ 	Declare Sub setTimeMultiplier(m As Single)
  	
  	Declare Sub add(c As Collider Ptr)
  	Declare Sub add(grid As BlockGrid Ptr)
@@ -168,6 +169,7 @@ Type Simulation
  Private:
  	Declare Sub integrateAll(dt As Double)
  
+ 	As Single timeMultiplier_ = 1.0
  	As StaticList_BlockGridPtr grids_
  	As StaticList_DynamicAABBPtr boxes_
  	As Vec2F force_
