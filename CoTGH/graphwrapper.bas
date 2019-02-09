@@ -16,8 +16,8 @@ Constructor GraphWrapper(entryMap As Const ZString Ptr)
 	Dim As String entryMapUpperCase = UCase(*entryMap)
 	stages.push(util.cloneZString(StrPtr(entryMapUpperCase)))
 	While stages.size() > 0
+ 		DEBUG_LOG("Loading " + *(stages.back().getValue()))
 		Dim As maputils.ParseResult res = maputils.parseMap(stages.back())
- 
 		addActorsToBuilder(builder, stages.back(), res.bank)
 		
 		DeAllocate(stages.back())

@@ -24,7 +24,8 @@ Enum ActorTypes Explicit
 	ACTIVEBANKINTERFACE = 17,
 	CHANDELIER = 18,
 	LEECHER = 19,
-	ISLANDZONE = 20
+	ISLANDZONE = 20,
+	SPRONKlE = 21
 End Enum
 
 End Namespace 

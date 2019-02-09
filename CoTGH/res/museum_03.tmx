@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="16" tileheight="16" infinite="0" nextobjectid="27">
+<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="16" tileheight="16" infinite="0" nextobjectid="28">
  <tileset firstgid="1" source="cshapes3.tsx"/>
  <tileset firstgid="85" source="museum_tiles_16x16.tsx"/>
  <tileset firstgid="277" source="cubesheet.tsx"/>
@@ -150,6 +150,15 @@
   <object id="26" name="leecher" type="leecher" x="608" y="208" width="32" height="80">
    <properties>
     <property name="type" value="leecher"/>
+   </properties>
+  </object>
+  <object id="27" name="portal" x="464" y="320" width="16" height="32">
+   <properties>
+    <property name="enter" value="center"/>
+    <property name="portal_id" value="low"/>
+    <property name="to_map" value="museum_14.tmx"/>
+    <property name="to_portal_id" value="left_center"/>
+    <property name="type" value="portal"/>
    </properties>
   </object>
  </objectgroup>

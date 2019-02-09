@@ -65,7 +65,7 @@ Constructor Player( _
 	animImage->setOffset(16, 0)
 	AudioController.cacheSample("res/oops.wav")
 	AudioController.cacheSample("res/snap.wav")
-	
+	AudioController.cacheSample("res/scratch.wav")
 	This.animImage_ = animImage
 	This.animImage_->bindIn(TextureCache.get("res/mambazo.png"))
 	This.lastDownPressed_ = FALSE
@@ -246,7 +246,7 @@ Sub Player.processPlatformingControls()
 		lastActivatePressed_ = FALSE
 	EndIf
 	
-	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_SPACE) Then 
+	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_SPACE) AndAlso (Not cloneRequested_) Then 
 		If lastSwapPressed_ = FALSE Then isSnapshotting_ = Not isSnapshotting_
 		lastSwapPressed_ = TRUE	
 	Else
@@ -413,22 +413,23 @@ Function Player.update(dt As Double) As Boolean
 			Select Case portal_->getMode()
 				Case PortalEnterMode.FROM_LEFT
 					camera_->snap(camera_->getP(), 99999)
-					spawnP = portal_->getRegion().o
 					portal_->waitForNoIntersect()
 					spawnP = portal_->getRegion().o + Vec2F(portal_->getRegion().s.x - COL_PTR->getAABB().s.x, 0)
+					warpLock_ = TRUE
 				Case PortalEnterMode.FROM_RIGHT
 					camera_->snap(camera_->getP(), -99999)		
 					portal_->waitForNoIntersect()	
 					spawnP = portal_->getRegion().o
+					warpLock_ = TRUE
 				Case PortalEnterMode.FROM_CENTER
 					spawnP = portal_->getRegion().o + Vec2F((portal_->getRegion().s.x - COL_PTR->getAABB().s.x)*0.5, 0)
+					lockState_ = LockState.NONE
 				Case Else
 					DEBUG_ASSERT(FALSE)
 			End Select	
 			Dim As CameraInterface Ptr camera = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
 			camera->fadeIn()
 			intersectPortalBounds_ = portal_->getRegion()
-			warpLock_ = TRUE
 		EndIf 
 		Dim As Vec2F diff = spawnP - COL_PTR->getAABB().o
 		COL_PTR->place(spawnP)
@@ -498,12 +499,14 @@ Function Player.update(dt As Double) As Boolean
 	onIsland_ = FALSE
 	
 	'''
+	/'
 	Print "JUMP = Z"
 	Print "SWITCH MODE = SPACE"
 	Print "SNAPSHOT/PLACE/PICK-UP/PLACE = X"
 	Print "ENTER = UP"
 	Print "HAS SNAPSHOT? " + Str(snapshot_ <> NULL)
 	Print "MODE: " + IIf(isSnapshotting_, "SNAPSHOT MODE", "PLACEMENT MODE")
+	'/
 	'''
 	
 	Return FALSE
@@ -671,6 +674,13 @@ Sub Player.leech()
 		Delete(snapshot_)
 		snapshot_ = NULL
 	EndIf
+	Dim As ActiveBankInterface Ptr activeInterface = @GET_GLOBAL("ACTIVEBANK INTERFACE", ActiveBankInterface)
+	Dim As Vec3F sPosition = Any
+	sPosition.x = COL_PTR->getAABB().o.x + COL_PTR->getAABB().s.x*Rnd
+	sPosition.y = COL_PTR->getAABB().o.y + COL_PTR->getAABB().s.y*Rnd
+	sPosition.z = 1
+	If Int(Rnd * 3) = 0 Then AudioController.playSample("res/scratch.wav", Vec2F(0, 600))
+	activeInterface->add(New Spronkle(activeInterface->getParent(), sPosition, ))
 End Sub
 
 Sub Player.notify()

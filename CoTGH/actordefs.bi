@@ -21,5 +21,6 @@
 #Include "actors/chandelier.bi"
 #Include "actors/leecher.bi"
 #Include "actors/islandzone.bi"
+#Include "actors/spronkle.bi"
 
 #EndIf

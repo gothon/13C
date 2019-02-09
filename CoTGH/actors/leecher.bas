@@ -25,7 +25,7 @@ End Function
 	
 Constructor Leecher(parent As ActorBankFwd Ptr, bounds As AABB, startFrameOffset As Integer, z As Single)
 	This.animImage_ = New Image32()
-	Print 
+
 	Base.Constructor(parent, createModel(This.animImage_, -Int(-(bounds.s.x / LEECHER_W)), -Int(-(bounds.s.y / LEECHER_H))))
 	setType()
 	
@@ -42,6 +42,15 @@ End Constructor
 Function Leecher.update(dt As Double) As Boolean
 	Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)	
 	If player_->getBounds().intersects(bounds_) Then player_->leech()
+	
+	If Int(Rnd * 5) = 0 Then 
+		Dim As ActiveBankInterface Ptr activeInterface = @GET_GLOBAL("ACTIVEBANK INTERFACE", ActiveBankInterface)
+		Dim As Vec3F sPosition = Any
+		sPosition.x = bounds_.o.x + bounds_.s.x*Rnd
+		sPosition.y = bounds_.o.y + bounds_.s.y*Rnd
+		sPosition.z = z_
+		activeInterface->add(New Spronkle(activeInterface->getParent(), sPosition))
+	End If
 	
 	delay_ -= 1
 	If delay_ <= 0 Then

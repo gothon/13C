@@ -517,6 +517,7 @@ Sub processObject( _
 	  z As Single, _
 	  res As ParseResult Ptr, _
 	  grid As BlockGrid Ptr)
+	DEBUG_LOG("Spawning actor type = " + UCase(*objectType))
 	Select Case UCase(*objectType)
 		Case "BILLBOARD"
 			addBillboard(relativePath, props, mapPixelHeight, x, y, w, h, z, res)

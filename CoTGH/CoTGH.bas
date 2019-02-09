@@ -53,12 +53,11 @@ Scope
 		
 		Line target.fbImg(), (0, 0)-(PHYSICAL_SCRX - 1, PHYSICAL_SCRY - 1), 0, BF
 		gs.draw()
-				 
+				
 		limiter.sync()
 		ScreenLock
 		Put (0, 0), target.fbImg(), PSet
 		ScreenUnLock
-		Locate 1,1: Print limiter.getFps()
 	Loop Until MultiKey(fb.SC_ESCAPE)
 End Scope
 
