@@ -25,6 +25,7 @@ Type CameraInterface Extends Actor
   Declare Sub setAddMixV(cV As Single)
   Declare Sub setAddMix(ByRef c As Const Vec3F)
   Declare Sub resetAddMixV()
+  Declare Sub setYOffset(yOffset As Single)
   
   Declare Sub setMulMixPercent(p As Double, v As Double)
   
@@ -40,6 +41,8 @@ Type CameraInterface Extends Actor
  
  	As CameraController Ptr camera_ = NULL
  	As GamespaceFwd Ptr gs_ = NULL
+ 	
+ 	As Single yOffset_ = Any
  	
  	As Vec3F addmix_ = Any
  	As Vec3F mulmix_ = Any

@@ -75,6 +75,7 @@
   </object>
   <object id="15" name="plaque" x="416" y="448" width="16" height="32">
    <properties>
+    <property name="text" value=" cats cats cats"/>
     <property name="type" value="plaque"/>
    </properties>
   </object>

@@ -228,6 +228,8 @@ Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 			Return CPtr(Overlay Ptr, actorPtr)->update(dt)
 		Case ActorTypes.CAMERA
  			Return CPtr(Camera Ptr, actorPtr)->update(dt)	
+		Case ActorTypes.PLAQUE
+			Return CPtr(Plaque Ptr, actorPtr)->update(dt)
 		Case Else
 			Return FALSE
 	End Select
@@ -260,7 +262,9 @@ Sub maybeNotify(actorPtr As Actor Ptr)
 		Case ActorTypes.OVERLAY
 			CPtr(Overlay Ptr, actorPtr)->notify()	
 		Case ActorTypes.CAMERA
- 			CPtr(Camera Ptr, actorPtr)->notify()							
+ 			CPtr(Camera Ptr, actorPtr)->notify()
+		Case ActorTypes.PLAQUE
+			CPtr(Plaque Ptr, actorPtr)->notify()
 	End Select	
 End Sub
 
@@ -367,6 +371,8 @@ Sub DeleteActor(x As Actor Ptr)
  			Delete(CPtr(Overlay Ptr, x)) 	
  		Case ActorTypes.CAMERA
  			Delete(CPtr(Camera Ptr, x))	
+ 		Case ActorTypes.PLAQUE
+ 			Delete(CPtr(Plaque Ptr, x))
  		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
@@ -417,7 +423,9 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.OVERLAY
  			Return CPtr(Overlay Ptr, x)->clone(bank) 	
  		Case ActorTypes.CAMERA
- 			Return CPtr(Camera Ptr, x)->clone(bank) 									 						
+ 			Return CPtr(Camera Ptr, x)->clone(bank) 	
+ 		Case ActorTypes.PLAQUE
+ 			Return CPtr(Plaque Ptr, x)->clone(bank) 								 						
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	

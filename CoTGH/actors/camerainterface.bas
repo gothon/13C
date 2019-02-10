@@ -30,7 +30,13 @@ Constructor CameraInterface(parent As ActorBankFwd Ptr, camera As CameraControll
  	This.mixV_ = -FLASH_VELOCITY
  	This.addmix_ = Vec3F(0.0, 0.0, 0.0)
  	This.zoomMode_ = FALSE
+ 	This.yOffset_ = 0
 End Constructor
+
+Sub CameraInterface.setYOffset(yOffset As Single)
+	yOffset_ = yOffset
+	camera_->update(0, guideP_ + Vec2F(0, yOffset_), facingRight_)
+End Sub
 
 Sub CameraInterface.zoomToTarget(ByRef t As Const Vec3F)
 	zoomTarget_ = t
@@ -123,7 +129,7 @@ Sub CameraInterface.update(dt As Double)
 	EndIf
 	
 	If (Not zoomMode_) Then
-		camera_->update(dt, guideP_, facingRight_)
+		camera_->update(dt, guideP_ + Vec2F(0, yOffset_), facingRight_)
 	ElseIf zoomMode_ Then 
 		Dim As Single t = 1.7*((zoomT_ - 0.22)^2 - 0.05)
 		camera_->placeAndLookAt(getZoomP(t), getZoomTarget(t))

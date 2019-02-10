@@ -120,6 +120,14 @@ Destructor Player()
 	If resetIndex_ <> NULL Then ig_DeleteIndex(@resetIndex_)
 End Destructor
 
+Const Function Player.seenPlaques() As Integer
+	Return seenPlaques_
+End Function
+
+Sub Player.addPlaque()
+	seenPlaques_ += 1	
+End Sub
+	
 Sub Player.updateCamera(snapToTarget As Boolean)
 	Dim As Boolean cameraRight = facingRight_
 
@@ -520,7 +528,7 @@ Function Player.update(dt As Double) As Boolean
 	Dim As Overlay Ptr overlay_ = @GET_GLOBAL("OVERLAY", Overlay)
 	overlay_->setPhoto(snapshot_)
 	overlay_->setHasCamera(hasCamera_)
-	
+
 	Return FALSE
 End Function
 

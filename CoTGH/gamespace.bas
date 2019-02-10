@@ -136,7 +136,7 @@ Sub Gamespace.draw()
 			OrElse (addmix_.x <> 1.0) OrElse (addmix_.y <> 1.0) OrElse (addmix_.z <> 1.0) Then 
 		imageops.mulmix(target_, mulmix_, addmix_)	
 	EndIf
-	overlay_->draw()
+	overlay_->drawOverlay()
 End Sub
 	
 Function Gamespace.getDrawBuffer() As QuadDrawBuffer Ptr

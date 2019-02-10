@@ -49,7 +49,7 @@
     <property name="type" value="painting"/>
    </properties>
   </object>
-  <object id="12" name="spawn" x="112" y="264" width="16" height="24">
+  <object id="12" name="spawn" x="128" y="256" width="16" height="24">
    <properties>
     <property name="type" value="spawn"/>
    </properties>

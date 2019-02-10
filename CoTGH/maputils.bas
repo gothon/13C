@@ -536,6 +536,23 @@ Sub addCamera( _
 	res->bank->Add(New act.Camera(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
 End Sub
 
+Sub addPlaque( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	  
+	Dim As Const ZString Ptr text = getPropOrNull(props, "text")
+	res->bank->Add(New act.Plaque( _
+			res->bank, _
+			AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h)), _
+			IIf(text = NULL, " NULL", *text)))
+End Sub
+
 Sub processObject( _
 		objectType As Const ZString Ptr, _
 		ByRef relativePath As Const String, _
@@ -569,7 +586,9 @@ Sub processObject( _
 		Case "ISLAND"
 			addIsland(props, mapPixelHeight, x, y, z, w, h, res)			
 		Case "CAMERA"
-			addCamera(props, mapPixelHeight, x, y, z, w, h, res)						
+			addCamera(props, mapPixelHeight, x, y, z, w, h, res)				
+		Case "PLAQUE"
+			addPlaque(props, mapPixelHeight, x, y, z, w, h, res)			
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select

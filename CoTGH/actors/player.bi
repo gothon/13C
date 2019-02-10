@@ -49,6 +49,9 @@ Type Player Extends DynamicCollidingModelActor
 	Declare Sub setOnIsland()
 	Declare Sub setHasCamera(hasCamera As Boolean)
 	
+	Declare Const Function seenPlaques() As Integer
+	Declare Sub addPlaque()
+	
 	Declare Sub placeSnapshot(replaceId As UInteger)
 	Declare Const Function readyToPlace() As Boolean
 	
