@@ -3,6 +3,7 @@
 #Include "../debuglog.bi"
 #Include "../actortypes.bi"
 #Include "../gamespace.bi"
+#Include "../indexgraph.bi"
 
 Namespace act
 ACTOR_REQUIRED_DEF(GraphInterface, ActorTypes.GRAPHINTERFACE)
@@ -57,6 +58,12 @@ Sub GraphInterface.requestGoIndex(index As ig_Index)
 	DEBUG_ASSERT(goIndex_ = NULL)
 	DEBUG_ASSERT(goKey_ = "")
 	goIndex_ = index	
+End Sub
+	
+Sub GraphInterface.requestGoBaseIndex(stage As String)	
+	DEBUG_ASSERT(goIndex_ = NULL)
+	DEBUG_ASSERT(goKey_ = "")
+	goIndex_ = CPtr(Gamespace Ptr, gs_)->makeBaseIndex(stage)	
 End Sub
 	
 Function GraphInterface.getRequestGoIndexAndClear() As ig_Index

@@ -89,6 +89,20 @@ Type DynamicModelActor Extends DynamicActor
  	As QuadModelBase Ptr model_
 End Type
 
+Type DynamicModelLightActor Extends DynamicModelActor
+ Public:
+ 	Declare Constructor() 'No-op required
+ 	
+ 	'Takes ownership of model and light
+	Declare Constructor(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr, l As Light Ptr)
+	Declare Virtual Destructor()
+	
+	Declare Function getLight() As Light Ptr
+ 
+ Protected:
+ 	As Light Ptr light_
+End Type
+
 Type DynamicCollidingModelActor Extends DynamicModelActor
  Public:
 	Declare Constructor() 'No-op required

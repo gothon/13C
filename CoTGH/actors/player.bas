@@ -66,6 +66,9 @@ Constructor Player( _
 	AudioController.cacheSample("res/oops.wav")
 	AudioController.cacheSample("res/snap.wav")
 	AudioController.cacheSample("res/scratch.wav")
+	AudioController.cacheSample("res/leech.wav")
+	AudioController.cacheSample("res/place.wav")
+	
 	This.animImage_ = animImage
 	This.animImage_->bindIn(TextureCache.get("res/mambazo.png"))
 	This.lastDownPressed_ = FALSE
@@ -87,7 +90,6 @@ Constructor Player( _
  	This.snapshot_ = NULL
  	This.cloneRequested_ = FALSE
  	This.lastSwapPressed_ = FALSE
- 	This.isSnapshotting_ = TRUE
  	This.isWarped_ = FALSE
  	This.embedId_ = -1
  	This.warpCountdown_ = 0
@@ -103,6 +105,12 @@ Constructor Player( _
  	This.onIsland_ = FALSE
  	This.freezeAfterDie_ = 0
  	This.warpParalyzeCountdown_ = 0
+	This.lastSnapPressed_ = FALSE
+ 	This.snapLHEdge_ = FALSE
+	This.lastPlacePressed_ = FALSE
+ 	This.placeLHEdge_ = FALSE
+ 	This.hasCamera_ = FALSE
+ 	This.seenPlaques_ = 0
 End Constructor
 
 Destructor Player()
@@ -246,11 +254,20 @@ Sub Player.processPlatformingControls()
 		lastActivatePressed_ = FALSE
 	EndIf
 	
-	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_SPACE) AndAlso (Not cloneRequested_) Then 
-		If lastSwapPressed_ = FALSE Then isSnapshotting_ = Not isSnapshotting_
-		lastSwapPressed_ = TRUE	
+	snapLHEdge_ = FALSE
+	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_C) Then 
+		If lastSnapPressed_ = FALSE Then snapLHEdge_ = TRUE
+		lastSnapPressed_ = TRUE	
 	Else
-		lastSwapPressed_ = FALSE
+		lastSnapPressed_ = FALSE
+	EndIf
+	
+	placeLHEdge_ = FALSE
+	If (lockState_ = LockState.NONE) AndAlso MultiKey(fb.SC_V) Then 
+		If lastPlacePressed_ = FALSE Then placeLHEdge_ = TRUE
+		lastPlacePressed_ = TRUE	
+	Else
+		lastPlacePressed_ = FALSE
 	EndIf
 End Sub
 
@@ -309,11 +326,9 @@ Sub Player.processInteractions()
 		waitingForResetIndex_ = FALSE
 	EndIf
 	
-	If Not isSnapshotting_ Then Return
 	If carryingStatue_ Then Return
-
 	If Not cloneRequested_ Then
-		If activateLHEdge_ Then 
+		If snapLHEdge_ AndAlso hasCamera_ Then 
 			If snapshot_ <> NULL Then
 				graph->deleteIndex(@clonedIndex_)
 				Delete(snapshot_)
@@ -375,6 +390,8 @@ Sub Player.claimSnapshot( _
 	*snapshotMusicPosition = snapshotMusicPosition_
 	
 	*snapshotFacingRight = snapshotFacingRight_
+	
+	AudioController.playSample("res/place.wav", Vec2F(0, 500))
 End Sub
 
 Function Player.update(dt As Double) As Boolean
@@ -416,11 +433,13 @@ Function Player.update(dt As Double) As Boolean
 					portal_->waitForNoIntersect()
 					spawnP = portal_->getRegion().o + Vec2F(portal_->getRegion().s.x - COL_PTR->getAABB().s.x, 0)
 					warpLock_ = TRUE
+					lockState_ = LockState.WALK_LEFT
 				Case PortalEnterMode.FROM_RIGHT
 					camera_->snap(camera_->getP(), -99999)		
 					portal_->waitForNoIntersect()	
 					spawnP = portal_->getRegion().o
 					warpLock_ = TRUE
+					lockState_ = LockState.WALK_RIGHT
 				Case PortalEnterMode.FROM_CENTER
 					spawnP = portal_->getRegion().o + Vec2F((portal_->getRegion().s.x - COL_PTR->getAABB().s.x)*0.5, 0)
 					lockState_ = LockState.NONE
@@ -498,19 +517,16 @@ Function Player.update(dt As Double) As Boolean
 	firstPickUp_ = FALSE
 	onIsland_ = FALSE
 	
-	'''
-	/'
-	Print "JUMP = Z"
-	Print "SWITCH MODE = SPACE"
-	Print "SNAPSHOT/PLACE/PICK-UP/PLACE = X"
-	Print "ENTER = UP"
-	Print "HAS SNAPSHOT? " + Str(snapshot_ <> NULL)
-	Print "MODE: " + IIf(isSnapshotting_, "SNAPSHOT MODE", "PLACEMENT MODE")
-	'/
-	'''
+	Dim As Overlay Ptr overlay_ = @GET_GLOBAL("OVERLAY", Overlay)
+	overlay_->setPhoto(snapshot_)
+	overlay_->setHasCamera(hasCamera_)
 	
 	Return FALSE
 End Function
+
+Sub Player.setHasCamera(hasCamera As Boolean)
+	hasCamera_ = hasCamera
+End Sub
 
 Sub Player.setOnIsland()
 	onIsland_ = TRUE
@@ -653,7 +669,21 @@ Const Function Player.pressedDown() As Boolean
 End Function
 
 Const Function Player.pressedActivate() As Boolean
-	Return activateLHEdge_ AndAlso (Not isSnapshotting_) _
+	Return activateLHEdge_ _
+			AndAlso (Not carryingStatue_) _
+			AndAlso (statuePlaceCountdown_ = 0) _
+			AndAlso (warpParalyzeCountdown_ = 0)
+End Function
+
+Const Function Player.pressedSnap() As Boolean
+	Return snapLHEdge_ _
+			AndAlso (Not carryingStatue_) _
+			AndAlso (statuePlaceCountdown_ = 0) _
+			AndAlso (warpParalyzeCountdown_ = 0)
+End Function
+
+Const Function Player.pressedPlace() As Boolean
+	Return placeLHEdge_ _
 			AndAlso (Not carryingStatue_) _
 			AndAlso (statuePlaceCountdown_ = 0) _
 			AndAlso (warpParalyzeCountdown_ = 0)
@@ -673,6 +703,8 @@ Sub Player.leech()
 		graph->deleteIndex(@clonedIndex_)
 		Delete(snapshot_)
 		snapshot_ = NULL
+		GET_GLOBAL("OVERLAY", Overlay).setPhoto(NULL)
+		AudioController.playSample("res/leech.wav", Vec2F(0, 700))
 	EndIf
 	Dim As ActiveBankInterface Ptr activeInterface = @GET_GLOBAL("ACTIVEBANK INTERFACE", ActiveBankInterface)
 	Dim As Vec3F sPosition = Any
@@ -680,7 +712,7 @@ Sub Player.leech()
 	sPosition.y = COL_PTR->getAABB().o.y + COL_PTR->getAABB().s.y*Rnd
 	sPosition.z = 1
 	If Int(Rnd * 3) = 0 Then AudioController.playSample("res/scratch.wav", Vec2F(0, 600))
-	activeInterface->add(New Spronkle(activeInterface->getParent(), sPosition, ))
+	activeInterface->add(New Spronkle(activeInterface->getParent(), sPosition, 0.5, TRUE))
 End Sub
 
 Sub Player.notify()

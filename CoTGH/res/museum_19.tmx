@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextobjectid="4">
+<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="20" height="15" tilewidth="16" tileheight="16" infinite="0" nextobjectid="6">
  <tileset firstgid="1" source="cshapes3.tsx"/>
  <tileset firstgid="85" source="museum_tiles_16x16.tsx"/>
  <objectgroup name="actors">
@@ -8,7 +8,7 @@
     <property name="enter" value="right"/>
     <property name="portal_id" value="left"/>
     <property name="to_map" value="museum_18.tmx"/>
-    <property name="to_portal_id" value="right"/>
+    <property name="to_portal_id" value="right_top"/>
     <property name="type" value="portal"/>
    </properties>
   </object>
@@ -20,6 +20,16 @@
   <object id="3" name="final_plaque" x="176" y="160" width="16" height="32">
    <properties>
     <property name="type" value="final_plaque"/>
+   </properties>
+  </object>
+  <object id="4" name="leecher" type="leecher" x="0" y="80" width="32" height="64">
+   <properties>
+    <property name="type" value="leecher"/>
+   </properties>
+  </object>
+  <object id="5" name="spawn" x="48" y="112" width="16" height="24">
+   <properties>
+    <property name="type" value="spawn"/>
    </properties>
   </object>
  </objectgroup>

@@ -7,8 +7,8 @@
 DEFINE_PRIMITIVE_PTR(BlockGrid)
 DEFINE_PRIMITIVE_PTR(DynamicAABB)
 
-Const As Integer MAX_VX = 10
-Const As Integer MAX_VY = 10
+Const As Double MAX_VX = 400
+Const As Double MAX_VY = 400
  
 Constructor Collider() 
 	This.parent_ = NULL
@@ -425,7 +425,7 @@ Function clipDynamicAABBToDynamicAABB( _
 	End If
 		
 	If (timeToX >= dt) AndAlso (timeToY >= dt) Then Return ClipResult(AxisComponent.NONE, dt)
-	
+
 	If timeToX < timeToY Then
 		Return ClipResult(AxisComponent.X_P Or AxisComponent.X_N, timeToX)
 	ElseIf timeToY < timeToX Then
@@ -517,9 +517,8 @@ Sub Simulation.integrateAll(dt As Double)
 	Dim As UInteger updateIndex = -1
   While(boxes_.getNext(@updateIndex))
 		Dim As DynamicAABB Ptr box = boxes_.get(updateIndex).getValue() 'const
+
 		Dim As Vec2F delta = box->getV()*dt*timeMultiplier_
-		If Abs(delta.x) > MAX_VX Then delta.x = Sgn(delta.x)*MAX_VX
-		If Abs(delta.y) > MAX_VY Then delta.y = Sgn(delta.y)*MAX_VY
 		
 		box->place(box->getAABB().o + delta)
 		box->setDelta(box->getDelta() + delta)
@@ -537,7 +536,13 @@ Sub Simulation.update(dt As Double)
   While(boxes_.getNext(@resetIndex))
   	Dim As DynamicAABB Ptr box = boxes_.get(resetIndex).getValue()
   	box->getArbiters().clear()
-  	If box->gravityEnabled() Then box->setV(box->getV() + force_*dt*timeMultiplier_)
+  	
+  	Dim As Vec2F v = box->getV()
+  	If box->gravityEnabled() Then v += force_*dt*timeMultiplier_
+  	If Abs(v.x) > MAX_VX Then v.x = Sgn(v.x)*MAX_VX
+		If Abs(v.y) > MAX_VY Then v.y = Sgn(v.y)*MAX_VY
+		box->setV(v)
+		
   	box->setDelta(Vec2F(0, 0))
   Wend
 	

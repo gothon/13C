@@ -22,5 +22,8 @@
 #Include "actors/leecher.bi"
 #Include "actors/islandzone.bi"
 #Include "actors/spronkle.bi"
+#Include "actors/overlay.bi"
+#Include "actors/camera.bi"
+#Include "actors/plaque.bi"
 
 #EndIf

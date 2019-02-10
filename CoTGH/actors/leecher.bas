@@ -49,7 +49,7 @@ Function Leecher.update(dt As Double) As Boolean
 		sPosition.x = bounds_.o.x + bounds_.s.x*Rnd
 		sPosition.y = bounds_.o.y + bounds_.s.y*Rnd
 		sPosition.z = z_
-		activeInterface->add(New Spronkle(activeInterface->getParent(), sPosition))
+		activeInterface->add(New Spronkle(activeInterface->getParent(), sPosition, 0.5, TRUE))
 	End If
 	
 	delay_ -= 1

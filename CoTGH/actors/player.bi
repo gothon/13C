@@ -39,11 +39,15 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Const Function pressedDown() As Boolean
  	Declare Const Function pressedActivate() As Boolean
  	
+ 	Declare Const Function pressedSnap() As Boolean
+ 	Declare Const Function pressedPlace() As Boolean
+ 	
  	Declare Sub setDestinationPortal(dest As Const ZString Ptr)
  	Declare Sub disableCollision()
 	Declare Sub setWarp(p As Vec2F, v As Vec2F, leadingX As Double, musicPosition As LongInt, facingRight As Boolean)
 	Declare Sub leech()
 	Declare Sub setOnIsland()
+	Declare Sub setHasCamera(hasCamera As Boolean)
 	
 	Declare Sub placeSnapshot(replaceId As UInteger)
 	Declare Const Function readyToPlace() As Boolean
@@ -72,6 +76,9 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Sub processPlatformingControls()
  	Declare Sub processStatues()
  	Declare Sub processCarrying()
+ 	
+ 	As Integer seenPlaques_ = Any
+ 	As Boolean hasCamera_ = Any
  	
  	As Boolean onIsland_ = Any
  	As Integer freezeAfterDie_ = Any
@@ -108,7 +115,13 @@ Type Player Extends DynamicCollidingModelActor
  	As Boolean lastSwapPressed_ = Any
  	
  	As Boolean lastActivatePressed_ = Any
- 	As boolean activateLHEdge_ = Any
+ 	As Boolean activateLHEdge_ = Any
+ 	
+ 	As Boolean lastSnapPressed_ = Any
+ 	As Boolean snapLHEdge_ = Any
+ 	
+ 	As Boolean lastPlacePressed_ = Any
+ 	As Boolean placeLHEdge_ = Any
  	
  	As Integer warpParalyzeCountdown_ = Any
  	As UInteger embedId_ = Any
@@ -120,8 +133,6 @@ Type Player Extends DynamicCollidingModelActor
  	As Boolean snapshotFacingRight_ = Any
  	As Double snapshotLeadingX_ = Any 
  	As LongInt snapshotMusicPosition_ = Any
- 	
- 	As Boolean isSnapshotting_ = Any
  	
  	As Boolean isWarped_ = Any
  	As Vec2F warpP_ = Any

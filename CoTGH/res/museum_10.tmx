@@ -18,7 +18,7 @@
     <property name="facing_right" value="false"/>
     <property name="fixed" value="true"/>
     <property name="path" value="res/fixedpaintingdefault.png"/>
-    <property name="to_map" value="res/museum_09.tmx"/>
+    <property name="to_map" value="museum_09.tmx"/>
     <property name="to_position_x" type="int" value="640"/>
     <property name="to_position_y" type="int" value="400"/>
     <property name="type" value="painting"/>
@@ -29,7 +29,7 @@
     <property name="facing_right" value="false"/>
     <property name="fixed" value="true"/>
     <property name="path" value="res/fixedpaintingdefault.png"/>
-    <property name="to_map" value="res/museum_09.tmx"/>
+    <property name="to_map" value="museum_09.tmx"/>
     <property name="to_position_x" type="int" value="640"/>
     <property name="to_position_y" type="int" value="400"/>
     <property name="type" value="painting"/>

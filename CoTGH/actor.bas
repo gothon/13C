@@ -83,6 +83,24 @@ Function DynamicModelActor.getModel() As QuadModelBase Ptr
 	Return model_
 End Function
 
+Constructor DynamicModelLightActor()
+	DEBUG_ASSERT(parent_ = NULL)
+End Constructor
+
+Constructor DynamicModelLightActor(parent As ActorBankFwd Ptr, model As QuadModelBase Ptr, l As Light Ptr)
+	DEBUG_ASSERT(l <> NULL)
+	Base.Constructor(parent, model)
+	This.light_ = l
+End Constructor
+
+Virtual Destructor DynamicModelLightActor()
+	Delete(light_)
+End Destructor
+	
+Function DynamicModelLightActor.getLight() As Light Ptr
+	Return light_
+End Function
+
 Constructor ModelActor()
 	DEBUG_ASSERT(parent_ = NULL)
 End Constructor
@@ -206,6 +224,10 @@ Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
 			Return CPtr(SimulationInterface Ptr, actorPtr)->update(dt)			
 		Case ActorTypes.SPRONKLE
 			Return CPtr(Spronkle Ptr, actorPtr)->update(dt)	
+		Case ActorTypes.OVERLAY
+			Return CPtr(Overlay Ptr, actorPtr)->update(dt)
+		Case ActorTypes.CAMERA
+ 			Return CPtr(Camera Ptr, actorPtr)->update(dt)	
 		Case Else
 			Return FALSE
 	End Select
@@ -234,7 +256,11 @@ Sub maybeNotify(actorPtr As Actor Ptr)
 		Case ActorTypes.SIMULATIONINTERFACE
 			CPtr(SimulationInterface Ptr, actorPtr)->notify()			
 		Case ActorTypes.SPRONKLE
-			CPtr(Spronkle Ptr, actorPtr)->notify()						
+			CPtr(Spronkle Ptr, actorPtr)->notify()			
+		Case ActorTypes.OVERLAY
+			CPtr(Overlay Ptr, actorPtr)->notify()	
+		Case ActorTypes.CAMERA
+ 			CPtr(Camera Ptr, actorPtr)->notify()							
 	End Select	
 End Sub
 
@@ -244,6 +270,8 @@ Function getLightOrNull(actorPtr As Actor Ptr) As Light Ptr
 			Return CPtr(DecorativeLight Ptr, actorPtr)->getLight() 
 		Case ActorTypes.CHANDELIER
  			Return CPtr(Chandelier Ptr, actorPtr)->getLight()		
+		Case ActorTypes.CAMERA
+ 			Return CPtr(Camera Ptr, actorPtr)->getLight()	
 		Case Else
 			Return NULL
 	End Select
@@ -268,7 +296,9 @@ Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
  		Case ActorTypes.LEECHER
  			Return CPtr(Leecher Ptr, actorPtr)->getModel()		
 		Case ActorTypes.SPRONKLE
- 			Return CPtr(Spronkle Ptr, actorPtr)->getModel()					
+ 			Return CPtr(Spronkle Ptr, actorPtr)->getModel()		
+		Case ActorTypes.CAMERA
+ 			Return CPtr(Camera Ptr, actorPtr)->getModel()				
 		Case Else
 			Return NULL
 	End Select
@@ -332,7 +362,11 @@ Sub DeleteActor(x As Actor Ptr)
  		Case ActorTypes.ISLANDZONE
  			Delete(CPtr(IslandZone Ptr, x))			
  		Case ActorTypes.SPRONKLE
- 			Delete(CPtr(Spronkle Ptr, x))		 			
+ 			Delete(CPtr(Spronkle Ptr, x))	
+ 		Case ActorTypes.OVERLAY
+ 			Delete(CPtr(Overlay Ptr, x)) 	
+ 		Case ActorTypes.CAMERA
+ 			Delete(CPtr(Camera Ptr, x))	
  		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
@@ -379,7 +413,11 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.STAGEMANAGER
  			Return CPtr(StageManager Ptr, x)->clone(bank) 							 					
  		Case ActorTypes.SPRONKLE
- 			Return CPtr(Spronkle Ptr, x)->clone(bank) 							 						
+ 			Return CPtr(Spronkle Ptr, x)->clone(bank) 
+ 		Case ActorTypes.OVERLAY
+ 			Return CPtr(Overlay Ptr, x)->clone(bank) 	
+ 		Case ActorTypes.CAMERA
+ 			Return CPtr(Camera Ptr, x)->clone(bank) 									 						
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	

@@ -25,7 +25,10 @@ Enum ActorTypes Explicit
 	CHANDELIER = 18,
 	LEECHER = 19,
 	ISLANDZONE = 20,
-	SPRONKlE = 21
+	SPRONKLE = 21,
+	OVERLAY = 22,
+	CAMERA = 23,
+	PLAQUE = 24
 End Enum
 
 End Namespace 

@@ -60,6 +60,8 @@ Sub Gamespace.addSystemActors()
 	snapshotInterfaceActor_ = New act.SnapshotInterface(globalBank_, target_)
 	globalBank_->add(snapshotInterfaceActor_)
 	globalBank_->add(New act.ActiveBankInterface(globalBank_, @activeBank_))
+	overlay_ = New act.Overlay(globalBank_, target_)
+	globalBank_->add(overlay_)
 End Sub
 	
 Sub Gamespace.init(stage As Const ZString Ptr)
@@ -134,6 +136,7 @@ Sub Gamespace.draw()
 			OrElse (addmix_.x <> 1.0) OrElse (addmix_.y <> 1.0) OrElse (addmix_.z <> 1.0) Then 
 		imageops.mulmix(target_, mulmix_, addmix_)	
 	EndIf
+	overlay_->draw()
 End Sub
 	
 Function Gamespace.getDrawBuffer() As QuadDrawBuffer Ptr
@@ -214,6 +217,10 @@ Function Gamespace.clone() As ig_Index
 	activeBank_ = activeBank_->clone()
 	activeBank_->bindInto(@This)
 	Return cloned
+End Function
+
+Function Gamespace.makeBaseIndex(stage As String) As ig_Index
+	Return ig_CreateIndex(graph_->getGraph(), StrPtr(stage))
 End Function
 
 Sub Gamespace.setDrawMulmix(ByRef mulmix As Const Vec3F, ByRef addmix As Const Vec3F)

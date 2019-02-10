@@ -35,6 +35,7 @@ Type Gamespace
 	
 	Declare Sub go(key As Const ZString Ptr)
 	Declare Sub go(index As ig_Index Ptr)
+	Declare Function makeBaseIndex(stage As String) As ig_Index
 	
 	Declare Sub requestEmbed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
 	
@@ -51,6 +52,7 @@ Type Gamespace
 	As act.CameraInterface Ptr cameraInterfaceActor_ = NULL
 	As act.SnapshotInterface Ptr snapshotInterfaceActor_ = NULL
 	As Boolean takeSnapshot_ = FALSE
+	As act.Overlay Ptr overlay_ = NULL
 	
 	As ig_Index indexToEmbed_ = Any
 	As UInteger existingEmbed_ = Any

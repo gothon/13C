@@ -444,7 +444,26 @@ Sub addPainting( _
 	  z As Single, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	res->bank->Add(New act.Painting(res->bank, Vec3F(x, mapPixelHeight - y - h, z)))
+	Dim As Boolean isFixed = FALSE
+	Dim As Vec3F p = Vec3F(x, mapPixelHeight - y - h, z) 'const
+	Dim As Const ZString Ptr isFixedStr = getPropOrNull(props, "fixed")
+	If (isFixedStr <> NULL) AndAlso (util.trimWhitespace(UCase(*isFixedStr)) = "TRUE") Then
+		
+		Dim As Boolean facingRight = _
+				IIf(util.trimWhitespace(UCase((*getPropOrDie(props, "facing_right")))) = "TRUE", TRUE, FALSE) 'const
+		Dim As String assetPath = util.trimWhitespace(UCase((*getPropOrDie(props, "path")))) 'const
+		Dim As String mapPath = util.trimWhitespace(UCase((*getPropOrDie(props, "to_map")))) 'const
+		Dim As Integer x = Val(util.trimWhitespace((*getPropOrDie(props, "to_position_x")))) 'const
+		Dim As Integer y = Val(util.trimWhitespace((*getPropOrDie(props, "to_position_y")))) 'const
+		
+		res->bank->Add(New act.Painting(res->bank, p, assetPath, "RES/" + mapPath, Vec2F(x, y), facingRight))	
+		res->connections.push(util.cloneZString(StrPtr(mapPath)))
+		
+		Return
+	EndIf
+	
+	res->bank->Add(New act.Painting(res->bank, p))
+	Return
 End Sub
 
 Sub addChandelier( _
@@ -505,6 +524,18 @@ Sub addIsland( _
 	res->bank->Add(New act.IslandZone(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
 End Sub
 
+Sub addCamera( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	res->bank->Add(New act.Camera(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
+End Sub
+
 Sub processObject( _
 		objectType As Const ZString Ptr, _
 		ByRef relativePath As Const String, _
@@ -536,7 +567,9 @@ Sub processObject( _
 		Case "LEECHER"
 			addLeecher(props, mapPixelHeight, x, y, z, w, h, res)		
 		Case "ISLAND"
-			addIsland(props, mapPixelHeight, x, y, z, w, h, res)					
+			addIsland(props, mapPixelHeight, x, y, z, w, h, res)			
+		Case "CAMERA"
+			addCamera(props, mapPixelHeight, x, y, z, w, h, res)						
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select

@@ -44,11 +44,45 @@ Constructor Painting(parent As ActorBankFwd Ptr, p As Vec3F)
 	This.hasSnapshot_ = FALSE
 	This.playerData_.embedId = -1
 	This.warpCountdown_ = -1
+	This.fixed_ = FALSE
 	Put This.paintingImage_->fbImg(), (0, 0), This.emptyImage_->constFbImg(), PSET
 End Constructor
 
-Virtual Destructor Painting()
-	Delete(paintingImage_)
+Constructor Painting( _
+		parent As ActorBankFwd Ptr, _
+		p As Vec3F, _
+		fixedPath As String, _
+		toMap As String, _
+		ByRef toPos As Const Vec2F, _
+		faceRight As Boolean)
+	This.paintingImage_ = TextureCache.get(fixedPath)
+	This.updatedImage_ = New Image32(64, 48)
+	Base.Constructor(parent, createModel(updatedImage_))
+	setType()
+	model_->translate(p + Vec3F(0, 0, -8))
+	
+	AudioController.cacheSample("res/warp.wav")
+	
+	This.emptyImage_ = NULL
+	This.frameImage_ = TextureCache.get("res/paintingframefixed.png")
+	This.z_ = p.z
+	This.box_ = AABB(Vec2F(p.x, p.y), Vec2F(PAINTING_W, PAINTING_H))
+	This.hasSnapshot_ = TRUE
+	
+	This.playerData_.embedId = -1
+	This.playerData_.p = toPos
+	This.playerData_.v = Vec2F(0, 0)
+	This.playerData_.leadingX = IIf(faceRight, 1000, -1000)
+	This.playerData_.musicPos = 0
+	This.playerData_.facingRight = faceRight
+		
+	This.warpCountdown_ = -1
+	This.fixed_ = TRUE
+	This.toMap_ = toMap
+End Constructor
+		
+Destructor Painting()
+	If Not fixed_ Then Delete(paintingImage_)
 	Delete(updatedImage_)
 End Destructor
 
@@ -63,7 +97,11 @@ Function Painting.updateInternal(dt As Double) As Boolean
 		warpCountdown_ = -1
 		player_->disableCollision()
 		player_->setWarp(playerData_.p, playerData_.v, playerData_.leadingX, playerData_.musicPos, playerData_.facingRight)
-		graph->requestGoIndex(graph->unembedToIndex(playerData_.embedId))	
+		If fixed_ Then 
+			graph->requestGoBaseIndex(toMap_)	
+		Else 
+			graph->requestGoIndex(graph->unembedToIndex(playerData_.embedId))	
+		EndIf
 		Return FALSE
 	EndIf
 	
@@ -71,8 +109,10 @@ Function Painting.updateInternal(dt As Double) As Boolean
 	bounds.o += Vec2F(INTERSECT_BUFFER_X, INTERSECT_BUFFER_Y)
 	bounds.s -= 2*Vec2F(INTERSECT_BUFFER_X, INTERSECT_BUFFER_Y)
 	
+	If fixed_ Then Put paintingImage_->fbImg(), (0, 0), frameImage_->constFbImg(), Trans	
+
 	If Not player_->getBounds().intersects(bounds) Then Return FALSE
-	
+
 	If hasSnapshot_ AndAlso player_->pressedDown() Then 
 		AudioController.playSample("res/warp.wav")
 		warpCountdown_ = WARP_COUNTDOWN_FRAMES
@@ -83,20 +123,20 @@ Function Painting.updateInternal(dt As Double) As Boolean
 		camera->setAddMixV(0.05)
 		sim_->doSlowdown()
 		Return FALSE
-	EndIf	
+	EndIf
 	
+	If fixed_ Then Return FALSE
+
 	If Not player_->hasSnapshot() Then Return FALSE
-	
-	If player_->pressedActivate() Then 
+	If player_->pressedPlace() Then 
 		player_->placeSnapshot(playerData_.embedId)
 		Return FALSE
 	End If 
-	
 	If Not player_->readyToPlace() Then Return FALSE
-	
+
 	hasSnapshot_ = TRUE
-	
-	Dim As Image32 Ptr image = Any
+	Dim As Image32 Ptr image = Any	
+	GET_GLOBAL("OVERLAY", Overlay).setPhoto(NULL)
 	player_->claimSnapshot( _
 			@(playerData_.embedId), _
 			@image, _
@@ -143,11 +183,16 @@ Function Painting.update(dt As Double) As Boolean
 	Return FALSE
 End Function
 
+Const Function Painting.isFixed() As Boolean
+	Return fixed_
+End Function
+
 Sub Painting.notify()
 	''
 End Sub
  	
 Function Painting.clone(parent As ActorBankFwd Ptr) As Actor Ptr
+	DEBUG_ASSERT(Not fixed_)
 	Dim As Painting Ptr newPainting = New Painting(parent, Vec3F(box_.o.x, box_.o.y, z_))
 	newPainting->playerData_ = playerData_
 	newPainting->hasSnapshot_ = hasSnapshot_

@@ -21,18 +21,18 @@
     <property name="type" value="portal"/>
    </properties>
   </object>
-  <object id="29" name="painting" x="431.6" y="159.369" width="64" height="48">
+  <object id="29" name="painting" x="432" y="160" width="64" height="48">
    <properties>
     <property name="facing_right" value="true"/>
     <property name="fixed" value="true"/>
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="304"/>
-    <property name="to_position_y" type="int" value="608"/>
+    <property name="to_position_y" type="int" value="512"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
-  <object id="35" name="spawn" x="48" y="960" width="16" height="24">
+  <object id="35" name="spawn" x="518.671" y="192.776" width="16" height="24">
    <properties>
     <property name="type" value="spawn"/>
    </properties>
@@ -44,7 +44,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="592"/>
-    <property name="to_position_y" type="int" value="224"/>
+    <property name="to_position_y" type="int" value="896"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -55,7 +55,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="592"/>
-    <property name="to_position_y" type="int" value="224"/>
+    <property name="to_position_y" type="int" value="896"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -66,7 +66,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="448"/>
-    <property name="to_position_y" type="int" value="992"/>
+    <property name="to_position_y" type="int" value="128"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -77,7 +77,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="592"/>
-    <property name="to_position_y" type="int" value="224"/>
+    <property name="to_position_y" type="int" value="896"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -88,7 +88,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="160"/>
-    <property name="to_position_y" type="int" value="224"/>
+    <property name="to_position_y" type="int" value="896"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -99,7 +99,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="160"/>
-    <property name="to_position_y" type="int" value="992"/>
+    <property name="to_position_y" type="int" value="128"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -110,7 +110,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="592"/>
-    <property name="to_position_y" type="int" value="224"/>
+    <property name="to_position_y" type="int" value="896"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -121,7 +121,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_07.tmx"/>
     <property name="to_position_x" type="int" value="592"/>
-    <property name="to_position_y" type="int" value="224"/>
+    <property name="to_position_y" type="int" value="896"/>
     <property name="type" value="painting"/>
    </properties>
   </object>

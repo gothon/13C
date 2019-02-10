@@ -11,7 +11,7 @@ Type Spronkle Extends DynamicModelActor
  Public:
  	ACTOR_REQUIRED_DECL(Spronkle)
 
-	Declare Constructor(parent As ActorBankFwd Ptr, p As Vec3F, speed As Single = 0.5)
+	Declare Constructor(parent As ActorBankFwd Ptr, p As Vec3F, speed As Single = 0.5, isDark As Boolean = FALSE)
 	
 	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override
@@ -23,6 +23,7 @@ Type Spronkle Extends DynamicModelActor
  	As Image32 Ptr animImage_ = Any
  	As Integer frame_ = Any
  	As Integer delay_ = Any
+ 	As Boolean dark_ = Any
 End Type
 
 End Namespace

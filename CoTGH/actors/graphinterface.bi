@@ -20,6 +20,7 @@ Type GraphInterface Extends Actor
 	Declare Function unembedToIndex(ref As UInteger) As ig_Index
 	Declare Sub requestGo(key As Const ZString Ptr)
 	Declare Sub requestGoIndex(index As ig_Index)	
+	Declare Sub requestGoBaseIndex(stage As String)	
 	Declare Sub embed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
 	Declare Const Function cloneRequested() As Boolean	
 	'---

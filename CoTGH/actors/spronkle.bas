@@ -23,7 +23,7 @@ Function createSpronkleModel(srcImage As Image32 Ptr) As QuadModelBase Ptr
 			Vec3F(SPRONKLE_W, SPRONKLE_H, 0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), FALSE)
 End Function
 	
-Constructor Spronkle(parent As ActorBankFwd Ptr, p As Vec3F, speed As Single)
+Constructor Spronkle(parent As ActorBankFwd Ptr, p As Vec3F, speed As Single, isDark As Boolean)
 	This.animImage_ = New Image32()
 
 	Base.Constructor(parent, createSpronkleModel(This.animImage_))
@@ -37,6 +37,7 @@ Constructor Spronkle(parent As ActorBankFwd Ptr, p As Vec3F, speed As Single)
 	This.speed_ = speed
 	This.frame_ = 0
 	This.delay_ = 1 + (SPRONKLE_FRAME_DELAY_MAX - 1)*speed
+	This.dark_ = isDark
 End Constructor
 
 Function Spronkle.update(dt As Double) As Boolean
@@ -49,7 +50,7 @@ Function Spronkle.update(dt As Double) As Boolean
 		delay_ = 1 + (SPRONKLE_FRAME_DELAY_MAX - 1)*speed_
 	End If 
 
-	animImage_->setOffset(frame_*SPRONKLE_W, 0)	
+	animImage_->setOffset(frame_*SPRONKLE_W, IIf(dark_, 0, 8))	
 	Return FALSE
 End Function
 
@@ -58,7 +59,7 @@ Sub Spronkle.notify()
 End Sub
 
 Function Spronkle.clone(parent As ActorBankFwd Ptr) As Actor Ptr
-	Dim As Spronkle Ptr s = New Spronkle(parent, p_, speed_)
+	Dim As Spronkle Ptr s = New Spronkle(parent, p_, speed_, dark_)
 	s->frame_ = frame_
 	s->delay_ = delay_
 	Return s

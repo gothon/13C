@@ -10,7 +10,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_06.tmx"/>
     <property name="to_position_x" type="int" value="96"/>
-    <property name="to_position_y" type="int" value="160"/>
+    <property name="to_position_y" type="int" value="48"/>
     <property name="type" value="painting"/>
    </properties>
   </object>
@@ -26,7 +26,7 @@
     <property name="path" value="res/fixedpaintingdefault.png"/>
     <property name="to_map" value="museum_06.tmx"/>
     <property name="to_position_x" type="int" value="224"/>
-    <property name="to_position_y" type="int" value="160"/>
+    <property name="to_position_y" type="int" value="48"/>
     <property name="type" value="painting"/>
    </properties>
   </object>

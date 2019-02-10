@@ -22,7 +22,17 @@ Type Painting Extends DynamicModelActor
  	ACTOR_REQUIRED_DECL(Painting)
  
 	Declare Constructor(parent As ActorBankFwd Ptr, p As Vec3F)
-	Declare Virtual Destructor()
+	Declare Constructor( _
+			parent As ActorBankFwd Ptr, _
+			p As Vec3F, _
+			fixedPath As String, _
+			toMap As String, _
+			ByRef toPos As Const Vec2F, _
+			faceRight As Boolean)
+	
+	Declare Destructor()
+	
+	Declare Const Function isFixed() As Boolean
 	
 	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override
@@ -40,6 +50,9 @@ Type Painting Extends DynamicModelActor
  	As Const Image32 Ptr frameImage_ = Any
  	As Const Image32 Ptr emptyImage_ = Any
  	As Integer warpCountdown_ = Any
+ 	
+ 	As Boolean fixed_ = Any
+ 	As String toMap_
 End Type
 
 End Namespace

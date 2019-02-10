@@ -75,7 +75,7 @@ Function actorIsShared(actor As act.Actor Ptr) As Boolean
 		Case act.ActorTypes.STATUE 
 			Return FALSE
 		Case act.ActorTypes.PAINTING
-			Return FALSE
+			Return CPtr(act.Painting Ptr, actor)->isFixed()
 		Case act.ActorTypes.CHANDELIER
 			Return FALSE
 		Case act.ActorTypes.STAGEMANAGER
