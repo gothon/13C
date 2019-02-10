@@ -25,5 +25,7 @@
 #Include "actors/overlay.bi"
 #Include "actors/camera.bi"
 #Include "actors/plaque.bi"
+#Include "actors/fakeplayer.bi"
+#Include "actors/menucontroller.bi"
 
 #EndIf

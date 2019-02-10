@@ -28,7 +28,9 @@ Enum ActorTypes Explicit
 	SPRONKLE = 21,
 	OVERLAY = 22,
 	CAMERA = 23,
-	PLAQUE = 24
+	PLAQUE = 24,
+	FAKEPLAYER = 25,
+	MENUCONTROLLER = 26
 End Enum
 
 End Namespace 

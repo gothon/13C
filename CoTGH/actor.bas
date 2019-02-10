@@ -230,6 +230,10 @@ Function maybeUpdate(actorPtr As Actor Ptr, dt As Double) As Boolean
  			Return CPtr(Camera Ptr, actorPtr)->update(dt)	
 		Case ActorTypes.PLAQUE
 			Return CPtr(Plaque Ptr, actorPtr)->update(dt)
+		Case ActorTypes.FAKEPLAYER
+			Return CPtr(FakePlayer Ptr, actorPtr)->update(dt)			
+		Case ActorTypes.MENUCONTROLLER
+			Return CPtr(MenuController Ptr, actorPtr)->update(dt)					
 		Case Else
 			Return FALSE
 	End Select
@@ -265,6 +269,10 @@ Sub maybeNotify(actorPtr As Actor Ptr)
  			CPtr(Camera Ptr, actorPtr)->notify()
 		Case ActorTypes.PLAQUE
 			CPtr(Plaque Ptr, actorPtr)->notify()
+		Case ActorTypes.FAKEPLAYER
+			CPtr(FakePlayer Ptr, actorPtr)->notify()			
+		Case ActorTypes.MENUCONTROLLER
+			CPtr(MenuController Ptr, actorPtr)->notify()		
 	End Select	
 End Sub
 
@@ -302,7 +310,9 @@ Function getModelOrNull(actorPtr As Actor Ptr) As QuadModelBase Ptr
 		Case ActorTypes.SPRONKLE
  			Return CPtr(Spronkle Ptr, actorPtr)->getModel()		
 		Case ActorTypes.CAMERA
- 			Return CPtr(Camera Ptr, actorPtr)->getModel()				
+ 			Return CPtr(Camera Ptr, actorPtr)->getModel()			
+		Case ActorTypes.FAKEPLAYER
+ 			Return CPtr(FakePlayer Ptr, actorPtr)->getModel()				
 		Case Else
 			Return NULL
 	End Select
@@ -373,6 +383,10 @@ Sub DeleteActor(x As Actor Ptr)
  			Delete(CPtr(Camera Ptr, x))	
  		Case ActorTypes.PLAQUE
  			Delete(CPtr(Plaque Ptr, x))
+ 		Case ActorTypes.FAKEPLAYER
+ 			Delete(CPtr(FakePlayer Ptr, x)) 	
+ 		Case ActorTypes.MENUCONTROLLER
+ 			Delete(CPtr(MenuController Ptr, x)) 				
  		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select
@@ -425,7 +439,11 @@ Function cloneActor(x As Actor Ptr, bank As ActorBankFwd Ptr) As Actor Ptr
  		Case ActorTypes.CAMERA
  			Return CPtr(Camera Ptr, x)->clone(bank) 	
  		Case ActorTypes.PLAQUE
- 			Return CPtr(Plaque Ptr, x)->clone(bank) 								 						
+ 			Return CPtr(Plaque Ptr, x)->clone(bank) 	
+ 		Case ActorTypes.FAKEPLAYER
+ 			Return CPtr(FakePlayer Ptr, x)->clone(bank) 	
+ 		Case ActorTypes.MENUCONTROLLER
+ 			Return CPtr(MenuController Ptr, x)->clone(bank) 								 						
 		Case Else
 			DEBUG_ASSERT(FALSE)
 	End Select	

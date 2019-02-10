@@ -1,1 +1,1 @@
-entrypoint, res/museum_09.tmx
+entrypoint, res/museum_00.tmx

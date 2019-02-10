@@ -553,6 +553,19 @@ Sub addPlaque( _
 			IIf(text = NULL, " NULL", *text)))
 End Sub
 
+Sub addMenuController( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	
+	res->bank->Add(New act.MenuController(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
+End Sub
+
 Sub processObject( _
 		objectType As Const ZString Ptr, _
 		ByRef relativePath As Const String, _
@@ -589,6 +602,8 @@ Sub processObject( _
 			addCamera(props, mapPixelHeight, x, y, z, w, h, res)				
 		Case "PLAQUE"
 			addPlaque(props, mapPixelHeight, x, y, z, w, h, res)			
+		Case "MENU_CONTROLLER"
+			addMenuController(props, mapPixelHeight, x, y, z, w, h, res)				
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select

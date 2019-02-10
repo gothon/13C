@@ -60,7 +60,7 @@ End Sub
 Static Function AudioController.getSample(audioFile As ZString Ptr) As Integer
 	Dim As Integer_ sampleRef = Any
   If Not sampleCache_.retrieve(*audioFile, sampleRef) Then
-    DArray_Integer__Emplace(samples_, BASS_SampleLoad(0, audioFile, 0, 0, 3, 0))
+    DArray_Integer__Emplace(samples_, BASS_SampleLoad(0, audioFile, 0, 0, 4, 0))
     sampleRef = samples_.back()
     DEBUG_ASSERT(samples_.back() <> -1)
     sampleCache_.insert(*audioFile, sampleRef)

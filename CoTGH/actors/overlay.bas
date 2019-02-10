@@ -66,6 +66,8 @@ Sub Overlay.drawText(x As Integer, y As Integer, ByRef t As Const String)
 End Sub
 
 Sub Overlay.drawTextBox()
+	If text_ = "" Then Return
+	
 	Dim As Integer offsetY = 0
 	Dim As Integer curTextPos = 0
 	Dim As Integer lastTextPos = 0

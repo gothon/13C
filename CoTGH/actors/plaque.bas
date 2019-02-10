@@ -19,7 +19,7 @@ Constructor Plaque( _
 	setType()
 		
 	AudioController.cacheSample("res/place.wav")
-		
+	AudioController.cacheSample("res/find.wav")	
 	This.bounds_ = bounds
 	This.text_ = text
 	This.triggered_ = FALSE
@@ -35,6 +35,7 @@ Function Plaque.update(dt As Double) As Boolean
 			If displaying_ Then 
 				GET_GLOBAL("OVERLAY", Overlay).showText(text_)
 				camera->setYOffset(CAMERA_Y_OFFSET)
+				If triggered_ Then AudioController.playSample("res/place.wav", Vec2F(0, 500))
 			Else
 				GET_GLOBAL("OVERLAY", Overlay).showText("")
 				camera->setYOffset(0)
@@ -43,8 +44,7 @@ Function Plaque.update(dt As Double) As Boolean
 			If Not triggered_ Then
 				triggered_ = TRUE
 				player_->addPlaque()
-			Else
-				AudioController.playSample("res/place.wav", Vec2F(0, 500))
+				AudioController.playSample("res/find.wav")
 			EndIf
 		End If 
 	Else

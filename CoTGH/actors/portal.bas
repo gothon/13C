@@ -48,6 +48,7 @@ Sub Portal.waitForNoIntersect()
 End Sub
 	
 Function Portal.update(dt As Double) As Boolean
+	If *toPortal_ = "NONE" Then Return FALSE
 	If requestGoCountdown_ = -1 Then
 		Dim As Player Ptr player_ = @GET_GLOBAL("PLAYER", Player)
 		If Not player_->getBounds().intersects(region_) Then 
@@ -55,7 +56,8 @@ Function Portal.update(dt As Double) As Boolean
 			Return FALSE
 		EndIf
 		If waitingForNoIntersect_ Then Return FALSE
-		If (mode_ = PortalEnterMode.FROM_CENTER) AndAlso (Not player_->pressedDown()) Then Return FALSE
+		If (mode_ = PortalEnterMode.FROM_CENTER) _
+				AndAlso ((Not player_->pressedDown()) OrElse (Not player_->isGrounded())) Then Return FALSE
 		
 		requestGoCountdown_ = MAP_TRANSITION_COUNTDOWN
 		If fadeMusic_ Then AudioController.fadeOut()

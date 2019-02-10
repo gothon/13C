@@ -36,6 +36,8 @@ Const As Integer STATUE_ADJUST_Y = 6
 
 Const As Integer FREEZE_DIE_FRAMES = 4
 
+Const As Integer IDLE_CARRY_FRAME = 15
+
 Const As Integer WARP_PARALYZE_DELAY = 3
 
 #Define CAMERA_BUFFER_TL Vec2F(150, 100)
@@ -62,7 +64,6 @@ Constructor Player( _
 
 	This.facingRight_ = TRUE
 
-	animImage->setOffset(16, 0)
 	AudioController.cacheSample("res/oops.wav")
 	AudioController.cacheSample("res/snap.wav")
 	AudioController.cacheSample("res/scratch.wav")
@@ -70,7 +71,7 @@ Constructor Player( _
 	AudioController.cacheSample("res/place.wav")
 	
 	This.animImage_ = animImage
-	This.animImage_->bindIn(TextureCache.get("res/mambazo.png"))
+	This.animImage_->bindIn(TextureCache.get("res/player.png"))
 	This.lastDownPressed_ = FALSE
 	This.downLHEdge_ = FALSE
 	This.destinationPortal_ = ""
@@ -111,6 +112,7 @@ Constructor Player( _
  	This.placeLHEdge_ = FALSE
  	This.hasCamera_ = FALSE
  	This.seenPlaques_ = 0
+ 	This.releaseCamera_ = FALSE
 End Constructor
 
 Destructor Player()
@@ -153,8 +155,12 @@ Sub Player.updateCamera(snapToTarget As Boolean)
 	If snapToTarget Then 
 		interface->snap(guideTarget, interface->getLeadingX())
 	Else
-		interface->guide(guideTarget, cameraRight)
+		If Not releaseCamera_ Then interface->guide(guideTarget, cameraRight)
 	EndIf	
+End Sub
+
+Sub Player.setCameraRelease(release As Boolean)
+	releaseCamera_ = release
 End Sub
 
 Sub Player.flipXUV()
@@ -162,6 +168,10 @@ Sub Player.flipXUV()
 	Swap q->v(0).t.x, q->v(1).t.x
 	Swap q->v(2).t.x, q->v(3).t.x
 End Sub
+
+Const Function Player.isGrounded() As Boolean
+	Return grounded_
+End Function
 
 Sub Player.setWarp( _
 			p As Vec2F, _
@@ -465,6 +475,7 @@ Function Player.update(dt As Double) As Boolean
 		model_->translate(modelTranslate)
 		warpCountdown_ = WARP_ANIM_COUNTDOWN
 		AudioController.fadeIn()
+		releaseCamera_ = FALSE
 	Else
 		model_->translate(COL_PTR->getDelta())
 		If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(COL_PTR->getDelta())
@@ -658,7 +669,12 @@ Sub Player.processAnimation()
 					If idleFrame_ = idleEndFrame_ Then idleFrame_ = -1
 				EndIf
 			EndIf
-			curFrame = IIf(idleFrame_ <> -1, idleFrame_, 0)
+			
+			If carryingStatue_ Then
+				curFrame = IDLE_CARRY_FRAME
+			Else
+				curFrame = IIf(idleFrame_ <> -1, idleFrame_, 0)
+			EndIf
 		EndIf
 	Else
 		curFrame = JUMP_FRAME

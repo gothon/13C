@@ -38,6 +38,7 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Const Function getBounds() ByRef As Const AABB
  	Declare Const Function pressedDown() As Boolean
  	Declare Const Function pressedActivate() As Boolean
+ 	Declare Const Function isGrounded() As Boolean
  	
  	Declare Const Function pressedSnap() As Boolean
  	Declare Const Function pressedPlace() As Boolean
@@ -51,6 +52,8 @@ Type Player Extends DynamicCollidingModelActor
 	
 	Declare Const Function seenPlaques() As Integer
 	Declare Sub addPlaque()
+	
+	Declare Sub setCameraRelease(release As Boolean)
 	
 	Declare Sub placeSnapshot(replaceId As UInteger)
 	Declare Const Function readyToPlace() As Boolean
@@ -79,6 +82,8 @@ Type Player Extends DynamicCollidingModelActor
  	Declare Sub processPlatformingControls()
  	Declare Sub processStatues()
  	Declare Sub processCarrying()
+ 	
+ 	As Boolean releaseCamera_ = Any
  	
  	As Integer seenPlaques_ = Any
  	As Boolean hasCamera_ = Any
