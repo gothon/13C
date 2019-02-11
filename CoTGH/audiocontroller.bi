@@ -18,6 +18,9 @@ Type AudioController
  	Declare Static Sub setMusicVol(v As Single)
  	Declare Static Function getPlaybackPosition() As LongInt
  	
+ 	Declare Static Sub pauseMusic()
+ 	Declare Static Sub playMusic() 	
+ 	
  	Declare Static Sub playSample(audioFile As ZString Ptr, ByRef offset As Vec2F = Vec2F(0, 0))
  	
  	Declare Static Sub update(dt As Double)
@@ -37,6 +40,8 @@ Type AudioController
  	Declare Static Function getMusic(audioFile As ZString Ptr) As Integer
  	
  	Static As Single musicVol_
+ 	
+ 	Static As Boolean musicPaused_
  	
  	Static As dsm.HashMap(ZString, Integer_) sampleCache_
  	Static As dsm.HashMap(ZString, Integer_) musicCache_

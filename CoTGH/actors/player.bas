@@ -70,8 +70,9 @@ Constructor Player( _
 	AudioController.cacheSample("res/leech.wav")
 	AudioController.cacheSample("res/place.wav")
 	
-	This.animImage_ = animImage
+	This.animImage_ = animImage	
 	This.animImage_->bindIn(TextureCache.get("res/player.png"))
+
 	This.lastDownPressed_ = FALSE
 	This.downLHEdge_ = FALSE
 	This.destinationPortal_ = ""
@@ -113,6 +114,7 @@ Constructor Player( _
  	This.hasCamera_ = FALSE
  	This.seenPlaques_ = 0
  	This.releaseCamera_ = FALSE
+ 	This.isMatt_ = FALSE
 End Constructor
 
 Destructor Player()
@@ -161,6 +163,11 @@ End Sub
 
 Sub Player.setCameraRelease(release As Boolean)
 	releaseCamera_ = release
+End Sub
+
+Sub Player.setIsMatt(isMatt As Boolean)
+	isMatt_ = isMatt
+	animImage_->setOffset(0, IIf(isMatt_, 0, 24))
 End Sub
 
 Sub Player.flipXUV()
@@ -412,10 +419,32 @@ Sub Player.claimSnapshot( _
 	AudioController.playSample("res/place.wav", Vec2F(0, 500))
 End Sub
 
+Sub Player.place(ByRef p As Const Vec2F, facingRight As Boolean)
+	Dim As Vec2F diff = p - COL_PTR->getAABB().o 'const
+	COL_PTR->place(p)
+	Dim As Vec3F modelTranslate = Vec3F(diff.x, diff.y, 0) + Vec3F(COL_PTR->getDelta())
+	If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(modelTranslate)
+	model_->translate(modelTranslate)	
+	If facingRight = FALSE Then 
+		If facingRight_ = TRUE Then
+			If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(-STATUE_ADJUST_X*2, 0, 0))
+			flipXUV()
+		End If
+		facingRight_ = FALSE
+	ElseIf facingRight = TRUE Then
+		If facingRight_ = FALSE Then
+			If fakeStatuePtr_ <> NULL Then fakeStatuePtr_->getModel()->translate(Vec3F(STATUE_ADJUST_X*2, 0, 0))
+			flipXUV()
+		End If
+		facingRight_ = TRUE	
+	End If
+End Sub
+	
 Function Player.update(dt As Double) As Boolean
 	Dim As CameraInterface Ptr camera_ = @GET_GLOBAL("CAMERA INTERFACE", CameraInterface)
 	Dim As Boolean snapCamera = FALSE
 	If GET_GLOBAL("TRANSITION NOTIFIER", TransitionNotifier).happened() Then
+		model_->setDrawMode(QuadTextureMode.TEXTURED_CONST)
 		snapCamera = TRUE
 		carryableStatues_.clear() 
 		COL_PTR->setEnabled(TRUE)
@@ -685,7 +714,7 @@ Sub Player.processAnimation()
 		If walkFrameDelay_ = 0 Then walkFrame_ = (walkFrame_ + 1) Mod 4
 	EndIf 
 	
-	animImage_->setOffset(curFrame * PLAYER_FRAME_WIDTH, 0)
+	animImage_->setOffset(curFrame * PLAYER_FRAME_WIDTH, IIf(isMatt_, 0, 24))
 End Sub
 
 Const Function Player.pressedDown() As Boolean

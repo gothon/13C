@@ -3,17 +3,10 @@
 
 #Include "darray.bi"
 #Include "image32.bi"
+#Include "primitive.bi"
 
-DECLARE_DARRAY(Image32)
-
-Type Image32Ptr
-  Declare Constructor()
-  Declare Destructor()
-  
-  Declare Constructor(p As Image32 Ptr)
-  
-  As Image32 Ptr p
-End Type
+DECLARE_PRIMITIVE_PTR(Image32)
+DECLARE_DARRAY(Image32Ptr)
 
 'A cache of textures so that referencing a texture by filename is a safe pattern even after initializing an object
 'that uses textures.
@@ -22,9 +15,7 @@ Type TextureCache
   'Paths should be in all upper-case to prevent the need to UCase on every get.
   Declare Static Function get(texturePath As String) As Image32 Ptr
 
- Private:
-  Static As DArray_Image32 images
-  
+  Static As DArray_Image32Ptr Ptr images  
   As Integer _ignored_
 End Type
 

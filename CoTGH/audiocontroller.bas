@@ -5,7 +5,7 @@
 #Include "bass.bi"
 #Include "debuglog.bi"
 
-Const As Single FADE_VELOCITY_PER_SEC = 3
+Const As Single FADE_VELOCITY_PER_SEC = 0.1
 Const As Single AUDIO_FADE_DISTANCE = 1000.0
 Const As Single DISTANCE_DELTA_SCALE = 0.01
 Const As Single SAMPLE_RATE = 44100
@@ -19,6 +19,7 @@ Dim As dsm.HashMap(ZString, Integer_) AudioController.sampleCache_
 Dim As dsm.HashMap(ZString, Integer_) AudioController.musicCache_
 Dim As Single AudioController.musicVolume_ = 1.0
 Dim As Boolean AudioController.fadeIn_ = TRUE
+Dim As Boolean AudioController.musicPaused_ = FALSE
 Dim As Integer AudioController.currentMusicHandle_ = -1
 Dim As Integer AudioController.currentMusicChannel_ = -1
 Dim As Single AudioController.musicVol_ = 1.0
@@ -129,6 +130,8 @@ Static Sub AudioController.switchMusic(audioFile As ZString Ptr, playbackPositio
 	If audioFile <> NULL Then	
 		DEBUG_ASSERT(BASS_ChannelPlay(currentMusicChannel_, 0) = BASS_TRUE)
 	EndIf
+	
+	If musicPaused_ Then BASS_ChannelPause(currentMusicChannel_)
 End Sub
 
 Static Function AudioController.getPlaybackPosition() As LongInt
@@ -167,3 +170,16 @@ End Sub
 Static Sub AudioController.setFrequencyMul(m As Double)
 	freqMul_ = m
 End Sub
+
+Static Sub AudioController.pauseMusic()
+	If currentMusicChannel_ <> -1 Then 
+		DEBUG_ASSERT(BASS_ChannelPause(currentMusicChannel_))
+	End If
+	musicPaused_ = TRUE
+End Sub
+
+Static Sub AudioController.playMusic() 	
+	If currentMusicChannel_ <> -1 Then BASS_ChannelPlay(currentMusicChannel_, BASS_FALSE)
+	musicPaused_ = FALSE
+End Sub
+

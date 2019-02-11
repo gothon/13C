@@ -24,6 +24,7 @@ Constructor FakePlayer(parent As ActorBankFwd Ptr, p As Vec3F, isMatt As Boolean
 	This.animImage_ = New Image32()
 	Base.Constructor(parent, createModel(This.animImage_))
 	setType()
+	setKey(IIf(isMatt, StrPtr("MAMBAZO"), StrPtr("ZAMASTER")))
 	
 	model_->translate(p)
 	
@@ -34,6 +35,7 @@ Constructor FakePlayer(parent As ActorBankFwd Ptr, p As Vec3F, isMatt As Boolean
 	End If
 	
 	This.animImage_->bindIn(TextureCache.get("res/player.png"))
+
 	This.idleFrame_ = -1
 	This.isMatt_ = isMatt
 End Constructor

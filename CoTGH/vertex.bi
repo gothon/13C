@@ -23,6 +23,9 @@ Type Vertex
   
   'Vertex normal
   As Vec3F n = Any
+  
+  'String form of the vertex.
+  Declare Const Operator Cast() As String
 End Type
 
 #EndIf

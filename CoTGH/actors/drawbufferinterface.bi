@@ -14,6 +14,7 @@ Type DrawBufferInterface Extends Actor
 	
 	Declare Sub setGlobalLightDirection(ByRef d As Const Vec3F)
   Declare Sub setGlobalLightMinMax(min As Double, max As Double)
+  Declare Sub setLightScale(x As Double)
 	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:

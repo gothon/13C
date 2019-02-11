@@ -188,9 +188,13 @@ Type QuadSprite Extends QuadModelBase
   'Create a centered billboard sprite from the given image.
   Declare Constructor(tex As Const Image32 Ptr, w As Integer, h As Integer)
   
+  Declare Sub setZSortAdjust(z As Double)
+  
  Protected:
   Declare Sub calcZSort(q As Quad Ptr) Override
   Declare Sub setDelegate() Override
+  
+  As Double zSortAdjust_ = Any
 End Type
 
 #EndIf

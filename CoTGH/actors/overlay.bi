@@ -20,14 +20,17 @@ Type Overlay Extends DynamicActor
 	
 	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override
- 	
+ 	 	
  	Declare Sub showText(ByRef text As Const String)
+ 	
+ 	Declare Sub textLine(ByRef text As Const String)
  	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
  	Declare Sub drawText(x As Integer, y As Integer, ByRef t As Const String)
  	Declare Sub drawTextBox()
  
+ 	As String centerText_
  	As String text_
  	As Image32 Ptr target_ = Any
  	As Image32 Ptr photo_ = Any

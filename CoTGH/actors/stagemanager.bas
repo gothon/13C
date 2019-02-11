@@ -33,6 +33,14 @@ Constructor StageManager( _
 	AudioController.cacheMusic(audioFile_)
 End Constructor
 
+Sub StageManager.setLightMinMax(min As Double, max As Double)
+	lightMin_ = min
+	lightMax_ = max
+	Dim As DrawBufferInterface Ptr dbInterface = @GET_GLOBAL("DRAWBUFFER INTERFACE", DrawBufferInterface)
+	dbInterface->setGlobalLightDirection(lightDir_)
+	dbInterface->setGlobalLightMinMax(lightMin_, lightMax_)		
+End Sub
+
 Const Function StageManager.getMapDims() ByRef As Const Vec2F
 	Return mapDims_
 End Function

@@ -25,6 +25,8 @@ Type StageManager Extends DynamicActor
 	
 	Declare Sub updateDelayPosition(ByRef p As Const Vec2F)
 	Declare Const Function getDelayPosition() As Vec2F
+	
+	Declare Sub setLightMinMax(min As Double, max As Double)
 
 	Declare Function update(dt As Double) As Boolean Override
  	Declare Sub notify() Override

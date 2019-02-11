@@ -119,6 +119,9 @@ Sub Gamespace.update(dt As Double)
 		Else 
 			transitionOccured_ = FALSE
 		EndIf 
+		If transitionOccured_ Then
+			drawBuffer_.setLightScale(1)
+		EndIf
 	Loop While continueUpdate
 End Sub
 

@@ -55,6 +55,10 @@ Type Player Extends DynamicCollidingModelActor
 	
 	Declare Sub setCameraRelease(release As Boolean)
 	
+	Declare Sub setIsMatt(isMatt As Boolean)
+	
+	Declare Sub place(ByRef p As Const Vec2F, facingRight As Boolean)
+	
 	Declare Sub placeSnapshot(replaceId As UInteger)
 	Declare Const Function readyToPlace() As Boolean
 	
@@ -161,6 +165,8 @@ Type Player Extends DynamicCollidingModelActor
  	As Integer idleFrameDelay_ = 0
  	As Integer idleEndFrame_ = 0
  	As Integer idleFrameSpeed_ = 0
+ 	
+ 	As Boolean isMatt_ = Any
  	
  	As String destinationPortal_
 End Type

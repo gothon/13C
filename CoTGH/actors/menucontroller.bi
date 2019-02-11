@@ -18,7 +18,16 @@ Type MenuController Extends DynamicActor
  	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
- 	As AABB bounds_
+ 	As AABB bounds_ = Any
+ 	As LongInt introRoll_ = Any
+ 	As Boolean resetScreen_ = Any
+ 	As ModelActor Ptr titleActor_ = Any
+ 	As ModelActor Ptr arrowActor_ = Any
+ 	As ModelActor Ptr doorwayActor_ = Any
+ 	As Double t_ = Any
+ 	As Boolean isMatt_ = Any
+ 	As Double lightFade_ = Any
+ 	As Integer activatePlayerCountup_ = Any
 End Type
 
 End Namespace

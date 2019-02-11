@@ -33,7 +33,6 @@ Constructor Image32(path As String)
 End Constructor
 
 Destructor Image32()
-	DEBUG_ASSERT(refs_ = 0)
 	If (imageData_ <> NULL) AndAlso (source_ = NULL) Then ImageDestroy(imageData_)
 	If source_ <> NULL Then source_->unref()
 End Destructor

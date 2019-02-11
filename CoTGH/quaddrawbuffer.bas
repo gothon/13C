@@ -4,6 +4,8 @@
 #Include "vecmath.bi"
 #Include "raster.bi"
 
+#Include "texturecache.bi"
+
 Constructor QuadDrawElement()
   'Nop
 End Constructor
@@ -21,6 +23,7 @@ Constructor QuadDrawBuffer()
 	This.globalLightMin_ = 1
 	This.globalLightMax_ = 1
 	This.globalLightDirection_ = Vec3F(0, 0, -1)
+	This.lightScale_ = 1.0
 End Constructor
 
 Sub QuadDrawBuffer.setGlobalLightDirection(ByRef d As Const Vec3F)
@@ -32,6 +35,10 @@ Sub QuadDrawBuffer.setGlobalLightMinMax(min As Double, max As Double)
 	globalLightMin_ = min
 	globalLightMax_ = max
 	DEBUG_ASSERT(min <= max)
+End Sub
+
+Sub QuadDrawBuffer.setLightScale(x As Double)
+	lightScale_ = x
 End Sub
 
 Destructor QuadDrawBuffer()
@@ -109,6 +116,7 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
     		(q->pV(1).p.y >= dst->h()) AndAlso _
     		(q->pV(2).p.y >= dst->h()) AndAlso _
     		(q->pV(3).p.y >= dst->h())) Then Continue For    
+    		    		
     Select Case q->mode
     	Case QuadTextureMode.FLAT:
     		lightQuad(q)
@@ -152,7 +160,7 @@ Sub QuadDrawBuffer.draw(dst As Image32 Ptr)
             q->trimX, _ 
             q->trimY, _ 
             dst) 
-	      End If
+    		End If
     	Case QuadTextureMode.TEXTURED_CONST:
     		lightQuadConst(q)
         raster.drawPlanarQuad_TexturedConstant( _
@@ -202,6 +210,11 @@ Function QuadDrawBuffer.lightQuad(q As Quad Ptr) As Boolean
 			End If
 		Next i
 	EndIf 
+	
+	q->pV(0).c *= lightScale_
+	q->pV(1).c *= lightScale_
+	q->pV(2).c *= lightScale_
+	q->pV(3).c *= lightScale_
 
 	vecmath.maxsat(@(q->pV(0).c))
 	vecmath.maxsat(@(q->pV(1).c))
@@ -231,7 +244,9 @@ Sub QuadDrawBuffer.lightQuadConst(q As Quad Ptr)
 			light->distanceAdd(q->v(0).p, @q->pV(0))
 		Next i		
 	EndIf 
-
+	
+	q->pV(0).c *= lightScale_
+	
 	vecmath.maxsat(@(q->pV(0).c))
 	q->pV(1).c = q->pV(0).c
 	q->pV(2).c = q->pV(0).c

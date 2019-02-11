@@ -23,6 +23,17 @@ Dim As Double FRAME_TIME = 1.0 / 30.0
 
 ScreenRes PHYSICAL_SCRX, PHYSICAL_SCRY, 32
 SetMouse ,,0
+
+Dim As String choice = ""
+While (choice <> "Y") AndAlso (choice <> "N")
+	Input "Fullscreen (recommended)? [Y/N] ", choice
+	choice = UCase(choice)
+Wend
+If choice = "Y" Then 
+	ScreenRes PHYSICAL_SCRX, PHYSICAL_SCRY, 32,,1
+	SetMouse ,,0
+EndIf
+
 Print "Lode..."
 
 Dim As Config cfg 'const
@@ -41,6 +52,7 @@ bank->add( _
 				New DynamicAABB(AABB(Vec2F(60, 60), Vec2F(15, 24))), _
 				playerSprite))
 				
+AudioController.pauseMusic()
 AudioController.setMusicVol(0.25)
 
 Scope
@@ -50,10 +62,10 @@ Scope
 	Do
 		gs.update(FRAME_TIME)
 		AudioController.update(FRAME_TIME)
-		
+
 		Line target.fbImg(), (0, 0)-(PHYSICAL_SCRX - 1, PHYSICAL_SCRY - 1), 0, BF
 		gs.draw()
-				
+
 		limiter.sync()
 		ScreenLock
 		Put (0, 0), target.fbImg(), PSet

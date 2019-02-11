@@ -456,13 +456,13 @@ Sub addPainting( _
 		Dim As Integer x = Val(util.trimWhitespace((*getPropOrDie(props, "to_position_x")))) 'const
 		Dim As Integer y = Val(util.trimWhitespace((*getPropOrDie(props, "to_position_y")))) 'const
 		
-		res->bank->Add(New act.Painting(res->bank, p, assetPath, "RES/" + mapPath, Vec2F(x, y), facingRight))	
+		res->bank->add(New act.Painting(res->bank, p, assetPath, "RES/" + mapPath, Vec2F(x, y), facingRight))	
 		res->connections.push(util.cloneZString(StrPtr(mapPath)))
 		
 		Return
 	EndIf
 	
-	res->bank->Add(New act.Painting(res->bank, p))
+	res->bank->add(New act.Painting(res->bank, p))
 	Return
 End Sub
 
@@ -495,9 +495,9 @@ Sub addChandelier( _
 		Dim As QuadModelBase Ptr model = _
 				New QuadModel(Vec3F(16, 16, 1.0), QuadModelTextureCube(1, 0, 0, 0, 0), uvIndex(), tex(), TRUE, repeatY)
 		model->translate(Vec3F(x + 8, yPos + 16, 1))
-		res->bank->Add(New act.DecorativeModel(res->bank, model))	
+		res->bank->add(New act.DecorativeModel(res->bank, model))	
 	End If
-	res->bank->Add(New act.Chandelier(res->bank, Vec3F(x, yPos, 1)))
+	res->bank->add(New act.Chandelier(res->bank, Vec3F(x, yPos, 1)))
 End Sub
 
 Sub addLeecher( _
@@ -509,7 +509,7 @@ Sub addLeecher( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	res->bank->Add(New act.Leecher(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h)), 0, 2))
+	res->bank->add(New act.Leecher(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h)), 0, 2))
 End Sub
 
 Sub addIsland( _
@@ -533,7 +533,7 @@ Sub addCamera( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	res->bank->Add(New act.Camera(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
+	res->bank->add(New act.Camera(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
 End Sub
 
 Sub addPlaque( _
@@ -547,7 +547,7 @@ Sub addPlaque( _
 	  res As ParseResult Ptr)
 	  
 	Dim As Const ZString Ptr text = getPropOrNull(props, "text")
-	res->bank->Add(New act.Plaque( _
+	res->bank->add(New act.Plaque( _
 			res->bank, _
 			AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h)), _
 			IIf(text = NULL, " NULL", *text)))
@@ -562,8 +562,25 @@ Sub addMenuController( _
 	  w As UInteger, _
 	  h As UInteger, _
 	  res As ParseResult Ptr)
-	
-	res->bank->Add(New act.MenuController(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
+	res->bank->add(New act.MenuController(res->bank, AABB(Vec2F(x, mapPixelHeight - y - h), Vec2F(w, h))))
+End Sub
+
+
+Sub addFakePlayer( _
+		props As Const dsm.HashMap(ZString, ConstZStringPtr) Ptr, _
+		mapPixelHeight As UInteger, _
+		x As UInteger, _
+	  y As UInteger, _
+	  z As Single, _
+	  w As UInteger, _
+	  h As UInteger, _
+	  res As ParseResult Ptr)
+	  
+	Dim As Boolean isMatt = IIf(UCase(util.trimWhitespace((*getPropOrDie(props, "name")))) = "MATT", TRUE, FALSE) 'const
+	Dim As Boolean facingRight = _
+			IIf(UCase(util.trimWhitespace((*getPropOrDie(props, "facing_right")))) = "TRUE", TRUE, FALSE) 'const
+
+	res->bank->add(New act.FakePlayer(res->bank, Vec2F(x, mapPixelHeight - y - h), isMatt, facingRight))
 End Sub
 
 Sub processObject( _
@@ -603,7 +620,9 @@ Sub processObject( _
 		Case "PLAQUE"
 			addPlaque(props, mapPixelHeight, x, y, z, w, h, res)			
 		Case "MENU_CONTROLLER"
-			addMenuController(props, mapPixelHeight, x, y, z, w, h, res)				
+			addMenuController(props, mapPixelHeight, x, y, z, w, h, res)			
+		Case "FAKE_PLAYER"
+			addFakePlayer(props, mapPixelHeight, x, y, z, w, h, res)						
 		Case Else
 			DEBUG_LOG("Skipping unknown object type: '" + *objectType + "'.")
 	End Select
@@ -774,7 +793,6 @@ Function parseMap(tmxPath As Const ZString Ptr) As ParseResult
 			relativePath, _
 			@res, _
 			blocksCollision)
-	
 	xmlFreeDoc(document)
 	Return res
 End Function

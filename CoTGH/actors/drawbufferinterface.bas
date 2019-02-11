@@ -23,6 +23,10 @@ Sub DrawBufferInterface.setGlobalLightMinMax(min As Double, max As Double)
 	drawBuffer_->setGlobalLightMinMax(min, max)
 End Sub
 
+Sub DrawBufferInterface.setLightScale(x As Double)
+	drawBuffer_->setLightScale(x)
+End Sub
+
 Function DrawBufferInterface.clone(parent As ActorBankFwd Ptr) As Actor Ptr
 	DEBUG_ASSERT(FALSE)
 End Function

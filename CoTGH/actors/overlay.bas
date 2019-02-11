@@ -89,6 +89,10 @@ Sub Overlay.drawTextBox()
 	Line target_->fbImg(), (2, 2)-(637, offsetY + 2*TEXT_BORDER - 5), TEXT_BG_BORDER_COL, B
 End Sub
 
+Sub Overlay.textLine(ByRef text As Const String)
+	centerText_ = text
+End Sub
+
 Sub Overlay.drawOverlay()
 	Dim As Image32 Ptr hud = TextureCache.get("res/hud.png")
 	Dim As Integer scnH = target_->h()
@@ -108,6 +112,12 @@ Sub Overlay.drawOverlay()
 	If hasCamera_ Then Put target_->fbImg(), (15, scnH - 92), hud->fbImg(), (0, 0)-(95, 95), Trans
 	
 	drawTextBox()
+	
+	If centerText_ <> "" Then
+		Dim As Integer x = 320 - Len(centerText_)*16*0.5 'const
+		Dim As Integer y = 240 - 8 'const
+		drawText(x, y, centerText_)	
+	End If
 End Sub
 
 Sub Overlay.showText(ByRef text As Const String)

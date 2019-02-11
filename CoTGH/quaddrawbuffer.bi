@@ -44,11 +44,14 @@ Type QuadDrawBuffer
   
   Declare Sub setGlobalLightDirection(ByRef d As Const Vec3F)
   Declare Sub setGlobalLightMinMax(min As Double, max As Double)
+  Declare Sub setLightScale(x As Double)
  Private:
   Declare Sub sort()
   Declare Function lightQuad(q As Quad Ptr) As Boolean
   Declare Sub lightQuadConst(q As Quad Ptr)
   Declare Static Function backfaceTest(ByRef q As Const Quad) As Boolean
+  
+  As Double lightScale_ = Any
   
   As Double globalLightMin_ = Any
   As Double globalLightMax_ = Any

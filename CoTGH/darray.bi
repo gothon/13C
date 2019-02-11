@@ -149,8 +149,8 @@ Sub DArray_##_TYPENAME_.maybeIncreaseCapacity()
     Do
       capacity *= 2
     Loop While size_ > capacity
-    This.elements = ReAllocate(This.elements, capacity*SizeOf(_TYPENAME_))
-    DEBUG_ASSERT(This.elements <> NULL)
+    elements = ReAllocate(elements, capacity*SizeOf(_TYPENAME_))
+    DEBUG_ASSERT(elements <> NULL)
   EndIf
 End Sub
 

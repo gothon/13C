@@ -43,12 +43,13 @@ Function SimulationInterface.update(dt As Double) As Boolean
 	If (Not slowdownMode_) OrElse GET_GLOBAL("TRANSITION NOTIFIER", TransitionNotifier).happened() Then
 		timeSlowMul_ = 1.0
 		slowdownMode_ = FALSE
+		AudioController.setFrequencyMul(1.0)
+		sim_->setTimeMultiplier(1.0)
 	ElseIf slowdownMode_ Then
 		timeSlowMul_ *= 0.9
+		AudioController.setFrequencyMul(timeSlowMul_^0.15)
+		sim_->setTimeMultiplier(timeSlowMul_)
 	EndIf
-	
-	AudioController.setFrequencyMul(timeSlowMul_^0.15)
-	sim_->setTimeMultiplier(timeSlowMul_)
 	
 	Return FALSE
 End Function

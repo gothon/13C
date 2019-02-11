@@ -623,10 +623,11 @@ End Operator
 Constructor QuadSprite(tex As Const Image32 Ptr, w As Integer, h As Integer)
   construct()
   setDelegate()
+  zSortAdjust_ = 0
  
   Dim As Integer hw = w * 0.5f 'const
   Dim As Integer hh = h * 0.5f 'const
-  
+
   Dim As Vertex v(0 To 3) = { _
       Vertex(Vec3F(-hw, hh - 1, 0.0f),    Vec2F(UV_ERROR_ADJ, UV_ERROR_ADJ)), _
       Vertex(Vec3F(hw - 1, hh - 1, 0.0f), Vec2F(w - UV_ERROR_ADJ, UV_ERROR_ADJ)), _
@@ -637,7 +638,7 @@ Constructor QuadSprite(tex As Const Image32 Ptr, w As Integer, h As Integer)
   v(1).n = Vec3F(0, 0, 1)
   v(2).n = Vec3F(0, 0, 1)
   v(3).n = Vec3F(0, 0, 1)
-  
+    
   DArray_Quad_Emplace(model_, v(), tex, QuadTextureMode.TEXTURED_CONST, FALSE, FALSE, Vec3F(0, 0, 1), FALSE)
 End Constructor
 
@@ -649,8 +650,12 @@ End Sub
 
 Const As Double SPRITE_ZSHIFT_EPSILON = 0.01
 
+Sub QuadSprite.setZSortAdjust(z As Double)
+	zSortAdjust_ = z
+End Sub
+
 Sub QuadSprite.calcZSort(q As Quad Ptr)
-  q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z)*0.25 - SPRITE_ZSHIFT_EPSILON
+  q->zSort = (q->pV(0).p.z + q->pV(1).p.z + q->pV(2).p.z + q->pV(3).p.z)*0.25 - SPRITE_ZSHIFT_EPSILON + zSortAdjust_
 End Sub
 
 Sub QuadSprite.setDelegate()
