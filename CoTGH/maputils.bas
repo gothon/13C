@@ -457,7 +457,8 @@ Sub addPainting( _
 		Dim As Integer y = Val(util.trimWhitespace((*getPropOrDie(props, "to_position_y")))) 'const
 		
 		res->bank->add(New act.Painting(res->bank, p, assetPath, "RES/" + mapPath, Vec2F(x, y), facingRight))	
-		res->connections.push(util.cloneZString(StrPtr(mapPath)))
+		
+		If mapPath <> "END" Then res->connections.push(util.cloneZString(StrPtr(mapPath)))
 		
 		Return
 	EndIf

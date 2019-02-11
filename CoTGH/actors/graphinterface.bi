@@ -23,6 +23,7 @@ Type GraphInterface Extends Actor
 	Declare Sub requestGoBaseIndex(stage As String)	
 	Declare Sub embed(index As ig_Index, existingEmbed As UInteger, indexToUpdate As UInteger Ptr)
 	Declare Const Function cloneRequested() As Boolean	
+	Declare Sub signalEnd()
 	'---
 
 	Declare Sub setClone(index As ig_Index)

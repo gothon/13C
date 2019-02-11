@@ -73,6 +73,7 @@ Constructor Player( _
 	This.animImage_ = animImage	
 	This.animImage_->bindIn(TextureCache.get("res/player.png"))
 
+	This.statuesBroken_ = 0
 	This.lastDownPressed_ = FALSE
 	This.downLHEdge_ = FALSE
 	This.destinationPortal_ = ""
@@ -131,6 +132,14 @@ End Function
 Sub Player.addPlaque()
 	seenPlaques_ += 1	
 End Sub
+
+Sub Player.addBrokenArtifact()
+	statuesBroken_ += 1
+End Sub
+
+Const Function Player.getBrokenArtifacts() As Integer
+	Return statuesBroken_
+End Function
 	
 Sub Player.updateCamera(snapToTarget As Boolean)
 	Dim As Boolean cameraRight = facingRight_

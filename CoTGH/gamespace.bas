@@ -125,6 +125,14 @@ Sub Gamespace.update(dt As Double)
 	Loop While continueUpdate
 End Sub
 
+Sub Gamespace.signalEnd()
+	shouldEnd_ = TRUE
+End Sub
+
+Const Function Gamespace.shouldEnd() As Boolean
+	Return shouldEnd_
+End Function
+
 Sub Gamespace.draw() 
 	DEBUG_ASSERT(primaryIndex_ <> NULL)
 	globalBank_->project(camera_->proj())

@@ -97,6 +97,7 @@ Function Statue.update(dt As Double) As Boolean
 		COL_PTR->ignore(player_)
 		solid_ = FALSE
 		currentFrame_ = BREAK_START_FRAME
+		player_->addBrokenArtifact()
 	EndIf
 			
 	If playerOffCountdown_ > 0 Then playerOffCountdown_ -= 1

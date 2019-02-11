@@ -120,6 +120,10 @@ Sub Overlay.drawOverlay()
 	End If
 End Sub
 
+Sub Overlay.drawTextToScreen(x As Integer, y As Integer, ByRef text As Const String)
+	Draw String (x, y), text,, font_
+End Sub
+
 Sub Overlay.showText(ByRef text As Const String)
 	text_ = text
 End Sub

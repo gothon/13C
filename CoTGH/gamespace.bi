@@ -44,6 +44,9 @@ Type Gamespace
 	Declare Sub deleteIndex(index As ig_Index Ptr)
 	
 	Declare Sub setDrawMulmix(ByRef mulmix As Const Vec3F, ByRef addmix As Const Vec3F)
+	
+	Declare Sub signalEnd()
+	Declare Const Function shouldEnd() As Boolean
  Private:
 	Declare Sub addSystemActors()
 	Declare Sub embed()
@@ -72,6 +75,7 @@ Type Gamespace
   As Vec3F addmix_ = Vec3f(0.0, 0.0, 0.0)
   
   As Double timeStep_ = 0.0
+  As Boolean shouldEnd_ = FALSE
   
   As ig_Index primaryIndex_ = NULL
   

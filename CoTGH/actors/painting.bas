@@ -95,13 +95,17 @@ Function Painting.updateInternal(dt As Double) As Boolean
 		Return FALSE
 	ElseIf warpCountdown_ = 0 Then
 		warpCountdown_ = -1
-		player_->disableCollision()
-		player_->setWarp(playerData_.p, playerData_.v, playerData_.leadingX, playerData_.musicPos, playerData_.facingRight)
-		If fixed_ Then 
-			graph->requestGoBaseIndex(toMap_)	
-		Else 
-			graph->requestGoIndex(graph->unembedToIndex(playerData_.embedId))	
-		EndIf
+		If toMap_ <> "RES/END" Then
+			player_->disableCollision()
+			player_->setWarp(playerData_.p, playerData_.v, playerData_.leadingX, playerData_.musicPos, playerData_.facingRight)
+			If fixed_ Then 
+				graph->requestGoBaseIndex(toMap_)	
+			Else 
+				graph->requestGoIndex(graph->unembedToIndex(playerData_.embedId))	
+			EndIf
+		Else
+			graph->signalEnd()
+		End If
 		Return FALSE
 	EndIf
 	

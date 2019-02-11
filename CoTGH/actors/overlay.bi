@@ -25,6 +25,8 @@ Type Overlay Extends DynamicActor
  	
  	Declare Sub textLine(ByRef text As Const String)
  	
+ 	Declare Sub drawTextToScreen(x As Integer, y As Integer, ByRef text As Const String)
+ 	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
  	Declare Sub drawText(x As Integer, y As Integer, ByRef t As Const String)

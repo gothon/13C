@@ -65,6 +65,10 @@ Sub GraphInterface.requestGoBaseIndex(stage As String)
 	DEBUG_ASSERT(goKey_ = "")
 	goIndex_ = CPtr(Gamespace Ptr, gs_)->makeBaseIndex(stage)	
 End Sub
+
+Sub GraphInterface.signalEnd()
+	CPtr(Gamespace Ptr, gs_)->signalEnd()
+End Sub
 	
 Function GraphInterface.getRequestGoIndexAndClear() As ig_Index
 	Dim As ig_Index tempIndex = goIndex_

@@ -76,6 +76,9 @@ Type Player Extends DynamicCollidingModelActor
 	
 	Declare Sub setLockState(state As LockState)
 	
+	Declare Sub addBrokenArtifact()
+	Declare Const Function getBrokenArtifacts() As Integer
+	
  	Declare Function clone(parent As ActorBankFwd Ptr) As Actor Ptr Override
  Private:
  	Declare Sub processAnimation()
@@ -165,6 +168,8 @@ Type Player Extends DynamicCollidingModelActor
  	As Integer idleFrameDelay_ = 0
  	As Integer idleEndFrame_ = 0
  	As Integer idleFrameSpeed_ = 0
+ 	
+ 	As Integer statuesBroken_ = 0
  	
  	As Boolean isMatt_ = Any
  	

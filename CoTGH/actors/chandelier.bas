@@ -94,6 +94,7 @@ Function Chandelier.update(dt As Double) As Boolean
 		COL_PTR->ignore(player_)
 		solid_ = FALSE
 		COL_PTR->enableGravity(TRUE)
+		player_->addBrokenArtifact()
 	EndIf
 
 	If Not solid_ Then

@@ -58,7 +58,7 @@
   </object>
   <object id="13" name="plaque" x="272" y="128" width="16" height="32">
    <properties>
-    <property name="text" value=" Cake &amp; Guns|| Fight pie, cherries, fruit, and whipped-| toppings in space!|| Zamaster| 2010"/>
+    <property name="text" value=" Cake &amp; Guns|| Fight pie, cherries, fruit, and| whipped-toppings in space!|| Zamaster| 2010"/>
     <property name="type" value="plaque"/>
    </properties>
   </object>
