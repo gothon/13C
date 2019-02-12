@@ -96,8 +96,8 @@ Static Sub AudioController.update(dt As Double)
 		musicVolume_ = 0.0
 	EndIf
 	If currentMusicChannel_ <> -1 Then
-		DEBUG_ASSERT(BASS_ChannelSetAttribute(currentMusicChannel_, BASS_ATTRIB_VOL, musicVolume_) = BASS_TRUE)
-		DEBUG_ASSERT(BASS_ChannelSetAttribute(currentMusicChannel_, BASS_ATTRIB_FREQ, sampleRate_*freqMul_) = BASS_TRUE)
+		BASS_ChannelSetAttribute(currentMusicChannel_, BASS_ATTRIB_VOL, musicVolume_)
+		BASS_ChannelSetAttribute(currentMusicChannel_, BASS_ATTRIB_FREQ, sampleRate_*freqMul_)
 	End If
 End Sub
  	
@@ -114,7 +114,7 @@ Static Sub AudioController.switchMusic(audioFile As ZString Ptr, playbackPositio
 		Dim As Integer musicHandle = getMusic(audioFile) 'const
 		If currentMusicHandle_ <> musicHandle Then
 			If currentMusicChannel_ <> -1 Then 
-				DEBUG_ASSERT(BASS_ChannelStop(currentMusicChannel_) = BASS_TRUE)
+				BASS_ChannelStop(currentMusicChannel_)
 			EndIf
 			currentMusicHandle_ = musicHandle
 			currentMusicChannel_ = BASS_SampleGetChannel(currentMusicHandle_, FALSE)
@@ -124,11 +124,11 @@ Static Sub AudioController.switchMusic(audioFile As ZString Ptr, playbackPositio
 	
 	If playbackPosition <> -1 Then
 		DEBUG_ASSERT(currentMusicChannel_ <> -1)
-		DEBUG_ASSERT(BASS_ChannelSetPosition(currentMusicHandle_, playbackPosition, BASS_POS_BYTE) = BASS_TRUE)
+		BASS_ChannelSetPosition(currentMusicHandle_, playbackPosition, BASS_POS_BYTE)
 	EndIf
 	
 	If audioFile <> NULL Then	
-		DEBUG_ASSERT(BASS_ChannelPlay(currentMusicChannel_, 0) = BASS_TRUE)
+		BASS_ChannelPlay(currentMusicChannel_, 0)
 	EndIf
 	
 	If musicPaused_ Then BASS_ChannelPause(currentMusicChannel_)
@@ -173,7 +173,7 @@ End Sub
 
 Static Sub AudioController.pauseMusic()
 	If currentMusicChannel_ <> -1 Then 
-		DEBUG_ASSERT(BASS_ChannelPause(currentMusicChannel_))
+		BASS_ChannelPause(currentMusicChannel_)
 	End If
 	musicPaused_ = TRUE
 End Sub
