@@ -40,7 +40,7 @@ Type ColorWheel
 	Declare Const Function getColor(stage As UInteger) As UInteger
 
  Private:
- 	Const As UInteger MAX_OPERATORS = 6
+ 	Const As UInteger MAX_OPERATORS = 7
  	
  	As UInteger operatorsN 'Const
  	As ColorOperator operators(0 To MAX_OPERATORS - 1)
